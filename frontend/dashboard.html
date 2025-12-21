@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard – Stock Predictor</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body onload="requireAuth()">
+  <div class="container">
+    <div class="top-bar">
+      <h2>Dashboard</h2>
+      <div class="top-bar right">
+        <span>Logged in as: <strong id="user-email"></strong></span>
+        <div class="logout-group">
+          <button id="logout-btn" class="small-button secondary" type="button" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="symbol">Stock symbol</label>
+          <input id="symbol" type="text" placeholder="e.g. AAPL" />
+        </div>
+
+        <div class="form-group">
+          <label for="period">History period</label>
+          <select id="period">
+            <option value="1mo">1 month</option>
+            <option value="3mo">3 months</option>
+            <option value="6mo">6 months</option>
+            <option value="1y">1 year</option>
+          </select>
+        </div>
+
+        <div class="form-group-buttons">
+          <button id="history-btn" type="button" onclick="loadHistory()">Load History</button>
+          <button id="predict-btn" class="secondary" type="button" onclick="predict()">Predict Next 5 Days</button>
+        </div>
+      </div>
+
+      <div id="dash-msg" class="message"></div>
+
+      <div class="chart-panel">
+        <h3>Price history</h3>
+        <canvas id="stockChart" height="120"></canvas>
+      </div>
+
+      <div class="prediction-panel">
+        <h3>Predicted prices</h3>
+        <ul id="predictions"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

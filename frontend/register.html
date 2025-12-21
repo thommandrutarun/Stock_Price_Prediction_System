@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register – Stock Predictor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container small">
+    <div class="card">
+      <h1 class="center">Create Account</h1>
+
+      <label for="reg-name">Full Name</label>
+      <input id="reg-name" type="text" placeholder="Your name" />
+
+      <label for="reg-email">Email</label>
+      <input id="reg-email" type="email" placeholder="you@example.com" />
+
+      <label for="reg-phone">Phone (optional)</label>
+      <input id="reg-phone" type="text" placeholder="Phone number" />
+
+      <label for="reg-password">Password</label>
+      <input id="reg-password" type="password" placeholder="********" />
+
+      <button id="register-btn" type="button" onclick="registerUser()">Register</button>
+
+      <p class="text-small center">
+        Already have an account?
+        <a href="login.html">Login</a>
+      </p>
+
+      <div id="reg-msg" class="message"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

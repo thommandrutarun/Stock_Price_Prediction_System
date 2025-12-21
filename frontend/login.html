@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login – Stock Predictor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container small">
+    <div class="card">
+      <h1 class="center">Login</h1>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@example.com" />
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="********" />
+
+      <!-- Either this button uses onclick OR id for auto-wire -->
+      <button id="login-btn" type="button" onclick="login()">Login</button>
+
+      <p class="text-small center">
+        Don’t have an account?
+        <a href="register.html">Register here</a>
+      </p>
+
+      <div id="msg" class="message"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
