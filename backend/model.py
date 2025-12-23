@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 def predict_price(prices):
-    # prices: list of floats
     X = np.array(range(len(prices))).reshape(-1, 1)
     y = np.array(prices)
 
@@ -11,5 +10,4 @@ def predict_price(prices):
 
     future_day = [[len(prices)]]
     prediction = model.predict(future_day)
-
     return round(float(prediction[0]), 2)

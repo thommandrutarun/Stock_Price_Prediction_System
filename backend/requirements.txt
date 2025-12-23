@@ -2,10 +2,8 @@ flask
 flask-cors
 flask-bcrypt
 flask-jwt-extended
-yfinance
-numpy
-pandas
-scikit-learn
-bcrypt
-pyjwt
 mysql-connector-python
+yfinance
+pandas
+numpy
+scikit-learn

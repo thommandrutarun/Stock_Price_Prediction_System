@@ -1,7 +1,6 @@
-import bcrypt
+# auth.py – optional helpers, no routes needed if app.py already defines them
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
 
-def hash_password(password: str) -> bytes:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-
-def check_password(password: str, hashed: bytes) -> bool:
-    return bcrypt.checkpw(password.encode(), hashed)
+bcrypt = Bcrypt()
+jwt = JWTManager()
