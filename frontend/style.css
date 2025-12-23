@@ -1,31 +1,21 @@
-/* =========================
-   GLOBAL RESET
-========================= */
+/* ========= GLOBAL RESET ========= */
 * {
   box-sizing: border-box;
 }
 
-body {
+body,
+html {
   margin: 0;
-  font-family: "Segoe UI", system-ui, sans-serif;
   min-height: 100vh;
-  /* COLORFUL STOCK-MARKET BACKGROUND */
-  background:
-    linear-gradient(120deg, rgba(0, 255, 180, 0.15), rgba(0, 120, 255, 0.15)),
-    radial-gradient(circle at top right, #1e293b, #020617),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.05) 0px,
-      rgba(255, 255, 255, 0.05) 2px,
-      transparent 2px,
-      transparent 12px
-    );
-  color: #e5e7eb;
 }
 
-/* =========================
-   LINKS
-========================= */
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========= LINKS ========= */
 a {
   color: #38bdf8;
   text-decoration: none;
@@ -36,9 +26,7 @@ a:hover {
   text-decoration: underline;
 }
 
-/* =========================
-   CONTAINERS
-========================= */
+/* ========= CONTAINERS ========= */
 .container {
   max-width: 1150px;
   margin: 0 auto;
@@ -50,27 +38,21 @@ a:hover {
   margin-top: 90px;
 }
 
-/* =========================
-   GLASS CARD (FINTECH STYLE)
-========================= */
+/* ========= CARD ========= */
 .card {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(30, 41, 59, 0.95),
-      rgba(2, 6, 23, 0.95)
-    );
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.95),
+    rgba(2, 6, 23, 0.95)
+  );
   border-radius: 14px;
   padding: 22px 24px;
-  box-shadow:
-    0 20px 45px rgba(0, 0, 0, 0.7),
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7),
     inset 0 0 0 1px rgba(148, 163, 184, 0.25);
   backdrop-filter: blur(6px);
 }
 
-/* =========================
-   HEADINGS
-========================= */
+/* ========= HEADINGS ========= */
 h1,
 h2,
 h3 {
@@ -97,9 +79,7 @@ h1.center {
   color: #cbd5f5;
 }
 
-/* =========================
-   TOP BAR (DASHBOARD)
-========================= */
+/* ========= TOP BAR (DASHBOARD) ========= */
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -112,9 +92,7 @@ h1.center {
   color: #a5b4fc;
 }
 
-/* =========================
-   FORMS
-========================= */
+/* ========= FORMS ========= */
 label {
   display: block;
   margin-top: 10px;
@@ -145,9 +123,7 @@ select:focus {
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35);
 }
 
-/* =========================
-   BUTTONS (TRADING STYLE)
-========================= */
+/* ========= BUTTONS ========= */
 button {
   margin-top: 16px;
   padding: 10px 18px;
@@ -186,15 +162,12 @@ button.small-button {
   gap: 12px;
 }
 
-/* Same CSS for login & register buttons */
 .auth-button {
   margin-top: 0;
   padding: 10px 24px;
 }
 
-/* =========================
-   MESSAGES
-========================= */
+/* ========= MESSAGES ========= */
 .message {
   margin-top: 12px;
   font-size: 13px;
@@ -208,9 +181,7 @@ button.small-button {
   color: #f87171;
 }
 
-/* =========================
-   DASHBOARD LAYOUT
-========================= */
+/* ========= DASHBOARD LAYOUT ========= */
 .form-row {
   display: flex;
   flex-wrap: wrap;
@@ -228,7 +199,6 @@ button.small-button {
   justify-content: flex-end;
 }
 
-/* Center all button groups */
 .button-group,
 .form-group-buttons,
 .top-bar .logout-group {
@@ -237,20 +207,17 @@ button.small-button {
   gap: 10px;
 }
 
-/* =========================
-   STOCK PANELS
-========================= */
+/* ========= STOCK PANELS ========= */
 .chart-panel,
 .prediction-panel {
   margin-top: 18px;
   padding: 14px;
   border-radius: 14px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(2, 6, 23, 0.95),
-      rgba(15, 23, 42, 0.95)
-    );
+  background: linear-gradient(
+    135deg,
+    rgba(2, 6, 23, 0.95),
+    rgba(15, 23, 42, 0.95)
+  );
   border: 1px solid rgba(99, 102, 241, 0.35);
 }
 
@@ -280,39 +247,355 @@ button.small-button {
   color: #f87171;
 }
 
-/* =========================
-   AUTH LAYOUT (OPTIONAL 2-COLUMN)
-========================= */
-.auth-container {
-  max-width: 950px;
-  margin-top: 80px;
-}
-
-.auth-card {
-  display: flex;
-  gap: 24px;
-}
-
-.auth-column {
-  flex: 1;
-}
-
-/* Stack on small screens */
-@media (max-width: 768px) {
-  .auth-card {
-    flex-direction: column;
-  }
-}
-
-/* Center login & register buttons */
-.button-row {
-  margin-top: 24px;
-  display: flex;
+/* ========= POPUP MODAL ========= */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  display: none;
+  align-items: center;
   justify-content: center;
+  z-index: 9999;
+}
+
+.popup-box {
+  background: linear-gradient(135deg, #020617, #111827);
+  border-radius: 12px;
+  padding: 18px 22px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  max-width: 320px;
+  text-align: center;
+}
+
+.popup-box p {
+  margin: 0 0 14px;
+  font-size: 14px;
+}
+
+.popup-box button {
+  margin-top: 0;
+}
+
+/* ========= LAYOUT FLEX ========= */
+.page-main,
+.ds-main {
+  flex: 1 0 auto;
+}
+
+/* ========= HOME NAVBAR & HERO ========= */
+.home-body {
+  background-color: #f9fafb;
+  color: #0f172a;
+}
+
+/* NAVBAR */
+.ds-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 32px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ds-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.ds-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ds-logo-icon {
+  font-size: 20px;
+}
+
+.ds-logo-text {
+  font-size: 18px;
+}
+
+.ds-search-wrapper {
+  min-width: 280px;
+}
+
+.ds-search-input {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.ds-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4);
+}
+
+.ds-navbar-right {
+  display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.auth-button {
-  margin-top: 0;
-  padding: 10px 32px;
+.ds-nav-link {
+  font-size: 14px;
+  color: #4b5563;
+  text-decoration: none;
+}
+
+.ds-nav-link.active {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* NAV BUTTONS */
+.ds-btn {
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.ds-btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.ds-btn-outline {
+  background-color: #ffffff;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.ds-btn-outline:hover {
+  background-color: #f3f4f6;
+}
+
+/* HERO */
+.ds-main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+.ds-hero {
+  margin-top: 18px;
+  border-radius: 24px;
+  background: linear-gradient(120deg, #e0f2fe, #f5f3ff);
+  padding: 46px 40px;
+  text-align: center;
+}
+
+.ds-hero-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ds-hero-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.ds-hero-subtitle {
+  font-size: 15px;
+  max-width: 620px;
+  margin: 0 auto;
+  color: #4b5563;
+}
+
+/* FEATURES */
+.ds-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.ds-feature-card {
+  background-color: #ffffff;
+  padding: 18px 16px;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.ds-feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+  background-color: #eff6ff;
+  font-size: 20px;
+}
+
+.ds-feature-card h3 {
+  margin: 4px 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.ds-feature-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* CTA */
+.ds-cta {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.ds-cta h2 {
+  font-size: 22px;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.ds-cta p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 14px;
+}
+
+.ds-cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* ========= FOOTER ========= */
+.ds-footer {
+  flex-shrink: 0;
+  border-top: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  padding: 10px 24px;
+}
+
+.ds-footer-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.ds-footer-logo {
+  font-weight: 700;
+  color: #0f172a;
+  margin-right: 6px;
+}
+
+.ds-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ds-footer-links {
+  display: flex;
+  gap: 12px;
+}
+
+.ds-footer-links a {
+  color: #4b5563;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.ds-footer-links a:hover {
+  text-decoration: underline;
+}
+
+/* ========= RESPONSIVE ========= */
+@media (max-width: 900px) {
+  .ds-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ds-navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .ds-navbar-right {
+    justify-content: flex-end;
+  }
+
+  .ds-features {
+    grid-template-columns: 1fr;
+  }
+
+  .ds-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+/* Full-page background video for auth pages */
+.bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+/* Dark overlay above video, below content */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.9));
+  z-index: -1;
+}
+
+/* Ensure main content is above video */
+.ds-navbar,
+.page-main,
+.ds-main,
+.ds-footer,
+.container,
+.card,
+.popup-overlay {
+  position: relative;
+  z-index: 1;
 }

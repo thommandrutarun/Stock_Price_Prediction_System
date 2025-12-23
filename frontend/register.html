@@ -2,36 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Register – Stock Predictor</title>
+  <title>Register – DeepStock</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container small">
-    <div class="card">
-      <h1 class="center">Create Account</h1>
+  <!-- BACKGROUND VIDEO -->
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="assets/stock_price_prediction_system_for_a_web.mp4" type="video/mp4" />
+  </video>
 
-      <label for="reg-name">Full Name</label>
-      <input id="reg-name" type="text" placeholder="Your name" />
-
-      <label for="reg-email">Email</label>
-      <input id="reg-email" type="email" placeholder="you@example.com" />
-
-      <label for="reg-phone">Phone (optional)</label>
-      <input id="reg-phone" type="text" placeholder="Phone number" />
-
-      <label for="reg-password">Password</label>
-      <input id="reg-password" type="password" placeholder="********" />
-
-      <button id="register-btn" type="button" onclick="registerUser()">Register</button>
-
-      <p class="text-small center">
-        Already have an account?
-        <a href="login.html">Login</a>
-      </p>
-
-      <div id="reg-msg" class="message"></div>
+  <!-- NAVBAR -->
+  <nav class="ds-navbar">
+    <div class="ds-navbar-left">
+      <a href="index.html" class="ds-logo">
+        <span class="ds-logo-icon">📈</span>
+        <span class="ds-logo-text">Stock Price Prediction System</span>
+      </a>
+      <div class="ds-search-wrapper">
+        <input
+          type="text"
+          class="ds-search-input"
+          placeholder="Search for stocks..."
+        />
+      </div>
     </div>
-  </div>
+
+    <div class="ds-navbar-right">
+      <a href="index.html" class="ds-nav-link">Home</a>
+      <a href="dashboard.html" class="ds-nav-link">Tools</a>
+      <a href="dashboard.html" class="ds-nav-link">Portfolio</a>
+      <a href="login.html" class="ds-btn ds-btn-outline">Login</a>
+      <a href="register.html" class="ds-btn ds-btn-primary">Sign Up</a>
+    </div>
+  </nav>
+
+  <main class="page-main">
+    <div class="container small">
+      <div class="card">
+        <h1 class="center">Create Account</h1>
+
+        <!-- Name -->
+        <label for="reg-name">Full Name</label>
+        <input id="reg-name" type="text" placeholder="Your name" />
+
+        <!-- Email -->
+        <label for="reg-email">Email</label>
+        <input id="reg-email" type="email" placeholder="you@example.com" />
+
+        <!-- Phone -->
+        <label for="reg-phone">Phone</label>
+        <input id="reg-phone" type="text" placeholder="Phone number" />
+
+        <!-- Date of Birth (calendar) -->
+        <label for="reg-dob">Date of Birth</label>
+        <input id="reg-dob" type="date" />
+
+        <!-- Profession dropdown -->
+        <label for="reg-profession">Profession</label>
+        <select id="reg-profession">
+          <option value="">Select profession</option>
+          <option value="student">Student</option>
+          <option value="salaried">Salaried Employee</option>
+          <option value="self_employed">Self Employed / Business</option>
+          <option value="trader_investor">Trader / Investor</option>
+          <option value="other">Other</option>
+        </select>
+
+        <!-- Password -->
+        <label for="reg-password">Password</label>
+        <input id="reg-password" type="password" placeholder="********" />
+
+        <button id="register-btn" type="button">Register</button>
+
+        <p class="text-small center">
+          Already registered? <a href="login.html">Login</a>
+        </p>
+
+        <div id="reg-msg" class="message"></div>
+      </div>
+    </div>
+
+    <!-- POPUP MODAL -->
+    <div id="popup-overlay" class="popup-overlay" style="display:none;">
+      <div id="popup-box" class="popup-box">
+        <p id="popup-text"></p>
+        <button id="popup-ok" type="button">OK</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="ds-footer">
+    <div class="ds-footer-inner">
+      <div class="ds-footer-left">
+        <span class="ds-footer-logo">Stock Price Prediction System</span>
+        <span class="ds-footer-text">
+          © 2025 Stock Price Prediction System. All rights reserved.
+        </span>
+      </div>
+      <div class="ds-footer-links">
+        <a href="report.html">Reports</a>
+        <a href="admin.html">Admin</a>
+        <a href="contact.html">Support</a>
+      </div>
+    </div>
+  </footer>
 
   <script src="script.js"></script>
 </body>

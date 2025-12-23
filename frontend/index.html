@@ -2,26 +2,102 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Stock Price Predictor – Home</title>
+  <title>Stock Price Prediction System</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="container small">
-    <div class="card center">
-      <h1 class="center">Stock Price Predictor</h1>
-      <p class="text-small">
-        Login or register to predict stock prices and view history.
-      </p>
-
-      <div class="button-row">
-        <a href="login.html">
-          <button class="auth-button secondary" type="button">Login</button>
-        </a>
-        <a href="register.html">
-          <button class="auth-button" type="button">Register</button>
-        </a>
+<body class="home-body">
+  <!-- NAVBAR -->
+  <nav class="ds-navbar">
+    <div class="ds-navbar-left">
+      <a href="index.html" class="ds-logo">
+        <span class="ds-logo-icon">📈</span>
+        <span class="ds-logo-text">Stock Price Prediction System</span>
+      </a>
+      <div class="ds-search-wrapper">
+        <input
+          type="text"
+          class="ds-search-input"
+          placeholder="Search for stocks..."
+        />
       </div>
     </div>
-  </div>
+
+    <div class="ds-navbar-right">
+      <a href="index.html" class="ds-nav-link active">Home</a>
+      <a href="dashboard.html" class="ds-nav-link">Tools</a>
+      <a href="dashboard.html" class="ds-nav-link">Portfolio</a>
+      <a href="login.html" class="ds-btn ds-btn-outline">Login</a>
+      <a href="register.html" class="ds-btn ds-btn-primary">Sign Up</a>
+    </div>
+  </nav>
+
+  <main class="ds-main">
+    <section class="ds-hero">
+      <div class="ds-hero-inner">
+        <h1 class="ds-hero-title">Stock Analysis - Screening Tool</h1>
+        <p class="ds-hero-subtitle">
+          India’s leading AI-powered research platform. Screen companies,
+          analyze financials, and leverage institutional-grade insights to
+          find your next big investment.
+        </p>
+      </div>
+    </section>
+
+    <section class="ds-features">
+      <div class="ds-feature-card">
+        <div class="ds-feature-icon">📊</div>
+        <h3>Stock Screener</h3>
+        <p>Filter stocks based on your criteria and spot the best ideas.</p>
+      </div>
+
+      <div class="ds-feature-card">
+        <div class="ds-feature-icon">⭐</div>
+        <h3>Watchlist</h3>
+        <p>Track what AI says about your favourite stocks.</p>
+      </div>
+
+      <div class="ds-feature-card">
+        <div class="ds-feature-icon">📁</div>
+        <h3>Portfolio Tracker</h3>
+        <p>Monitor risk-adjusted returns across your holdings.</p>
+      </div>
+
+      <div class="ds-feature-card">
+        <div class="ds-feature-icon">🤖</div>
+        <h3>Top AI Suggestions</h3>
+        <p>Discover AI-curated stock ideas from DeepStock.</p>
+      </div>
+    </section>
+
+    <section class="ds-cta">
+      <h2>Ready to start?</h2>
+      <p>Create your free account to access predictions, charts, and tools.</p>
+      <div class="ds-cta-buttons">
+        <a href="register.html" class="ds-btn ds-btn-primary">Get Started</a>
+        <a href="login.html" class="ds-btn ds-btn-outline">
+          I already have an account
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="ds-footer">
+    <div class="ds-footer-inner">
+      <div class="ds-footer-left">
+        <span class="ds-footer-logo">Stock Price Prediction System</span>
+        <span class="ds-footer-text">
+          © 2025 Stock Price Prediction System. All rights reserved.
+        </span>
+      </div>
+      <div class="ds-footer-links">
+        <a href="report.html">Reports</a>
+        <a href="admin.html">Admin</a>
+        
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>

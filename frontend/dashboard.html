@@ -2,58 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard – Stock Predictor</title>
+  <title>Dashboard – Stock Price Prediction System</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body onload="requireAuth()">
-  <div class="container">
-    <div class="top-bar">
-      <h2>Dashboard</h2>
-      <div class="top-bar right">
-        <span>Logged in as: <strong id="user-email"></strong></span>
-        <div class="logout-group">
-          <button id="logout-btn" class="small-button secondary" type="button" onclick="logout()">Logout</button>
-        </div>
+  <!-- NAVBAR -->
+  <nav class="ds-navbar">
+    <div class="ds-navbar-left">
+      <a href="index.html" class="ds-logo">
+        <span class="ds-logo-icon">📈</span>
+        <span class="ds-logo-text">Stock Price Prediction System</span>
+      </a>
+      <div class="ds-search-wrapper">
+        <input
+          type="text"
+          class="ds-search-input"
+          placeholder="Search for stocks..."
+        />
       </div>
     </div>
 
-    <div class="card">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="symbol">Stock symbol</label>
-          <input id="symbol" type="text" placeholder="e.g. AAPL" />
-        </div>
+    <div class="ds-navbar-right">
+      <a href="index.html" class="ds-nav-link">Home</a>
+      <a href="dashboard.html" class="ds-nav-link">Tools</a>
+      <a href="dashboard.html" class="ds-nav-link">Portfolio</a>
+      <a href="login.html" class="ds-btn ds-btn-outline">Login</a>
+      <a href="register.html" class="ds-btn ds-btn-primary">Sign Up</a>
+    </div>
+  </nav>
 
-        <div class="form-group">
-          <label for="period">History period</label>
-          <select id="period">
-            <option value="1mo">1 month</option>
-            <option value="3mo">3 months</option>
-            <option value="6mo">6 months</option>
-            <option value="1y">1 year</option>
-          </select>
-        </div>
-
-        <div class="form-group-buttons">
-          <button id="history-btn" type="button" onclick="loadHistory()">Load History</button>
-          <button id="predict-btn" class="secondary" type="button" onclick="predict()">Predict Next 5 Days</button>
+  <main class="page-main">
+    <div class="container">
+      <div class="top-bar">
+        <h2>Dashboard</h2>
+        <div class="top-bar right">
+          <span>Logged in as: <strong id="user-email"></strong></span>
+          <div class="logout-group">
+            <a href="index.html">
+              <button class="small-button secondary" type="button">Home</button>
+            </a>
+            <button id="logout-btn" class="small-button" type="button">Logout</button>
+          </div>
         </div>
       </div>
 
-      <div id="dash-msg" class="message"></div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="symbol">Stock symbol</label>
+            <input id="symbol" type="text" placeholder="e.g. AAPL" />
+          </div>
 
-      <div class="chart-panel">
-        <h3>Price history</h3>
-        <canvas id="stockChart" height="120"></canvas>
-      </div>
+          <div class="form-group">
+            <label for="period">History period</label>
+            <select id="period">
+              <option value="1mo">1 month</option>
+              <option value="3mo">3 months</option>
+              <option value="6mo">6 months</option>
+              <option value="1y">1 year</option>
+            </select>
+          </div>
 
-      <div class="prediction-panel">
-        <h3>Predicted prices</h3>
-        <ul id="predictions"></ul>
+          <div class="form-group-buttons">
+            <button id="history-btn" type="button">Load History</button>
+            <button id="predict-btn" class="secondary" type="button">
+              Predict Next 5 Days
+            </button>
+          </div>
+        </div>
+
+        <div id="dash-msg" class="message"></div>
+
+        <div class="chart-panel">
+          <h3>Price history</h3>
+          <canvas id="stockChart" height="120"></canvas>
+        </div>
+
+        <div class="prediction-panel">
+          <h3>Predicted prices</h3>
+          <ul id="predictions"></ul>
+        </div>
       </div>
     </div>
-  </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="ds-footer">
+    <div class="ds-footer-inner">
+      <div class="ds-footer-left">
+        <span class="ds-footer-logo">Stock Price Prediction System</span>
+        <span class="ds-footer-text">
+          © 2025 Stock Price Prediction System. All rights reserved.
+        </span>
+      </div>
+      <div class="ds-footer-links">
+        <a href="report.html">Reports</a>
+        <a href="admin.html">Admin</a>
+       
+      </div>
+    </div>
+  </footer>
 
   <script src="script.js"></script>
 </body>
