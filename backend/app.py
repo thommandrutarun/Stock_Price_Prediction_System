@@ -17,9 +17,24 @@ app.config["DB_USER"] = "root"
 app.config["DB_PASSWORD"] = ""
 app.config["DB_NAME"] = "stock_prediction"
 
-CORS(app, origins=["http://127.0.0.1:5500"])
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://127.0.0.1:5000",
+                "http://localhost:5000",
+            ]
+        }
+    },
+)
+
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
+
+
 
 
 def get_db():
