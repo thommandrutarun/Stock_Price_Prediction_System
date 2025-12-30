@@ -2,7 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
-    JWTManager, create_access_token, jwt_required, get_jwt_identity
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
 )
 import yfinance as yf
 import datetime as dt
@@ -10,31 +13,25 @@ import mysql.connector
 
 app = Flask(__name__)
 
+# -------- CONFIG --------
 app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"
-
 app.config["DB_HOST"] = "localhost"
 app.config["DB_USER"] = "root"
-app.config["DB_PASSWORD"] = ""
+app.config["DB_PASSWORD"] = "Tarun@2004"
 app.config["DB_NAME"] = "stock_prediction"
 
+# Allow frontend running on Live Server
 CORS(
     app,
     resources={
         r"/api/*": {
-            "origins": [
-                "http://127.0.0.1:5500",
-                "http://localhost:5500",
-                "http://127.0.0.1:5000",
-                "http://localhost:5000",
-            ]
+            "origins": ["http://127.0.0.1:5500", "http://localhost:5500"]
         }
     },
 )
 
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
-
-
 
 
 def get_db():
@@ -53,15 +50,17 @@ def admin_required(fn):
     @wraps(fn)
     @jwt_required()
     def wrapper(*args, **kwargs):
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         conn = get_db()
         cur = conn.cursor(dictionary=True)
         cur.execute("SELECT role FROM users WHERE id = %s", (user_id,))
         row = cur.fetchone()
         cur.close()
         conn.close()
+
         if not row or row["role"] != "admin":
             return jsonify({"message": "Admin access required"}), 403
+
         return fn(*args, **kwargs)
 
     return wrapper
@@ -75,7 +74,7 @@ def register():
     email = data.get("email")
     password = data.get("password")
     phone = data.get("phone")
-    dob = data.get("dob")  # ISO string "YYYY-MM-DD" from <input type='date'>
+    dob = data.get("dob")  # "YYYY-MM-DD"
     profession = data.get("profession")
 
     if not name or not email or not password:
@@ -83,6 +82,7 @@ def register():
 
     conn = get_db()
     cur = conn.cursor(dictionary=True)
+
     cur.execute("SELECT id FROM users WHERE email = %s", (email,))
     if cur.fetchone():
         cur.close()
@@ -98,6 +98,7 @@ def register():
         """,
         (name, email, pw_hash, phone, dob, profession, "user"),
     )
+
     conn.commit()
     cur.close()
     conn.close()
@@ -127,7 +128,10 @@ def login():
     if not user or not bcrypt.check_password_hash(user["password"], password):
         return jsonify({"message": "Invalid credentials"}), 401
 
-    token = create_access_token(identity=user["id"])
+    # identity must be string → store user id as string
+    user_id = user["id"]
+    token = create_access_token(identity=str(user_id))
+
     return jsonify(
         {
             "access_token": token,
@@ -147,7 +151,8 @@ def list_users():
     conn = get_db()
     cur = conn.cursor(dictionary=True)
     cur.execute(
-        "SELECT id, name, email, phone, dob, profession, role FROM users ORDER BY id"
+        "SELECT id, name, email, phone, dob, profession, role "
+        "FROM users ORDER BY id"
     )
     users = cur.fetchall()
     cur.close()
@@ -238,7 +243,7 @@ def reports_summary():
 # -------- HEALTH CHECK --------
 @app.route("/")
 def home():
-  return "Stock Price Prediction Backend Running"
+    return "Stock Price Prediction Backend Running"
 
 
 if __name__ == "__main__":
