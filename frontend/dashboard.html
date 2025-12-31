@@ -2,108 +2,138 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard – Stock Price Prediction System</title>
+  <title>DeepStock – Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Main styles -->
   <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js for price chart -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body onload="requireAuth()">
-  <!-- NAVBAR -->
-  <nav class="ds-navbar">
+
+<body class="dashboard-body" onload="requireAuth()">
+  <!-- NAVBAR (reuses home navbar look) -->
+  <header class="ds-navbar">
     <div class="ds-navbar-left">
-      <a href="index.html" class="ds-logo">
+      <div class="ds-logo">
         <span class="ds-logo-icon">📈</span>
-        <span class="ds-logo-text">Stock Price Prediction System</span>
-      </a>
-      <div class="ds-search-wrapper">
-        <input
-          type="text"
-          class="ds-search-input"
-          placeholder="Search for stocks..."
-        />
+        <span class="ds-logo-text">DeepStock</span>
       </div>
+      <nav>
+        <a href="index.html" class="ds-nav-link">Home</a>
+        <a href="dashboard.html" class="ds-nav-link active">Dashboard</a>
+        <a href="report.html" class="ds-nav-link">Reports</a>
+      </nav>
     </div>
 
     <div class="ds-navbar-right">
-      <a href="index.html" class="ds-nav-link">Home</a>
-      <a href="dashboard.html" class="ds-nav-link">Tools</a>
-      <a href="dashboard.html" class="ds-nav-link">Portfolio</a>
-      <a href="login.html" class="ds-btn ds-btn-outline">Login</a>
-      <a href="register.html" class="ds-btn ds-btn-primary">Sign Up</a>
+      <span class="ds-nav-link">Signed in as <span id="user-email"></span></span>
+      <button class="ds-btn ds-btn-outline small-button" onclick="logout()">Logout</button>
     </div>
-  </nav>
+  </header>
 
-  <main class="page-main">
-    <div class="container">
-      <div class="top-bar">
-        <h2>Dashboard</h2>
-        <div class="top-bar right">
-          <span>Logged in as: <strong id="user-email"></strong></span>
-          <div class="logout-group">
-            <a href="index.html">
-              <button class="small-button secondary" type="button">Home</button>
-            </a>
-            <button id="logout-btn" class="small-button" type="button">Logout</button>
-          </div>
+  <!-- MAIN DASHBOARD WRAPPER -->
+  <main class="dashboard-wrapper">
+    <section class="dashboard-header">
+      <div>
+        <h1 class="dashboard-header-title">Stock Intelligence Dashboard</h1>
+        <p class="dashboard-header-subtitle">
+          Run history, visualize prices, and view AI-powered short‑term forecasts in one place.
+        </p>
+      </div>
+    </section>
+
+    <section class="dashboard-card">
+      <!-- CONTROLS -->
+      <div class="dashboard-controls">
+        <div class="form-group">
+          <label for="symbol">Stock symbol</label>
+          <input
+            type="text"
+            id="symbol"
+            placeholder="e.g. RELIANCE, TCS, INFY"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="period">History period</label>
+          <select id="period">
+            <option value="1mo">1 month</option>
+            <option value="3mo">3 months</option>
+            <option value="6mo">6 months</option>
+            <option value="1y">1 year</option>
+            <option value="2y">2 years</option>
+          </select>
+        </div>
+
+        <div class="dashboard-actions">
+          <button class="dashboard-btn" onclick="loadHistory()">
+            Load history
+          </button>
+          <button class="dashboard-btn secondary" onclick="predict()">
+            Predict next 5 days
+          </button>
         </div>
       </div>
 
-      <div class="card">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="symbol">Stock symbol</label>
-            <input id="symbol" type="text" placeholder="e.g. AAPL" />
-          </div>
+      <!-- MESSAGE -->
+      <p id="dash-msg" class="message"></p>
 
-          <div class="form-group">
-            <label for="period">History period</label>
-            <select id="period">
-              <option value="1mo">1 month</option>
-              <option value="3mo">3 months</option>
-              <option value="6mo">6 months</option>
-              <option value="1y">1 year</option>
-            </select>
+      <!-- PANELS: CHART + PREDICTIONS -->
+      <div class="dashboard-panels">
+        <!-- Price chart panel -->
+        <div class="dashboard-panel">
+          <div class="dashboard-panel-header">
+            <span class="dashboard-panel-title">Price chart</span>
+            <span class="dashboard-panel-meta">
+              Closing prices for selected period
+            </span>
           </div>
-
-          <div class="form-group-buttons">
-            <button id="history-btn" type="button">Load History</button>
-            <button id="predict-btn" class="secondary" type="button">
-              Predict Next 5 Days
-            </button>
+          <div class="dashboard-chart-area">
+            <canvas id="stockChart"></canvas>
           </div>
         </div>
 
-        <div id="dash-msg" class="message"></div>
-
-        <div class="chart-panel">
-          <h3>Price history</h3>
-          <canvas id="stockChart" height="120"></canvas>
-        </div>
-
-        <div class="prediction-panel">
-          <h3>Predicted prices</h3>
-          <ul id="predictions"></ul>
+        <!-- Predictions panel -->
+        <div class="dashboard-panel">
+          <div class="dashboard-panel-header">
+            <span class="dashboard-panel-title">AI predictions</span>
+            <span class="dashboard-panel-meta">
+              Next 5 trading days, short‑term trend highlighting
+            </span>
+          </div>
+          <ul id="predictions" class="dashboard-prediction-list">
+            <!-- Filled by predict() in script.js -->
+          </ul>
         </div>
       </div>
-    </div>
+    </section>
   </main>
 
-  <!-- FOOTER -->
+  <!-- FOOTER (optional, matches style.css) -->
   <footer class="ds-footer">
     <div class="ds-footer-inner">
       <div class="ds-footer-left">
-        <span class="ds-footer-logo">Stock Price Prediction System</span>
-        <span class="ds-footer-text">
-          © 2025 Stock Price Prediction System. All rights reserved.
-        </span>
+        <span class="ds-footer-logo">DeepStock</span>
+        <span>Smart stock analytics for Indian markets.</span>
       </div>
       <div class="ds-footer-links">
-        <a href="report.html">Reports</a>
-        <a href="admin.html">Admin</a>
-       
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
       </div>
     </div>
   </footer>
 
+  <!-- POPUP used by script.js (login/register) -->
+  <div id="popup-overlay" class="popup-overlay">
+    <div id="popup-box" class="popup-box">
+      <p id="popup-text"></p>
+      <button id="popup-ok">OK</button>
+    </div>
+  </div>
+
+  <!-- Main app logic -->
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from datetime import datetime, timedelta
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,
@@ -172,19 +173,16 @@ def stock_history(symbol):
     hist = ticker.history(period=yf_period)
 
     if hist.empty:
-        return jsonify({"message": "No data for this symbol/period"}), 404
+        return jsonify({"prices": []})
 
     prices = []
     for ts, row in hist.iterrows():
-        prices.append(
-            {
-                "date": ts.strftime("%Y-%m-%d"),
-                "close": float(row["Close"]),
-            }
-        )
+        prices.append({
+            "date": ts.strftime("%Y-%m-%d"),
+            "close": float(row["Close"]),
+        })
 
     return jsonify({"prices": prices})
-
 
 # -------- SIMPLE PREDICTION --------
 @app.route("/api/stocks/<symbol>/predict")
@@ -196,7 +194,7 @@ def predict(symbol):
     hist = ticker.history(period="1mo")
 
     if hist.empty:
-        return jsonify({"message": "No data to predict"}), 404
+        return jsonify({"predictions": []})
 
     closes = hist["Close"].tail(10).tolist()
     if len(closes) < 2:
@@ -204,23 +202,20 @@ def predict(symbol):
 
     diffs = [closes[i + 1] - closes[i] for i in range(len(closes) - 1)]
     avg_change = sum(diffs) / len(diffs)
-
     last_price = closes[-1]
+
     today = dt.date.today()
     predictions = []
 
     for i in range(1, days + 1):
         last_price += avg_change
         day = today + dt.timedelta(days=i)
-        predictions.append(
-            {
-                "date": day.strftime("%Y-%m-%d"),
-                "predicted_close": float(last_price),
-            }
-        )
+        predictions.append({
+            "date": day.strftime("%Y-%m-%d"),
+            "predicted_close": float(last_price),
+        })
 
     return jsonify({"predictions": predictions})
-
 
 # -------- REPORTS SUMMARY --------
 @app.route("/api/reports/summary")
@@ -246,5 +241,35 @@ def home():
     return "Stock Price Prediction Backend Running"
 
 
+# ---------- DASHBOARD: PREDICT (NEW) ----------
+@app.get("/api/stocks/<symbol>/predict")
+def get_predict(symbol):
+    days = int(request.args.get("days", 5))
+
+    try:
+        ticker = yf.Ticker(symbol)
+        hist = ticker.history(period="1mo")
+    except Exception as e:
+        return jsonify({"message": f"Failed to fetch data: {e}"}), 500
+
+    if hist.empty:
+        return jsonify({"predictions": []})
+
+    last_close = float(hist["Close"].iloc[-1])
+    predictions = []
+    base_date = datetime.utcnow().date()
+
+    for i in range(1, days + 1):
+        date = (base_date + timedelta(days=i)).strftime("%Y-%m-%d")
+        predicted = last_close * (1 + 0.005 * i)  # simple +0.5%/day stub
+        predictions.append({
+            "date": date,
+            "predicted_close": round(predicted, 2)
+        })
+
+    return jsonify({"predictions": predictions})
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+

@@ -1,4 +1,5 @@
 /* ========= GLOBAL RESET ========= */
+
 * {
   box-sizing: border-box;
 }
@@ -16,6 +17,7 @@ body {
 }
 
 /* ========= LINKS ========= */
+
 a {
   color: #38bdf8;
   text-decoration: none;
@@ -27,6 +29,7 @@ a:hover {
 }
 
 /* ========= CONTAINERS ========= */
+
 .container {
   max-width: 1150px;
   margin: 0 auto;
@@ -39,6 +42,7 @@ a:hover {
 }
 
 /* ========= CARD ========= */
+
 .card {
   background: linear-gradient(
     135deg,
@@ -53,6 +57,7 @@ a:hover {
 }
 
 /* ========= HEADINGS ========= */
+
 h1,
 h2,
 h3 {
@@ -79,20 +84,8 @@ h1.center {
   color: #cbd5f5;
 }
 
-/* ========= TOP BAR (DASHBOARD) ========= */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 22px;
-}
-
-.top-bar span {
-  font-size: 13px;
-  color: #a5b4fc;
-}
-
 /* ========= FORMS ========= */
+
 label {
   display: block;
   margin-top: 10px;
@@ -124,6 +117,7 @@ select:focus {
 }
 
 /* ========= BUTTONS ========= */
+
 button {
   margin-top: 16px;
   padding: 10px 18px;
@@ -144,6 +138,7 @@ button:hover {
 }
 
 /* Center login button */
+
 .auth-button-row {
   margin-top: 18px;
   display: flex;
@@ -162,6 +157,7 @@ button.small-button {
 }
 
 /* AUTH BUTTON ROW ON HOME */
+
 .button-row {
   margin-top: 20px;
   display: inline-flex;
@@ -175,6 +171,7 @@ button.small-button {
 }
 
 /* ========= MESSAGES ========= */
+
 .message {
   margin-top: 12px;
   font-size: 13px;
@@ -188,73 +185,8 @@ button.small-button {
   color: #f87171;
 }
 
-/* ========= DASHBOARD LAYOUT ========= */
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  margin-bottom: 18px;
-}
-
-.form-group {
-  flex: 1 1 220px;
-}
-
-.form-group-buttons {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.button-group,
-.form-group-buttons,
-.top-bar .logout-group {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-/* ========= STOCK PANELS ========= */
-.chart-panel,
-.prediction-panel {
-  margin-top: 18px;
-  padding: 14px;
-  border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    rgba(2, 6, 23, 0.95),
-    rgba(15, 23, 42, 0.95)
-  );
-  border: 1px solid rgba(99, 102, 241, 0.35);
-}
-
-.prediction-panel h3 {
-  margin-top: 0;
-  color: #a5b4fc;
-}
-
-.prediction-panel ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-.prediction-panel li {
-  padding: 7px 0;
-  border-bottom: 1px dashed #1e293b;
-  font-size: 14px;
-}
-
-/* PRICE COLOR EFFECTS */
-.price-up {
-  color: #22c55e;
-}
-
-.price-down {
-  color: #f87171;
-}
-
 /* ========= POPUP MODAL ========= */
+
 .popup-overlay {
   position: fixed;
   inset: 0;
@@ -285,18 +217,21 @@ button.small-button {
 }
 
 /* ========= LAYOUT FLEX ========= */
+
 .page-main,
 .ds-main {
   flex: 1 0 auto;
 }
 
 /* ========= HOME NAVBAR & HERO ========= */
+
 .home-body {
   background-color: #f9fafb;
   color: #0f172a;
 }
 
 /* NAVBAR */
+
 .ds-navbar {
   position: sticky;
   top: 0;
@@ -367,6 +302,7 @@ button.small-button {
 }
 
 /* NAV BUTTONS */
+
 .ds-btn {
   border-radius: 999px;
   padding: 6px 18px;
@@ -399,6 +335,7 @@ button.small-button {
 }
 
 /* HERO */
+
 .ds-main {
   max-width: 1120px;
   margin: 0 auto;
@@ -439,6 +376,7 @@ button.small-button {
 }
 
 /* FEATURES */
+
 .ds-features {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -480,6 +418,7 @@ button.small-button {
 }
 
 /* CTA */
+
 .ds-cta {
   margin-top: 40px;
   text-align: center;
@@ -504,6 +443,7 @@ button.small-button {
 }
 
 /* ========= FOOTER ========= */
+
 .ds-footer {
   flex-shrink: 0;
   border-top: 1px solid #e5e7eb;
@@ -549,10 +489,247 @@ button.small-button {
   text-decoration: underline;
 }
 
+/* ========= DASHBOARD (NEW PROFESSIONAL STYLES) ========= */
+
+.dashboard-body {
+  background: radial-gradient(circle at top left, #020617, #020617 40%, #020617);
+  color: #e5e7eb;
+}
+
+.dashboard-wrapper {
+  max-width: 1180px;
+  margin: 26px auto 40px;
+  padding: 0 20px 40px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.dashboard-header-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f9fafb;
+}
+
+.dashboard-header-subtitle {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.dashboard-card {
+  background: radial-gradient(circle at top left, #0b1120, #020617 65%);
+  border-radius: 20px;
+  padding: 22px 24px 26px;
+  box-shadow:
+    0 22px 45px rgba(15, 23, 42, 0.85),
+    0 0 0 1px rgba(148, 163, 184, 0.25);
+  border: 1px solid rgba(79, 70, 229, 0.35);
+}
+
+/* controls row */
+
+.dashboard-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dashboard-controls .form-group {
+  flex: 1 1 240px;
+}
+
+.dashboard-controls label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+
+.dashboard-controls input,
+.dashboard-controls select {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  background: radial-gradient(circle at top, #020617, #020617);
+  color: #e5e7eb;
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.dashboard-controls input::placeholder {
+  color: #6b7280;
+}
+
+.dashboard-controls input:focus,
+.dashboard-controls select:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+  background: #020617;
+}
+
+/* action buttons */
+
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.dashboard-btn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #020617;
+  background: linear-gradient(135deg, #22c55e, #3b82f6);
+  box-shadow: 0 12px 28px rgba(34, 197, 94, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.dashboard-btn.secondary {
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.4);
+}
+
+.dashboard-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.dashboard-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.9);
+}
+
+/* panels */
+
+.dashboard-panels {
+  display: grid;
+  grid-template-rows: minmax(260px, 1.2fr) minmax(140px, 0.8fr);
+  gap: 16px;
+}
+
+.dashboard-panel {
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: radial-gradient(circle at top left, #020617, #020617 40%, #020617);
+  border: 1px solid rgba(30, 64, 175, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.9);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dashboard-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.dashboard-panel-meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* chart area */
+
+.dashboard-chart-area {
+  flex: 1;
+  border-radius: 12px;
+  background: radial-gradient(circle at top, #020617, #020617 55%, #020617);
+  border: 1px dashed rgba(55, 65, 81, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+/* prediction list */
+
+.dashboard-prediction-list {
+  list-style: none;
+  padding: 4px 0 0;
+  margin: 0;
+  font-size: 14px;
+}
+
+.dashboard-prediction-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed #1f2937;
+}
+
+.dashboard-prediction-list li:last-child {
+  border-bottom: none;
+}
+
+.dashboard-prediction-date {
+  color: #9ca3af;
+}
+
+.dashboard-prediction-price {
+  font-weight: 500;
+}
+
+/* PRICE COLOR EFFECTS */
+
+.price-up {
+  color: #22c55e;
+}
+
+.price-down {
+  color: #f97373;
+}
+
 /* ========= RESPONSIVE ========= */
+
 @media (max-width: 900px) {
   .ds-features {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-wrapper {
+    padding: 0 14px 30px;
+  }
+
+  .dashboard-card {
+    padding: 18px 16px 22px;
+  }
+
+  .dashboard-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-actions {
+    justify-content: flex-start;
   }
 }
 
@@ -575,8 +752,24 @@ button.small-button {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .dashboard-panels {
+    grid-template-rows: auto auto;
+  }
+
+  .dashboard-panel {
+    padding: 14px 12px;
+  }
 }
+
 /* Full-page background video for auth pages */
+
 .bg-video {
   position: fixed;
   inset: 0;
@@ -587,15 +780,21 @@ button.small-button {
 }
 
 /* Dark overlay above video, below content */
+
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.9));
+  background: radial-gradient(
+    circle at top,
+    rgba(15, 23, 42, 0.45),
+    rgba(15, 23, 42, 0.9)
+  );
   z-index: -1;
 }
 
 /* Ensure main content is above video */
+
 .ds-navbar,
 .page-main,
 .ds-main,
@@ -608,6 +807,7 @@ body::before {
 }
 
 /* ========= POPUP MODAL (UPDATED) ========= */
+
 .popup-overlay {
   position: fixed;
   inset: 0;
@@ -619,6 +819,7 @@ body::before {
 }
 
 /* base modal */
+
 .popup-box {
   background: radial-gradient(circle at top, #020617, #030712);
   border-radius: 18px;
@@ -635,6 +836,7 @@ body::before {
 }
 
 /* icon circle */
+
 .popup-box::before {
   content: "✓";
   flex-shrink: 0;
@@ -651,6 +853,7 @@ body::before {
 }
 
 /* text wrappers you can use inside popup */
+
 .popup-content-title {
   font-size: 15px;
   font-weight: 600;
@@ -664,6 +867,7 @@ body::before {
 }
 
 /* button row */
+
 .popup-box button {
   margin-top: 14px;
   padding: 7px 16px;
@@ -684,6 +888,7 @@ body::before {
 }
 
 /* success variation (for login / register) */
+
 .popup-box.success {
   border-color: rgba(34, 197, 94, 0.6);
 }
@@ -694,12 +899,21 @@ body::before {
 }
 
 /* animations */
+
 @keyframes popup-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes popup-scale-in {
-  from { transform: translateY(6px) scale(0.96); }
-  to   { transform: translateY(0) scale(1); }
+  from {
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
 }
