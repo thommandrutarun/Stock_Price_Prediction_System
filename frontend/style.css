@@ -143,6 +143,13 @@ button:hover {
   box-shadow: 0 12px 28px rgba(34, 197, 94, 0.45);
 }
 
+/* Center login button */
+.auth-button-row {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
 button.secondary {
   background: linear-gradient(135deg, #38bdf8, #6366f1);
   color: #020617;
@@ -598,4 +605,101 @@ body::before {
 .popup-overlay {
   position: relative;
   z-index: 1;
+}
+
+/* ========= POPUP MODAL (UPDATED) ========= */
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* base modal */
+.popup-box {
+  background: radial-gradient(circle at top, #020617, #030712);
+  border-radius: 18px;
+  padding: 20px 26px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(34, 197, 94, 0.55);
+  max-width: 360px;
+  text-align: left;
+  color: #e5e7eb;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  animation: popup-fade-in 0.25s ease-out, popup-scale-in 0.25s ease-out;
+}
+
+/* icon circle */
+.popup-box::before {
+  content: "✓";
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(22, 163, 74, 0.15);
+  color: #22c55e;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* text wrappers you can use inside popup */
+.popup-content-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #f9fafb;
+}
+
+.popup-content-subtitle {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* button row */
+.popup-box button {
+  margin-top: 14px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: transparent;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.popup-box button:hover {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(209, 213, 219, 0.9);
+  transform: translateY(-1px);
+}
+
+/* success variation (for login / register) */
+.popup-box.success {
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.popup-box.success::before {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+}
+
+/* animations */
+@keyframes popup-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes popup-scale-in {
+  from { transform: translateY(6px) scale(0.96); }
+  to   { transform: translateY(0) scale(1); }
 }

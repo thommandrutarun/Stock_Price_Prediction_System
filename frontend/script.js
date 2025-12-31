@@ -49,18 +49,26 @@ async function login() {
     const data = await res.json();
 
     if (res.ok) {
+      // save auth info
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user_email", data.user.email);
       if (data.user.role) {
         localStorage.setItem("user_role", data.user.role);
       }
 
+      // decide next page
       const target =
         data.user.role === "admin" ? "admin.html" : "dashboard.html";
 
-      showPopup("Login successful.", () => {
+      // show success popup (optional)
+      showPopup("Login successful. Redirecting to your dashboard...", () => {
         window.location.href = target;
       });
+
+      // automatic redirect after 1 second (no button click needed)
+      setTimeout(() => {
+        window.location.href = target;
+      }, 1000);
     } else if (msg) {
       msg.textContent = data.message || "Login failed";
       msg.className = "message error";
@@ -416,3 +424,4 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) logoutBtn.addEventListener("click", logout);
 });
+
