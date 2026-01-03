@@ -12,3 +12,31 @@ CREATE TABLE IF NOT EXISTS users (
     profession VARCHAR(50),
     role VARCHAR(20) NOT NULL DEFAULT 'user'
 );
+
+DELIMITER $$
+
+CREATE TRIGGER one_admin_only
+BEFORE INSERT ON users
+FOR EACH ROW
+BEGIN
+    IF NEW.role = 'admin' THEN
+        IF (SELECT COUNT(*) FROM users WHERE role = 'admin') >= 1 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Only one admin allowed';
+        END IF;
+    END IF;
+END$$
+
+CREATE TRIGGER one_admin_only_update
+BEFORE UPDATE ON users
+FOR EACH ROW
+BEGIN
+    IF NEW.role = 'admin' AND OLD.role <> 'admin' THEN
+        IF (SELECT COUNT(*) FROM users WHERE role = 'admin') >= 1 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Only one admin allowed';
+        END IF;
+    END IF;
+END$$
+
+DELIMITER ;
