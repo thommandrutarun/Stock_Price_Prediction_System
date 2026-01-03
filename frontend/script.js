@@ -373,9 +373,10 @@ async function loadAdminUsers() {
 
   try {
     const res = await fetch(`${API_BASE}/admin/users`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-
     const data = await res.json();
 
     if (!res.ok) {
@@ -386,12 +387,24 @@ async function loadAdminUsers() {
       return;
     }
 
+    if (!Array.isArray(data.users) || data.users.length === 0) {
+      if (msg) {
+        msg.textContent = "No users found.";
+        msg.className = "message";
+      }
+      return;
+    }
+
     data.users.forEach((u) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${u.email}</td>
-        <td>${u.name || ""}</td>
-        <td>${u.role || ""}</td>
+        <td>${u.id ?? ""}</td>
+        <td>${u.name ?? ""}</td>
+        <td>${u.email ?? ""}</td>
+        <td>${u.phone ?? ""}</td>
+        <td>${u.dob ?? ""}</td>
+        <td>${u.profession ?? ""}</td>
+        <td>${u.role ?? ""}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -407,6 +420,7 @@ async function loadAdminUsers() {
     }
   }
 }
+
 
 // ===== USER PORTFOLIO REPORT (REPORT PAGE) =====
 
