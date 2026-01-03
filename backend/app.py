@@ -16,6 +16,7 @@ app = Flask(__name__)
 
 # -------- CONFIG --------
 app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"
+
 app.config["DB_HOST"] = "localhost"
 app.config["DB_USER"] = "root"
 app.config["DB_PASSWORD"] = "Tarun@2004"
@@ -58,10 +59,8 @@ def admin_required(fn):
         row = cur.fetchone()
         cur.close()
         conn.close()
-
         if not row or row["role"] != "admin":
             return jsonify({"message": "Admin access required"}), 403
-
         return fn(*args, **kwargs)
 
     return wrapper
@@ -83,7 +82,6 @@ def register():
 
     conn = get_db()
     cur = conn.cursor(dictionary=True)
-
     cur.execute("SELECT id FROM users WHERE email = %s", (email,))
     if cur.fetchone():
         cur.close()
@@ -91,7 +89,6 @@ def register():
         return jsonify({"message": "User already exists"}), 400
 
     pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-
     cur.execute(
         """
         INSERT INTO users (name, email, password, phone, dob, profession, role)
@@ -99,11 +96,9 @@ def register():
         """,
         (name, email, pw_hash, phone, dob, profession, "user"),
     )
-
     conn.commit()
     cur.close()
     conn.close()
-
     return jsonify({"message": "Registered successfully"}), 201
 
 
@@ -161,19 +156,33 @@ def list_users():
     return jsonify({"users": users})
 
 
+# -------- yfinance HELPER --------
+def get_history(symbol: str, period: str):
+    """Fetch price history using yfinance.download to avoid 'possibly delisted' issues."""
+    symbol = symbol.upper().strip()
+    period_map = {"1mo": "1mo", "3mo": "3mo", "6mo": "6mo", "1y": "1y"}
+    yf_period = period_map.get(period, "1mo")
+
+    data = yf.download(symbol, period=yf_period, interval="1d", progress=False)
+    if data.empty:
+        raise ValueError(f"No price data for {symbol} in period={yf_period}")
+    return data.reset_index()[["Date", "Close"]]
+
 # -------- STOCK HISTORY --------
 @app.route("/api/stocks/<symbol>/history")
 @jwt_required()
 def stock_history(symbol):
     period = request.args.get("period", "1mo")
-    period_map = {"1mo": "1mo", "3mo": "3mo", "6mo": "6mo", "1y": "1y"}
-    yf_period = period_map.get(period, "1mo")
-
-    ticker = yf.Ticker(symbol.upper())
-    hist = ticker.history(period=yf_period)
-
-    if hist.empty:
-        return jsonify({"prices": []})
+    try:
+        hist = get_history(symbol, period)
+    except ValueError as e:
+        return jsonify({"prices": [], "message": str(e)}), 404
+    except Exception as e:
+        # log e if needed
+        return jsonify({
+            "prices": [],
+            "message": "Stock data provider is currently unavailable. Please try again later."
+        }), 502
 
     prices = []
     for ts, row in hist.iterrows():
@@ -182,31 +191,30 @@ def stock_history(symbol):
             "close": float(row["Close"]),
         })
 
-    return jsonify({"prices": prices})
+    return jsonify(prices=prices), 200
+
 
 # -------- SIMPLE PREDICTION --------
 @app.route("/api/stocks/<symbol>/predict")
 @jwt_required()
 def predict(symbol):
     days = int(request.args.get("days", 5))
-
-    ticker = yf.Ticker(symbol.upper())
-    hist = ticker.history(period="1mo")
-
-    if hist.empty:
-        return jsonify({"predictions": []})
+    try:
+        hist = get_history(symbol, "1mo")
+    except Exception as e:
+        # log e if needed
+        return jsonify({"predictions": []}), 502
 
     closes = hist["Close"].tail(10).tolist()
     if len(closes) < 2:
-        return jsonify({"message": "Not enough data"}), 400
+        return jsonify({"message": "Not enough data", "predictions": []}), 400
 
     diffs = [closes[i + 1] - closes[i] for i in range(len(closes) - 1)]
     avg_change = sum(diffs) / len(diffs)
     last_price = closes[-1]
-
     today = dt.date.today()
-    predictions = []
 
+    predictions = []
     for i in range(1, days + 1):
         last_price += avg_change
         day = today + dt.timedelta(days=i)
@@ -216,6 +224,7 @@ def predict(symbol):
         })
 
     return jsonify({"predictions": predictions})
+
 
 # -------- REPORTS SUMMARY --------
 @app.route("/api/reports/summary")
@@ -227,7 +236,6 @@ def reports_summary():
     total_users = cur.fetchone()[0]
     cur.close()
     conn.close()
-
     data = {
         "total_users": total_users,
         "popular_symbols": ["AAPL", "TSLA", "MSFT", "GOOGL"],
@@ -241,35 +249,58 @@ def home():
     return "Stock Price Prediction Backend Running"
 
 
-# ---------- DASHBOARD: PREDICT (NEW) ----------
-@app.get("/api/stocks/<symbol>/predict")
-def get_predict(symbol):
-    days = int(request.args.get("days", 5))
-
-    try:
-        ticker = yf.Ticker(symbol)
-        hist = ticker.history(period="1mo")
-    except Exception as e:
-        return jsonify({"message": f"Failed to fetch data: {e}"}), 500
-
-    if hist.empty:
-        return jsonify({"predictions": []})
-
-    last_close = float(hist["Close"].iloc[-1])
-    predictions = []
-    base_date = datetime.utcnow().date()
-
-    for i in range(1, days + 1):
-        date = (base_date + timedelta(days=i)).strftime("%Y-%m-%d")
-        predicted = last_close * (1 + 0.005 * i)  # simple +0.5%/day stub
-        predictions.append({
-            "date": date,
-            "predicted_close": round(predicted, 2)
-        })
-
-    return jsonify({"predictions": predictions})
-
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
 
+# -------- REPORTS SUMMARY --------
+
+@app.route("/api/reports/summary")
+@jwt_required()
+def reports_summary():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM users")
+    total_users = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    data = {
+        "total_users": total_users,
+        "popular_symbols": ["AAPL", "TSLA", "MSFT", "GOOGL"],
+    }
+    return jsonify(data)
+
+# ===== NEW: USER PORTFOLIO REPORT =====
+
+@app.route("/api/reports/portfolio")
+@jwt_required()
+def user_portfolio():
+    user_id = int(get_jwt_identity())
+
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+
+    # Adjust table/column names to match your DB
+    cur.execute("""
+        SELECT
+            symbol,
+            quantity,
+            avg_price,
+            latest_price,
+            (latest_price * quantity) AS current_value,
+            (latest_price - avg_price) AS change_abs,
+            ((latest_price - avg_price) / avg_price) * 100 AS change_pct
+        FROM user_stocks
+        WHERE user_id = %s
+        ORDER BY change_pct DESC
+    """, (user_id,))
+    rows = cur.fetchall()
+
+    total_value = sum(r["current_value"] for r in rows) if rows else 0
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "total_value": total_value,
+        "positions": rows
+    })

@@ -3,137 +3,113 @@
 <head>
   <meta charset="UTF-8" />
   <title>DeepStock – Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Main styles -->
   <link rel="stylesheet" href="style.css" />
-  <!-- Chart.js for price chart -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="script.js" defer></script>
 </head>
-
-<body class="dashboard-body" onload="requireAuth()">
-  <!-- NAVBAR (reuses home navbar look) -->
+<body class="dashboard-body">
+  <!-- NAVBAR -->
   <header class="ds-navbar">
     <div class="ds-navbar-left">
-      <div class="ds-logo">
+      <a href="index.html" class="ds-logo">
         <span class="ds-logo-icon">📈</span>
         <span class="ds-logo-text">DeepStock</span>
+      </a>
+      <div class="ds-search-wrapper">
+        <input
+          type="text"
+          class="ds-search-input"
+          placeholder="Search stocks, ideas, or themes..."
+        />
       </div>
-      <nav>
-        <a href="index.html" class="ds-nav-link">Home</a>
-        <a href="dashboard.html" class="ds-nav-link active">Dashboard</a>
-        <a href="report.html" class="ds-nav-link">Reports</a>
-      </nav>
     </div>
-
     <div class="ds-navbar-right">
-      <span class="ds-nav-link">Signed in as <span id="user-email"></span></span>
-      <button class="ds-btn ds-btn-outline small-button" onclick="logout()">Logout</button>
+      <span id="user-email" class="ds-nav-link"></span>
+      <a href="home.html" class="ds-nav-link">Home</a>
+      <a href="dashboard.html" class="ds-nav-link active">Dashboard</a>
+      <a href="report.html" class="ds-nav-link">Reports</a>
+      <button class="ds-btn ds-btn-outline" onclick="logout()">Log out</button>
     </div>
   </header>
 
-  <!-- MAIN DASHBOARD WRAPPER -->
-  <main class="dashboard-wrapper">
-    <section class="dashboard-header">
-      <div>
-        <h1 class="dashboard-header-title">Stock Intelligence Dashboard</h1>
-        <p class="dashboard-header-subtitle">
-          Run history, visualize prices, and view AI-powered short‑term forecasts in one place.
-        </p>
-      </div>
-    </section>
-
-    <section class="dashboard-card">
-      <!-- CONTROLS -->
-      <div class="dashboard-controls">
-        <div class="form-group">
-          <label for="symbol">Stock symbol</label>
-          <input
-            type="text"
-            id="symbol"
-            placeholder="e.g. RELIANCE, TCS, INFY"
-            autocomplete="off"
-          />
+  <main class="ds-main">
+    <section class="dashboard-wrapper">
+      <header class="dashboard-header">
+        <div>
+          <h1 class="dashboard-header-title">Stock Intelligence Dashboard</h1>
+          <p class="dashboard-header-subtitle">
+            Run history, visualize prices, and view AI-powered short‑term forecasts in one place.
+          </p>
         </div>
+      </header>
 
-        <div class="form-group">
-          <label for="period">History period</label>
-          <select id="period">
-            <option value="1mo">1 month</option>
-            <option value="3mo">3 months</option>
-            <option value="6mo">6 months</option>
-            <option value="1y">1 year</option>
-            <option value="2y">2 years</option>
-          </select>
-        </div>
-
-        <div class="dashboard-actions">
-          <button class="dashboard-btn" onclick="loadHistory()">
-            Load history
-          </button>
-          <button class="dashboard-btn secondary" onclick="predict()">
-            Predict next 5 days
-          </button>
-        </div>
-      </div>
-
-      <!-- MESSAGE -->
-      <p id="dash-msg" class="message"></p>
-
-      <!-- PANELS: CHART + PREDICTIONS -->
-      <div class="dashboard-panels">
-        <!-- Price chart panel -->
-        <div class="dashboard-panel">
-          <div class="dashboard-panel-header">
-            <span class="dashboard-panel-title">Price chart</span>
-            <span class="dashboard-panel-meta">
-              Closing prices for selected period
-            </span>
+      <section class="dashboard-card">
+        <div class="dashboard-controls">
+          <div class="form-group">
+            <label for="symbol">Stock symbol</label>
+            <input id="symbol" type="text" placeholder="e.g. TCS.NS" />
           </div>
-          <div class="dashboard-chart-area">
-            <canvas id="stockChart"></canvas>
+          <div class="form-group">
+            <label for="period">History period</label>
+            <select id="period">
+              <option value="1mo">1 month</option>
+              <option value="3mo">3 months</option>
+              <option value="6mo">6 months</option>
+              <option value="1y">1 year</option>
+            </select>
+          </div>
+          <div class="dashboard-actions">
+            <button class="dashboard-btn" onclick="loadHistory()">
+              Load history
+            </button>
+            <button class="dashboard-btn secondary" onclick="predict()">
+              Predict next 5 days
+            </button>
           </div>
         </div>
 
-        <!-- Predictions panel -->
-        <div class="dashboard-panel">
-          <div class="dashboard-panel-header">
-            <span class="dashboard-panel-title">AI predictions</span>
-            <span class="dashboard-panel-meta">
-              Next 5 trading days, short‑term trend highlighting
-            </span>
-          </div>
-          <ul id="predictions" class="dashboard-prediction-list">
-            <!-- Filled by predict() in script.js -->
-          </ul>
+        <div class="dashboard-panels">
+          <article class="dashboard-panel">
+            <div class="dashboard-panel-header">
+              <span class="dashboard-panel-title">Price chart</span>
+              <span class="dashboard-panel-meta">
+                Closing prices for selected period
+              </span>
+            </div>
+            <div class="dashboard-chart-area">
+              <canvas id="stockChart"></canvas>
+            </div>
+          </article>
+
+          <article class="dashboard-panel">
+            <div class="dashboard-panel-header">
+              <span class="dashboard-panel-title">AI predictions</span>
+              <span class="dashboard-panel-meta">
+                Next 5 trading days, short‑term trend highlighting
+              </span>
+            </div>
+            <ul id="predictions" class="dashboard-prediction-list"></ul>
+          </article>
         </div>
-      </div>
+
+        <p id="dash-msg" class="message" style="margin-top:12px;"></p>
+      </section>
     </section>
   </main>
 
-  <!-- FOOTER (optional, matches style.css) -->
+  <!-- FOOTER -->
   <footer class="ds-footer">
     <div class="ds-footer-inner">
       <div class="ds-footer-left">
         <span class="ds-footer-logo">DeepStock</span>
-        <span>Smart stock analytics for Indian markets.</span>
+        <span>© 2026. All rights reserved.</span>
       </div>
       <div class="ds-footer-links">
-        <a href="index.html">Home</a>
-        <a href="login.html">Login</a>
-        <a href="register.html">Register</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Support</a>
       </div>
     </div>
   </footer>
-
-  <!-- POPUP used by script.js (login/register) -->
-  <div id="popup-overlay" class="popup-overlay">
-    <div id="popup-box" class="popup-box">
-      <p id="popup-text"></p>
-      <button id="popup-ok">OK</button>
-    </div>
-  </div>
-
-  <!-- Main app logic -->
-  <script src="script.js"></script>
 </body>
 </html>

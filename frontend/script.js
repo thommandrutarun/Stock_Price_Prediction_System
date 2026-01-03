@@ -56,19 +56,19 @@ async function login() {
         localStorage.setItem("user_role", data.user.role);
       }
 
-      // decide next page
-      const target =
-        data.user.role === "admin" ? "admin.html" : "dashboard.html";
+       // decide next page
+const target = data.user.role === "admin" ? "admin.html" : "index.html";
 
-      // show success popup (optional)
-      showPopup("Login successful. Redirecting to your dashboard...", () => {
-        window.location.href = target;
-      });
+// show success popup (optional)
+showPopup("Login successful. Redirecting to home...", () => {
+  window.location.href = target;
+});
 
-      // automatic redirect after 1 second (no button click needed)
-      setTimeout(() => {
-        window.location.href = target;
-      }, 1000);
+// automatic redirect after 1 second (no button click needed)
+setTimeout(() => {
+  window.location.href = target;
+}, 1000);
+
     } else if (msg) {
       msg.textContent = data.message || "Login failed";
       msg.className = "message error";
@@ -222,13 +222,14 @@ async function loadHistory() {
     }
 
     if (!data.prices || data.prices.length === 0) {
-      if (dashMsg) {
-        dashMsg.textContent =
-          "No price data found for this symbol and period.";
-        dashMsg.className = "message error";
-      }
-      return;
-    }
+  if (dashMsg) {
+    dashMsg.textContent =
+      data.message ||
+      "No price data returned by data provider for this symbol and period.";
+    dashMsg.className = "message error";
+  }
+  return;
+}
 
     const ctx = canvas.getContext("2d");
 
@@ -407,6 +408,87 @@ async function loadAdminUsers() {
   }
 }
 
+// ===== USER PORTFOLIO REPORT (REPORT PAGE) =====
+
+async function loadUserPortfolio() {
+  const token = requireAuth();
+  if (!token) return;
+
+  const msg = document.getElementById("prof-msg");
+  const listEl = document.getElementById("positions-list");
+  const totalEl = document.getElementById("pf-total");
+
+  if (!listEl || !totalEl) return;
+
+  if (msg) {
+    msg.textContent = "";
+    msg.className = "message";
+  }
+
+  listEl.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/portfolio`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (msg) {
+        msg.textContent = data.message || "Failed to load portfolio.";
+        msg.className = "message error";
+      }
+      return;
+    }
+
+    totalEl.textContent = data.total_value.toFixed(2);
+
+    data.positions.forEach((p) => {
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.justifyContent = "space-between";
+      row.style.alignItems = "center";
+      row.style.padding = "6px 0";
+      row.style.borderBottom = "1px solid rgba(31,41,55,0.6)";
+
+      const left = document.createElement("div");
+      left.innerHTML = `<div style="font-weight:600;">${p.symbol}</div>
+                        <div class="text-small">Qty: ${p.quantity}</div>`;
+
+      const right = document.createElement("div");
+      const changeSign = p.change_abs >= 0 ? "+" : "";
+      const pct = p.change_pct.toFixed(2) + "%";
+      right.innerHTML = `
+        <div>₹${p.latest_price.toFixed(2)}</div>
+        <div class="${p.change_abs >= 0 ? "price-up" : "price-down"}">
+          ${changeSign}₹${p.change_abs.toFixed(2)} (${changeSign}${pct})
+        </div>
+      `;
+
+      row.appendChild(left);
+      row.appendChild(right);
+      listEl.appendChild(row);
+    });
+
+    if (msg) {
+      msg.textContent = "Portfolio loaded.";
+      msg.className = "message success";
+    }
+  } catch (e) {
+    if (msg) {
+      msg.textContent = "Network error while loading portfolio.";
+      msg.className = "message error";
+    }
+  }
+}
+
+// auto‑run only on report page
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("positions-list")) {
+    loadUserPortfolio();
+  }
+});
+
 /* ---------- AUTO-WIRE BUTTONS ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.getElementById("login-btn");
@@ -425,3 +507,117 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutBtn) logoutBtn.addEventListener("click", logout);
 });
 
+// ===== USER PORTFOLIO REPORT (REPORT PAGE) =====
+
+async function loadUserPortfolio() {
+  const token = requireAuth();
+  if (!token) return;
+
+  const msg = document.getElementById("prof-msg");
+  const listEl = document.getElementById("positions-list");
+  const totalEl = document.getElementById("pf-total");
+
+  if (!listEl || !totalEl) return;
+
+  if (msg) {
+    msg.textContent = "";
+    msg.className = "message";
+  }
+
+  listEl.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/portfolio`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (msg) {
+        msg.textContent = data.message || "Failed to load portfolio.";
+        msg.className = "message error";
+      }
+      return;
+    }
+
+    totalEl.textContent = data.total_value.toFixed(2);
+
+    data.positions.forEach((p) => {
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.justifyContent = "space-between";
+      row.style.alignItems = "center";
+      row.style.padding = "6px 0";
+      row.style.borderBottom = "1px solid rgba(31,41,55,0.6)";
+
+      const left = document.createElement("div");
+      left.innerHTML = `<div style="font-weight:600;">${p.symbol}</div>
+                        <div class="text-small">Qty: ${p.quantity}</div>`;
+
+      const right = document.createElement("div");
+      const changeSign = p.change_abs >= 0 ? "+" : "";
+      const pct = p.change_pct.toFixed(2) + "%";
+      right.innerHTML = `
+        <div>₹${p.latest_price.toFixed(2)}</div>
+        <div class="${p.change_abs >= 0 ? "price-up" : "price-down"}">
+          ${changeSign}₹${p.change_abs.toFixed(2)} (${changeSign}${pct})
+        </div>
+      `;
+
+      row.appendChild(left);
+      row.appendChild(right);
+      listEl.appendChild(row);
+    });
+
+    if (msg) {
+      msg.textContent = "Portfolio loaded.";
+      msg.className = "message success";
+    }
+  } catch (e) {
+    if (msg) {
+      msg.textContent = "Network error while loading portfolio.";
+      msg.className = "message error";
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("positions-list")) {
+    loadUserPortfolio();
+  }
+});
+
+// ===== GLOBAL NAVBAR SEARCH =====
+// When user presses Enter in the nav search, go to dashboard
+// and pre-fill the symbol field, then load history.
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("global-search");
+  if (!searchInput) return;
+
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const value = searchInput.value.trim();
+      if (!value) return;
+
+      // remember search term
+      localStorage.setItem("last_search_symbol", value);
+
+      // go to dashboard where charts live
+      window.location.href = "dashboard.html";
+    }
+  });
+
+  // If we land on dashboard, auto-use last search
+  if (window.location.pathname.endsWith("dashboard.html")) {
+    const stored = localStorage.getItem("last_search_symbol");
+    if (stored) {
+      const symbolInput = document.getElementById("symbol");
+      if (symbolInput) {
+        symbolInput.value = stored;
+        // optionally auto-load history
+        loadHistory();
+      }
+      localStorage.removeItem("last_search_symbol");
+    }
+  }
+});
