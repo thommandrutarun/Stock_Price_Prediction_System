@@ -13,8 +13,6 @@ import mysql.connector
 import pandas as pd
 from functools import wraps
 
-
-
 # -------- CONFIG --------
 app = Flask(__name__)
 
@@ -29,11 +27,19 @@ CORS(app, resources={
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"
+import datetime as dt
+
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = dt.timedelta(minutes=30)
+
+
+import os
+
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret")
+app.config["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "")
 
 app.config["DB_HOST"] = "localhost"
 app.config["DB_USER"] = "root"
-app.config["DB_PASSWORD"] = "Tarun@2004"
+
 app.config["DB_NAME"] = "stock_prediction"
 
 
@@ -212,40 +218,39 @@ def stock_history(symbol):
     return jsonify({"prices": prices}), 200
 
 # -------- SIMPLE PREDICTION --------
+from model import predict_price
+
 @app.route("/api/stocks/<symbol>/predict")
 @jwt_required()
 def predict(symbol):
-    days = int(request.args.get("days", 5))
-
     try:
         hist = get_history(symbol, "1mo")
+        closes = hist["Close"].tolist()
+
+        if len(closes) < 5:
+            return jsonify({
+                "message": "Not enough data for prediction",
+                "predictions": []
+            }), 400
+
+        predicted_price = predict_price(closes)
+
+        tomorrow = (dt.date.today() + dt.timedelta(days=1)).strftime("%Y-%m-%d")
+
+        return jsonify({
+            "predictions": [
+                {
+                    "date": tomorrow,
+                    "predicted_close": predicted_price
+                }
+            ]
+        }), 200
+
     except Exception:
-        return jsonify({"predictions": [], "message": "Could not fetch history"}), 502
-
-    closes = hist["Close"].tail(10).tolist()
-
-    if len(closes) < 2:
-        return jsonify({"message": "Not enough data", "predictions": []}), 400
-
-    diffs = [closes[i + 1] - closes[i] for i in range(len(closes) - 1)]
-    avg_change = sum(diffs) / len(diffs)
-    last_price = closes[-1]
-
-    today = dt.date.today()
-    predictions = []
-
-    for i in range(1, days + 1):
-        last_price += avg_change
-        day = today + dt.timedelta(days=i)
-        predictions.append(
-            {
-                "date": day.strftime("%Y-%m-%d"),
-                "predicted_close": float(last_price),
-            }
-        )
-
-    return jsonify({"predictions": predictions}), 200
-
+        return jsonify({
+            "message": "Prediction failed",
+            "predictions": []
+        }), 500
 
 # -------- REPORTS SUMMARY --------
 @app.route("/api/reports/summary")
