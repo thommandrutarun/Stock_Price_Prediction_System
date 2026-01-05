@@ -10,15 +10,21 @@ from flask_jwt_extended import (
 import datetime as dt
 import yfinance as yf
 import mysql.connector
+import pandas as pd
 from functools import wraps
 
-app = Flask(__name__)
+
 
 # -------- CONFIG --------
-CORS(
-    app,
-    resources={r"/api/*": {"origins": ["http://127.0.0.1:5500", "http://localhost:5500"]}},
-)
+app = Flask(__name__)
+
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://127.0.0.1:5500", "http://localhost:5500"],
+        "supports_credentials": True
+    }
+})
+
 
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
@@ -172,14 +178,10 @@ def get_history(symbol: str, period: str):
         "1y": "1y",
     }
     yf_period = period_map.get(period, "1mo")
-
     data = yf.download(symbol, period=yf_period, interval="1d", progress=False)
-
     if data.empty:
         raise ValueError(f"No price data for {symbol} in period {yf_period}")
-
     return data.reset_index()[["Date", "Close"]]
-
 
 # -------- STOCK HISTORY --------
 @app.route("/api/stocks/<symbol>/history")
@@ -192,24 +194,22 @@ def stock_history(symbol):
     except ValueError as e:
         return jsonify({"prices": [], "message": str(e)}), 404
     except Exception:
-        return jsonify(
-            {
-                "prices": [],
-                "message": "Stock data provider is currently unavailable. Please try again later.",
-            }
-        ), 502
+        return jsonify({
+            "prices": [],
+            "message": "Stock data provider is currently unavailable. Please try again later.",
+        }), 502
 
-    prices = []
-    for _, row in hist.iterrows():
-        prices.append(
-            {
-                "date": row["Date"].strftime("%Y-%m-%d"),
-                "close": float(row["Close"]),
-            }
-        )
+    # Ensure Date is datetime, then format the whole column at once
+    hist["Date"] = pd.to_datetime(hist["Date"])
+    dates = hist["Date"].dt.strftime("%Y-%m-%d").tolist()
+    closes = hist["Close"].astype(float).tolist()
+
+    prices = [
+        {"date": d, "close": c}
+        for d, c in zip(dates, closes)
+    ]
 
     return jsonify({"prices": prices}), 200
-
 
 # -------- SIMPLE PREDICTION --------
 @app.route("/api/stocks/<symbol>/predict")
