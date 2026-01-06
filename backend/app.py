@@ -14,32 +14,27 @@ import pandas as pd
 from functools import wraps
 
 # -------- CONFIG --------
+
 app = Flask(__name__)
 
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["http://127.0.0.1:5500", "http://localhost:5500"],
-        "supports_credentials": True
-    }
-})
-
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": ["http://127.0.0.1:5500", "http://localhost:5500"],
+            "supports_credentials": True,
+        }
+    },
+)
 
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-import datetime as dt
-
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = dt.timedelta(minutes=30)
-
-
-import os
-
-app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret")
-app.config["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "")
+app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"
 
 app.config["DB_HOST"] = "localhost"
 app.config["DB_USER"] = "root"
-
+app.config["DB_PASSWORD"] = "Tarun@2004"
 app.config["DB_NAME"] = "stock_prediction"
 
 
@@ -53,32 +48,30 @@ def get_db():
 
 
 # -------- ADMIN HELPER --------
+
 def admin_required(fn):
     @wraps(fn)
     @jwt_required()
     def wrapper(*args, **kwargs):
         user_id = int(get_jwt_identity())
-
         conn = get_db()
         cur = conn.cursor(dictionary=True)
         cur.execute("SELECT role FROM users WHERE id = %s", (user_id,))
         row = cur.fetchone()
         cur.close()
         conn.close()
-
         if not row or row["role"] != "admin":
             return jsonify({"message": "Admin access required"}), 403
-
         return fn(*args, **kwargs)
 
     return wrapper
 
 
 # -------- AUTH ROUTES --------
+
 @app.route("/api/auth/register", methods=["POST"])
 def register():
     data = request.get_json() or {}
-
     name = data.get("name")
     email = data.get("email")
     password = data.get("password")
@@ -120,7 +113,6 @@ def register():
 @app.route("/api/auth/login", methods=["POST"])
 def login():
     data = request.get_json() or {}
-
     email = data.get("email")
     password = data.get("password")
 
@@ -159,6 +151,7 @@ def login():
 
 
 # -------- ADMIN ENDPOINTS --------
+
 @app.route("/api/admin/users")
 @admin_required
 def list_users():
@@ -175,6 +168,7 @@ def list_users():
 
 
 # -------- yfinance HELPER --------
+
 def get_history(symbol: str, period: str):
     symbol = symbol.upper().strip()
     period_map = {
@@ -187,11 +181,14 @@ def get_history(symbol: str, period: str):
     data = yf.download(symbol, period=yf_period, interval="1d", progress=False)
     if data.empty:
         raise ValueError(f"No price data for {symbol} in period {yf_period}")
-    return data.reset_index()[["Date", "Close"]]
+    # Return only Date and Close as DataFrame
+    return data.reset_index()[["Date", "Close"]]  # reset_index keeps Date column[web:60]
+
 
 # -------- STOCK HISTORY --------
+
 @app.route("/api/stocks/<symbol>/history")
-@jwt_required()
+# @jwt_required()  # enable later if you want auth
 def stock_history(symbol):
     period = request.args.get("period", "1mo")
 
@@ -200,59 +197,64 @@ def stock_history(symbol):
     except ValueError as e:
         return jsonify({"prices": [], "message": str(e)}), 404
     except Exception:
-        return jsonify({
-            "prices": [],
-            "message": "Stock data provider is currently unavailable. Please try again later.",
-        }), 502
+        return (
+            jsonify(
+                {
+                    "prices": [],
+                    "message": "Stock data provider is currently unavailable. "
+                    "Please try again later.",
+                }
+            ),
+            502,
+        )
 
     # Ensure Date is datetime, then format the whole column at once
     hist["Date"] = pd.to_datetime(hist["Date"])
     dates = hist["Date"].dt.strftime("%Y-%m-%d").tolist()
-    closes = hist["Close"].astype(float).tolist()
+    closes = hist["Close"].astype(float).to_numpy().ravel().tolist()
 
-    prices = [
-        {"date": d, "close": c}
-        for d, c in zip(dates, closes)
-    ]
-
+    prices = [{"date": d, "close": c} for d, c in zip(dates, closes)]
     return jsonify({"prices": prices}), 200
 
+
 # -------- SIMPLE PREDICTION --------
-from model import predict_price
 
 @app.route("/api/stocks/<symbol>/predict")
-@jwt_required()
+# @jwt_required()  # enable later if you want auth
 def predict(symbol):
+    days = int(request.args.get("days", 5))
+
     try:
         hist = get_history(symbol, "1mo")
-        closes = hist["Close"].tolist()
-
-        if len(closes) < 5:
-            return jsonify({
-                "message": "Not enough data for prediction",
-                "predictions": []
-            }), 400
-
-        predicted_price = predict_price(closes)
-
-        tomorrow = (dt.date.today() + dt.timedelta(days=1)).strftime("%Y-%m-%d")
-
-        return jsonify({
-            "predictions": [
-                {
-                    "date": tomorrow,
-                    "predicted_close": predicted_price
-                }
-            ]
-        }), 200
-
     except Exception:
-        return jsonify({
-            "message": "Prediction failed",
-            "predictions": []
-        }), 500
+        return jsonify({"predictions": [], "message": "Could not fetch history"}), 502
+
+    closes = hist["Close"].astype(float).tail(10).values.ravel().tolist()
+
+    if len(closes) < 2:
+        return jsonify({"message": "Not enough data", "predictions": []}), 400
+
+    diffs = [closes[i + 1] - closes[i] for i in range(len(closes) - 1)]
+    avg_change = sum(diffs) / len(diffs)
+    last_price = closes[-1]
+    today = dt.date.today()
+
+    predictions = []
+    for i in range(1, days + 1):
+        last_price += avg_change
+        day = today + dt.timedelta(days=i)
+        predictions.append(
+            {
+                "date": day.strftime("%Y-%m-%d"),
+                "predicted_close": float(last_price),
+            }
+        )
+
+    return jsonify({"predictions": predictions}), 200
+
 
 # -------- REPORTS SUMMARY --------
+
 @app.route("/api/reports/summary")
 @jwt_required()
 def reports_summary():
@@ -267,19 +269,17 @@ def reports_summary():
         "total_users": total_users,
         "popular_symbols": ["AAPL", "TSLA", "MSFT", "GOOGL"],
     }
-
     return jsonify(data)
 
 
 # -------- USER PORTFOLIO REPORT --------
+
 @app.route("/api/reports/portfolio")
 @jwt_required()
 def user_portfolio():
     user_id = int(get_jwt_identity())
-
     conn = get_db()
     cur = conn.cursor(dictionary=True)
-
     cur.execute(
         """
         SELECT
@@ -296,10 +296,8 @@ def user_portfolio():
         """,
         (user_id,),
     )
-
     rows = cur.fetchall()
     total_value = sum(r["current_value"] for r in rows) if rows else 0
-
     cur.close()
     conn.close()
 
@@ -312,6 +310,7 @@ def user_portfolio():
 
 
 # -------- HEALTH CHECK --------
+
 @app.route("/")
 def home():
     return "Stock Price Prediction Backend Running"
