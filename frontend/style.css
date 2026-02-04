@@ -156,6 +156,12 @@ video {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
+.ds-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
 .ds-logo {
   display: flex;
   align-items: center;

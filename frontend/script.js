@@ -32,7 +32,7 @@ function showPopup(message, onClose) {
 /* ---------- NAVBAR & AUTH STATE ---------- */
 function updateNavbar() {
   const token = localStorage.getItem("token");
-  const userName = localStorage.getItem("user_name") || "User";
+  const userEmail = localStorage.getItem("user_email") || "User";
 
   const navGuest = document.getElementById("nav-guest");
   const navUser = document.getElementById("nav-user");
@@ -43,7 +43,7 @@ function updateNavbar() {
     if (token) {
       navGuest.style.display = "none";
       navUser.style.display = "flex";
-      if (nameDisplay) nameDisplay.textContent = userName;
+      if (nameDisplay) nameDisplay.textContent = `login:- ${userEmail}`;
       if (logoutBtn) {
         // Remove old listeners to avoid duplicates if called multiple times (though mostly once)
         const newBtn = logoutBtn.cloneNode(true);
@@ -212,7 +212,8 @@ async function loadHistory() {
       throw new Error(err.message || "Failed to load history");
     }
 
-    const data = await res.json();
+    const json = await res.json();
+    const data = json.prices; // Extract the array
     chartSeries = data; // Store for toggling
     renderChart(data);
 
@@ -232,10 +233,10 @@ function renderChart(data) {
     series: [{
       name: 'Price',
       data: data.map(d => ({
-        x: new Date(d.Date),
+        x: new Date(d.date),
         y: currentChartType === 'candlestick'
-          ? [d.Open, d.High, d.Low, d.Close]
-          : d.Close
+          ? [d.open, d.high, d.low, d.close]
+          : d.close
       }))
     }],
     chart: {
@@ -281,7 +282,7 @@ function setChartType(type) {
   if (btn) btn.classList.add("active");
 
   // Re-render if data exists
-  if (chartSeries.length > 0) {
+  if (chartSeries && chartSeries.length > 0) {
     renderChart(chartSeries);
   }
 }
@@ -352,15 +353,18 @@ async function predict() {
 
 /* ---------- REPORT PAGE: PORTFOLIO ---------- */
 async function loadUserPortfolio() {
+  const tableBody = document.getElementById("positions-table-body");
+  if (!tableBody) return; // Not on report page, exit immediately without checking auth
+
   const token = requireAuth();
   if (!token) return;
 
   const msg = document.getElementById("prof-msg");
-  const tableBody = document.getElementById("positions-table-body");
   const totalEl = document.getElementById("pf-total");
   const countEl = document.getElementById("pf-count");
 
-  if (!tableBody || !totalEl) return; // Not on report page
+  if (!totalEl) return;
+
 
   tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading positions...</td></tr>';
   if (msg) msg.textContent = "";
@@ -528,12 +532,13 @@ async function fetchWatchlistPrice(symbol) {
 
     if (!res.ok) throw new Error("Failed");
 
-    const data = await res.json();
-    if (data.length > 0) {
+    const json = await res.json();
+    const data = json.prices;
+    if (data && data.length > 0) {
       const latest = data[data.length - 1];
       const priceDiv = document.querySelector(`#wl-item-${symbol} .wl-price`);
       if (priceDiv) {
-        priceDiv.textContent = `₹${latest.Close.toFixed(2)}`;
+        priceDiv.textContent = `₹${latest.close.toFixed(2)}`;
         priceDiv.style.color = "#fff";
       }
     }
@@ -593,3 +598,76 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+/* ---------- ADMIN DASHBOARD ---------- */
+async function loadAdminUsers() {
+  const tableBody = document.getElementById("users-table-body");
+  if (!tableBody) return; // Not on admin page
+
+  const token = requireAuth();
+  if (!token) return;
+
+  const msg = document.getElementById("admin-msg");
+  if (msg) msg.textContent = "Loading users...";
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (msg) {
+        msg.textContent = data.message || "Failed to load users";
+        msg.className = "message error";
+      }
+      return;
+    }
+
+    if (msg) msg.textContent = "";
+
+    // Clear loading
+    tableBody.innerHTML = "";
+
+    if (!data.users || data.users.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No users found.</td></tr>';
+      return;
+    }
+
+    data.users.forEach((u) => {
+      const tr = document.createElement("tr");
+
+      // Role badge style
+      const roleBadge = u.role === 'admin'
+        ? '<span style="background:rgba(99,102,241,0.2); color:#818cf8; padding:2px 8px; border-radius:12px; font-size:0.75rem; border:1px solid rgba(99,102,241,0.3);">Admin</span>'
+        : '<span style="background:rgba(148,163,184,0.2); color:#94a3b8; padding:2px 8px; border-radius:12px; font-size:0.75rem;">User</span>';
+
+      tr.innerHTML = `
+        <td>#${u.id}</td>
+        <td style="font-weight:600; color:#fff;">${u.name}</td>
+        <td>${u.email}</td>
+        <td>${u.phone || '-'}</td>
+        <td>${u.dob || '-'}</td>
+        <td>${u.profession || '-'}</td>
+        <td>${roleBadge}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+    // Update stats if elements exist
+    const totalBadge = document.getElementById("stat-total-users");
+    if (totalBadge) totalBadge.textContent = data.users.length;
+
+  } catch (e) {
+    console.error(e);
+    if (msg) {
+      msg.textContent = "Network Error";
+      msg.className = "message error";
+    }
+  }
+}
+
+// Auto-run if on page (backup for onload)
+if (window.location.pathname.endsWith("admin.html")) {
+  loadAdminUsers();
+}
