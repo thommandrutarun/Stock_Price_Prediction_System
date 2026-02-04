@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Admin – Users | Stock Price Prediction System</title>
@@ -30,13 +31,53 @@
     <section class="admin-panel">
       <div class="admin-panel-header">
         <div>
-          <h1 class="admin-title">Users directory</h1>
+          <h1 class="admin-title">Users Directory</h1>
           <p class="admin-subtitle">
-            View all registered users, their contact details, and access level.
+            Manage user access, roles, and permissions across the platform.
           </p>
         </div>
-        <div class="admin-stats">
-          <span class="badge badge-green" id="total-users-badge">Users</span>
+        <div class="admin-actions">
+          <button class="dashboard-btn load-btn" style="font-size:0.8rem; padding: 0.5rem 1rem;">
+            + Add User
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(20, 184, 166, 0.1); color: #14b8a6;">👥</div>
+          <div class="stat-content">
+            <div class="stat-value" id="stat-total-users">--</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">⚡</div>
+          <div class="stat-content">
+            <div class="stat-value">Active</div>
+            <div class="stat-label">System Status</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">🛡️</div>
+          <div class="stat-content">
+            <div class="stat-value">Admin</div>
+            <div class="stat-label">Access Level</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="table-toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search users by name or email..." id="user-search" onkeyup="filterUsers()" />
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn-secondary small filter-active">All</button>
+          <button class="btn-secondary small">Admins</button>
+          <button class="btn-secondary small">Export CSV</button>
         </div>
       </div>
 
@@ -67,16 +108,16 @@
 
   <!-- Footer -->
   <footer class="site-footer">
-  <div class="site-footer-left">
-    <span class="site-footer-brand">Stock Price Prediction System</span>
-    <span>© 2026 Stock Price Prediction System. All rights reserved.</span>
-  </div>
-  <div class="site-footer-right">
-    <a href="report.html">Reports</a>
-    <a href="admin.html">Admin</a>
-    <a href="#">Support</a>
-  </div>
-</footer>
+    <div class="site-footer-left">
+      <span class="site-footer-brand">Stock Price Prediction System</span>
+      <span>© 2026 Stock Price Prediction System. All rights reserved.</span>
+    </div>
+    <div class="site-footer-right">
+      <a href="report.html">Reports</a>
+      <a href="admin.html">Admin</a>
+      <a href="#">Support</a>
+    </div>
+  </footer>
 
   <script src="script.js"></script>
   <script>
@@ -86,10 +127,11 @@
     document.addEventListener("DOMContentLoaded", () => {
       const observer = new MutationObserver(() => {
         const tbody = document.getElementById("users-table-body");
-        const badge = document.getElementById("total-users-badge");
+        const badge = document.getElementById("stat-total-users");
         if (tbody && badge) {
           const count = tbody.querySelectorAll("tr").length;
-          badge.textContent = count === 1 ? "1 user" : `${count} users`;
+          // Animate count? Simple text update for now
+          badge.textContent = count;
         }
       });
       const tbody = document.getElementById("users-table-body");
@@ -97,6 +139,29 @@
         observer.observe(tbody, { childList: true });
       }
     });
+
+    // Simple search filter
+    function filterUsers() {
+      const input = document.getElementById("user-search");
+      const filter = input.value.toLowerCase();
+      const tbody = document.getElementById("users-table-body");
+      const rows = tbody.getElementsByTagName("tr");
+
+      for (let i = 0; i < rows.length; i++) {
+        const nameCol = rows[i].getElementsByTagName("td")[1]; // Name is 2nd col
+        const emailCol = rows[i].getElementsByTagName("td")[2]; // Email is 3rd col
+        if (nameCol || emailCol) {
+          const nameVal = nameCol.textContent || nameCol.innerText;
+          const emailVal = emailCol.textContent || emailCol.innerText;
+          if (nameVal.toLowerCase().indexOf(filter) > -1 || emailVal.toLowerCase().indexOf(filter) > -1) {
+            rows[i].style.display = "";
+          } else {
+            rows[i].style.display = "none";
+          }
+        }
+      }
+    }
   </script>
 </body>
+
 </html>

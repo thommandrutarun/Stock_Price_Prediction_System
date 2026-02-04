@@ -1,5 +1,7 @@
 const API_BASE = "http://localhost:5000/api";
 let chart = null;
+let currentChartType = 'candlestick';
+let chartSeries = []; // Store data for toggling
 
 /* ---------- POPUP UTILS ---------- */
 function showPopup(message, onClose) {
@@ -9,6 +11,7 @@ function showPopup(message, onClose) {
   let btn = document.getElementById("popup-ok");
 
   if (!overlay || !box || !text || !btn) {
+    // If modal elements missing, fallback
     alert(message);
     if (onClose) onClose();
     return;
@@ -26,18 +29,68 @@ function showPopup(message, onClose) {
   btn.addEventListener("click", closeHandler);
 }
 
+/* ---------- NAVBAR & AUTH STATE ---------- */
+function updateNavbar() {
+  const token = localStorage.getItem("token");
+  const userName = localStorage.getItem("user_name") || "User";
+
+  const navGuest = document.getElementById("nav-guest");
+  const navUser = document.getElementById("nav-user");
+  const nameDisplay = document.getElementById("user-name-display");
+  const logoutBtn = document.getElementById("logout-btn-nav");
+
+  if (navGuest && navUser) {
+    if (token) {
+      navGuest.style.display = "none";
+      navUser.style.display = "flex";
+      if (nameDisplay) nameDisplay.textContent = userName;
+      if (logoutBtn) {
+        // Remove old listeners to avoid duplicates if called multiple times (though mostly once)
+        const newBtn = logoutBtn.cloneNode(true);
+        logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
+        newBtn.addEventListener("click", logout);
+      }
+    } else {
+      navGuest.style.display = "flex";
+      navUser.style.display = "none";
+    }
+  }
+}
+
+function requireAuth() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
+    return null;
+  }
+  return token;
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
 /* ---------- LOGIN ---------- */
 async function login() {
-  const body = {
-    email: document.getElementById("email").value.trim(),
-    password: document.getElementById("password").value,
-  };
+  const emailVal = document.getElementById("email").value.trim();
+  const passVal = document.getElementById("password").value;
 
   const msg = document.getElementById("msg");
   if (msg) {
     msg.textContent = "";
     msg.className = "message";
   }
+
+  if (!emailVal || !passVal) {
+    if (msg) {
+      msg.textContent = "Please enter email and password";
+      msg.className = "message error";
+    }
+    return;
+  }
+
+  const body = { email: emailVal, password: passVal };
 
   try {
     const res = await fetch(`${API_BASE}/auth/login`, {
@@ -49,31 +102,28 @@ async function login() {
     const data = await res.json();
 
     if (res.ok) {
-      // save auth info
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user_email", data.user.email);
+      localStorage.setItem("user_name", data.user.name);
       if (data.user.role) {
         localStorage.setItem("user_role", data.user.role);
       }
 
-       // decide next page
-const target = data.user.role === "admin" ? "admin.html" : "index.html";
+      const target = data.user.role === "admin" ? "admin.html" : "index.html";
 
-// show success popup (optional)
-showPopup("Login successful. Redirecting to home...", () => {
-  window.location.href = target;
-});
+      showPopup("Login successful. Redirecting...", () => {
+        window.location.href = target;
+      });
 
-// automatic redirect after 1 second (no button click needed)
-setTimeout(() => {
-  window.location.href = target;
-}, 1000);
+      // Backup redirect
+      setTimeout(() => { window.location.href = target; }, 1000);
 
     } else if (msg) {
       msg.textContent = data.message || "Login failed";
       msg.className = "message error";
     }
   } catch (e) {
+    console.error(e);
     if (msg) {
       msg.textContent = "Network error";
       msg.className = "message error";
@@ -85,16 +135,10 @@ setTimeout(() => {
 async function registerUser() {
   const name = document.getElementById("reg-name").value.trim();
   const email = document.getElementById("reg-email").value.trim();
-  const phone = document.getElementById("reg-phone")
-    ? document.getElementById("reg-phone").value.trim()
-    : "";
-  const dob = document.getElementById("reg-dob")
-    ? document.getElementById("reg-dob").value
-    : "";
-  const profession = document.getElementById("reg-profession")
-    ? document.getElementById("reg-profession").value
-    : "";
-  const password = document.getElementById("reg-password").value;
+  const phone = document.getElementById("reg-phone") ? document.getElementById("reg-phone").value.trim() : "";
+  const dob = document.getElementById("reg-dob") ? document.getElementById("reg-dob").value : "";
+  const profession = document.getElementById("reg-profession") ? document.getElementById("reg-profession").value : "";
+  const password = document.getElementById("reg-password") ? document.getElementById("reg-password").value : "";
 
   const msg = document.getElementById("reg-msg");
   if (msg) {
@@ -102,10 +146,9 @@ async function registerUser() {
     msg.className = "message";
   }
 
-  // Make DOB & profession required; remove from condition if optional
-  if (!name || !email || !password || !dob || !profession) {
+  if (!name || !email || !password) {
     if (msg) {
-      msg.textContent = "Please fill in all required fields.";
+      msg.textContent = "Please fill in required fields.";
       msg.className = "message error";
     }
     return;
@@ -123,7 +166,7 @@ async function registerUser() {
     const data = await res.json();
 
     if (res.ok) {
-      showPopup("Registration completed successfully.", () => {
+      showPopup("Registration successful! Please log in.", () => {
         window.location.href = "login.html";
       });
     } else if (msg) {
@@ -138,308 +181,189 @@ async function registerUser() {
   }
 }
 
-/* ---------- AUTH HELPERS ---------- */
-function requireAuth() {
-  const token = localStorage.getItem("token");
-  const email = localStorage.getItem("user_email");
-
-  if (!token) {
-    window.location.href = "login.html";
-    return null;
-  }
-
-  const el = document.getElementById("user-email");
-  if (el && email) el.textContent = email;
-
-  return token;
-}
-
-function logout() {
-  localStorage.clear();
-  window.location.href = "login.html";
-}
-
-function requireAdmin() {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("user_role");
-
-  if (!token || role !== "admin") {
-    window.location.href = "login.html";
-    return null;
-  }
-  return token;
-}
-
-/* ---------- DASHBOARD: HISTORY ---------- */
+/* ---------- DASHBOARD ---------- */
 async function loadHistory() {
+  const symbolInput = document.getElementById("symbol");
+  if (!symbolInput) return;
+
+  const symbol = symbolInput.value.trim().toUpperCase();
+  if (!symbol) {
+    alert("Please enter a stock symbol");
+    return;
+  }
+
   const token = requireAuth();
   if (!token) return;
 
-  const symbol = document.getElementById("symbol").value.trim();
-  const period = document.getElementById("period").value;
-  const dashMsg = document.getElementById("dash-msg");
-  const canvas = document.getElementById("stockChart");
+  // Find active period
+  const activeBtn = document.querySelector(".period-btn.active");
+  const period = activeBtn ? activeBtn.getAttribute("data-period") : "1mo";
 
-  if (dashMsg) {
-    dashMsg.textContent = "";
-    dashMsg.className = "message";
-  }
-
-  if (!symbol) {
-    if (dashMsg) {
-      dashMsg.textContent = "Please enter a stock symbol.";
-      dashMsg.className = "message error";
-    }
-    return;
-  }
-
-  if (!canvas) {
-    if (dashMsg) {
-      dashMsg.textContent = "Chart element not found.";
-      dashMsg.className = "message error";
-    }
-    return;
-  }
+  const msg = document.getElementById("dash-msg");
+  if (msg) msg.textContent = "Loading chart...";
 
   try {
-    const res = await fetch(
-      `${API_BASE}/stocks/${encodeURIComponent(
-        symbol
-      )}/history?period=${encodeURIComponent(period)}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      if (dashMsg) {
-        dashMsg.textContent = data.message || "Failed to load history.";
-        dashMsg.className = "message error";
-      }
-      return;
-    }
-
-    if (!data.prices || data.prices.length === 0) {
-  if (dashMsg) {
-    dashMsg.textContent =
-      data.message ||
-      "No price data returned by data provider for this symbol and period.";
-    dashMsg.className = "message error";
-  }
-  return;
-}
-
-    const ctx = canvas.getContext("2d");
-
-    if (chart) chart.destroy();
-
-    chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: data.prices.map((p) => p.date),
-        datasets: [
-          {
-            label: "Close Price",
-            data: data.prices.map((p) => p.close),
-            borderColor: "#4ea1ff",
-            tension: 0.1,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: {
-            ticks: { color: "#e5e7eb" },
-          },
-          y: {
-            ticks: { color: "#e5e7eb" },
-          },
-        },
-      },
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/history?period=${period}`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (dashMsg) {
-      dashMsg.textContent = "History loaded successfully.";
-      dashMsg.className = "message success";
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to load history");
     }
+
+    const data = await res.json();
+    chartSeries = data; // Store for toggling
+    renderChart(data);
+
+    if (msg) msg.textContent = "";
+
   } catch (e) {
-    if (dashMsg) {
-      dashMsg.textContent = "Network error while loading history.";
-      dashMsg.className = "message error";
-    }
-  }
-}
-
-/* ---------- DASHBOARD: PREDICT ---------- */
-async function predict() {
-  const token = requireAuth();
-  if (!token) return;
-
-  const symbol = document.getElementById("symbol").value.trim();
-  const dashMsg = document.getElementById("dash-msg");
-  const list = document.getElementById("predictions");
-
-  if (dashMsg) {
-    dashMsg.textContent = "";
-    dashMsg.className = "message";
-  }
-  if (list) list.innerHTML = "";
-
-  if (!symbol) {
-    if (dashMsg) {
-      dashMsg.textContent = "Please enter a stock symbol before predicting.";
-      dashMsg.className = "message error";
-    }
-    return;
-  }
-
-  try {
-    const res = await fetch(
-      `${API_BASE}/stocks/${encodeURIComponent(
-        symbol
-      )}/predict?days=5`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      if (dashMsg) {
-        dashMsg.textContent = data.message || "Failed to fetch predictions.";
-        dashMsg.className = "message error";
-      }
-      return;
-    }
-
-    if (!data.predictions || data.predictions.length === 0) {
-      if (dashMsg) {
-        dashMsg.textContent = "No predictions returned.";
-        dashMsg.className = "message error";
-      }
-      return;
-    }
-
-    data.predictions.forEach((p, idx) => {
-      const li = document.createElement("li");
-      li.textContent = `${p.date}: ${p.predicted_close.toFixed(2)}`;
-
-      if (
-        idx > 0 &&
-        data.predictions[idx - 1].predicted_close < p.predicted_close
-      ) {
-        li.classList.add("price-up");
-      } else if (
-        idx > 0 &&
-        data.predictions[idx - 1].predicted_close > p.predicted_close
-      ) {
-        li.classList.add("price-down");
-      }
-
-      list.appendChild(li);
-    });
-
-    if (dashMsg) {
-      dashMsg.textContent = "Predictions loaded.";
-      dashMsg.className = "message success";
-    }
-  } catch (e) {
-    if (dashMsg) {
-      dashMsg.textContent = "Network error while fetching predictions.";
-      dashMsg.className = "message error";
-    }
-  }
-}
-
-/* ---------- ADMIN PANEL ---------- */
-async function loadAdminUsers() {
-  const token = requireAdmin();
-  if (!token) return;
-
-  const msg = document.getElementById("admin-msg");
-  const tbody =
-    document.querySelector("#users-table tbody") ||
-    document.getElementById("users-table-body");
-
-  if (msg) {
-    msg.textContent = "";
-    msg.className = "message";
-  }
-  if (tbody) tbody.innerHTML = "";
-
-  try {
-    const res = await fetch(`${API_BASE}/admin/users`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      if (msg) {
-        msg.textContent = data.message || "Failed to load users.";
-        msg.className = "message error";
-      }
-      return;
-    }
-
-    if (!Array.isArray(data.users) || data.users.length === 0) {
-      if (msg) {
-        msg.textContent = "No users found.";
-        msg.className = "message";
-      }
-      return;
-    }
-
-    data.users.forEach((u) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${u.id ?? ""}</td>
-        <td>${u.name ?? ""}</td>
-        <td>${u.email ?? ""}</td>
-        <td>${u.phone ?? ""}</td>
-        <td>${u.dob ?? ""}</td>
-        <td>${u.profession ?? ""}</td>
-        <td>${u.role ?? ""}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
+    console.error(e);
     if (msg) {
-      msg.textContent = "Users loaded successfully.";
-      msg.className = "message success";
-    }
-  } catch (e) {
-    if (msg) {
-      msg.textContent = "Network error while loading users.";
+      msg.textContent = e.message;
       msg.className = "message error";
     }
   }
 }
 
+function renderChart(data) {
+  const options = {
+    series: [{
+      name: 'Price',
+      data: data.map(d => ({
+        x: new Date(d.Date),
+        y: currentChartType === 'candlestick'
+          ? [d.Open, d.High, d.Low, d.Close]
+          : d.Close
+      }))
+    }],
+    chart: {
+      type: currentChartType,
+      height: 400,
+      background: 'transparent',
+      toolbar: { show: true }
+    },
+    theme: { mode: 'dark' },
+    xaxis: {
+      type: 'datetime',
+      tooltip: { enabled: true }
+    },
+    yaxis: {
+      tooltip: { enabled: true },
+      labels: { formatter: (val) => val.toFixed(2) }
+    },
+    plotOptions: {
+      candlestick: {
+        colors: { upward: '#10b981', downward: '#ef4444' }
+      }
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2
+    }
+  };
 
-// ===== USER PORTFOLIO REPORT (REPORT PAGE) =====
+  const chartEl = document.querySelector("#stockChart");
+  if (!chartEl) return;
+  chartEl.innerHTML = "";
 
+  chart = new ApexCharts(chartEl, options);
+  chart.render();
+}
+
+function setChartType(type) {
+  currentChartType = type;
+
+  // Update buttons
+  document.querySelectorAll(".toggle-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById(type === 'candlestick' ? 'btn-candle' : 'btn-line');
+  if (btn) btn.classList.add("active");
+
+  // Re-render if data exists
+  if (chartSeries.length > 0) {
+    renderChart(chartSeries);
+  }
+}
+
+function setupPeriodButtons() {
+  const buttons = document.querySelectorAll(".period-btn");
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      loadHistory();
+    });
+  });
+}
+
+async function predict() {
+  const symbolInput = document.getElementById("symbol");
+  if (!symbolInput) return;
+  const symbol = symbolInput.value.trim().toUpperCase();
+
+  if (!symbol) { alert("Enter symbol first"); return; }
+
+  const token = requireAuth();
+  if (!token) return;
+
+  const list = document.getElementById("predictions");
+  const msg = document.getElementById("dash-msg");
+  if (!list) return;
+
+  list.innerHTML = "<li>Loading predictions...</li>";
+
+  try {
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/predict`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error("Prediction API failed");
+
+    const data = await res.json();
+    list.innerHTML = "";
+
+    if (data.predictions) {
+      data.predictions.forEach((p, idx) => {
+        const li = document.createElement("li");
+
+        // Trend logic
+        let trendClass = "";
+        if (idx > 0) {
+          if (data.predictions[idx - 1].predicted_close < p.predicted_close) trendClass = "price-up";
+          else if (data.predictions[idx - 1].predicted_close > p.predicted_close) trendClass = "price-down";
+        }
+        if (trendClass) li.classList.add(trendClass);
+
+        const d = new Date(p.date);
+        const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        li.innerHTML = `
+               <span class="pred-date">${dateStr}</span>
+               <span class="pred-price">${p.predicted_close.toFixed(2)}</span>
+             `;
+        list.appendChild(li);
+      });
+    }
+  } catch (e) {
+    list.innerHTML = "<li>Error loading predictions</li>";
+  }
+}
+
+/* ---------- REPORT PAGE: PORTFOLIO ---------- */
 async function loadUserPortfolio() {
   const token = requireAuth();
   if (!token) return;
 
   const msg = document.getElementById("prof-msg");
-  const listEl = document.getElementById("positions-list");
+  const tableBody = document.getElementById("positions-table-body");
   const totalEl = document.getElementById("pf-total");
+  const countEl = document.getElementById("pf-count");
 
-  if (!listEl || !totalEl) return;
+  if (!tableBody || !totalEl) return; // Not on report page
 
-  if (msg) {
-    msg.textContent = "";
-    msg.className = "message";
-  }
-
-  listEl.innerHTML = "";
+  tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading positions...</td></tr>';
+  if (msg) msg.textContent = "";
 
   try {
     const res = await fetch(`${API_BASE}/reports/portfolio`, {
@@ -448,63 +372,184 @@ async function loadUserPortfolio() {
     const data = await res.json();
 
     if (!res.ok) {
-      if (msg) {
-        msg.textContent = data.message || "Failed to load portfolio.";
-        msg.className = "message error";
-      }
+      tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">${data.message || "Failed to load"}</td></tr>`;
       return;
     }
 
+    // Update Summary
     totalEl.textContent = data.total_value.toFixed(2);
+    if (countEl) countEl.textContent = data.positions ? data.positions.length : 0;
+
+    // Clear loading
+    tableBody.innerHTML = "";
+
+    if (!data.positions || data.positions.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No positions found.</td></tr>';
+      return;
+    }
 
     data.positions.forEach((p) => {
-      const row = document.createElement("div");
-      row.style.display = "flex";
-      row.style.justifyContent = "space-between";
-      row.style.alignItems = "center";
-      row.style.padding = "6px 0";
-      row.style.borderBottom = "1px solid rgba(31,41,55,0.6)";
+      const tr = document.createElement("tr");
 
-      const left = document.createElement("div");
-      left.innerHTML = `<div style="font-weight:600;">${p.symbol}</div>
-                        <div class="text-small">Qty: ${p.quantity}</div>`;
-
-      const right = document.createElement("div");
-      const changeSign = p.change_abs >= 0 ? "+" : "";
+      // Calculations
+      const currentValue = (p.latest_price * p.quantity).toFixed(2);
+      const pl = p.change_abs.toFixed(2);
       const pct = p.change_pct.toFixed(2) + "%";
-      right.innerHTML = `
-        <div>₹${p.latest_price.toFixed(2)}</div>
-        <div class="${p.change_abs >= 0 ? "price-up" : "price-down"}">
-          ${changeSign}₹${p.change_abs.toFixed(2)} (${changeSign}${pct})
-        </div>
+
+      const plClass = p.change_abs >= 0 ? "price-up" : "price-down";
+      const sign = p.change_abs >= 0 ? "+" : "";
+
+      tr.innerHTML = `
+        <td>${p.symbol}</td>
+        <td>${p.quantity}</td>
+        <td>₹${p.avg_price.toFixed(2)}</td>
+        <td>₹${p.latest_price.toFixed(2)}</td>
+        <td style="font-weight:600;">₹${currentValue}</td>
+        <td class="${plClass}">${sign}₹${pl}</td>
+        <td class="${plClass}">${sign}${pct}</td>
       `;
 
-      row.appendChild(left);
-      row.appendChild(right);
-      listEl.appendChild(row);
+      tableBody.appendChild(tr);
     });
 
-    if (msg) {
-      msg.textContent = "Portfolio loaded.";
-      msg.className = "message success";
-    }
   } catch (e) {
-    if (msg) {
-      msg.textContent = "Network error while loading portfolio.";
-      msg.className = "message error";
-    }
+    console.error(e);
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Network Error</td></tr>';
   }
 }
 
-// auto‑run only on report page
-document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("positions-list")) {
-    loadUserPortfolio();
-  }
-});
+/* ---------- WATCHLIST LOGIC ---------- */
+const WATCHLIST_KEY = "user_watchlist_symbols";
 
-/* ---------- AUTO-WIRE BUTTONS ---------- */
+function initWatchlist() {
+  const addBtn = document.getElementById("add-watchlist-btn");
+  const input = document.getElementById("watchlist-input");
+
+  if (!addBtn || !input) return;
+
+  renderWatchlist();
+
+  addBtn.addEventListener("click", () => {
+    const symbol = input.value.trim().toUpperCase();
+    if (!symbol) return;
+    addToWatchlist(symbol);
+    input.value = "";
+  });
+
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") addBtn.click();
+  });
+}
+
+function getWatchlist() {
+  const stored = localStorage.getItem(WATCHLIST_KEY);
+  return stored ? JSON.parse(stored) : ["RELIANCE.NS", "TCS.NS", "INFY.NS"];
+}
+
+function addToWatchlist(symbol) {
+  let list = getWatchlist();
+  if (list.includes(symbol)) {
+    showPopup(`Symbol ${symbol} is already in the watchlist.`);
+    return;
+  }
+  list.push(symbol);
+  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
+  renderWatchlist();
+}
+
+function removeFromWatchlist(symbol) {
+  let list = getWatchlist();
+  list = list.filter(s => s !== symbol);
+  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
+  renderWatchlist();
+}
+
+async function renderWatchlist() {
+  const listEl = document.getElementById("watchlist-list");
+  if (!listEl) return;
+
+  const symbols = getWatchlist();
+  listEl.innerHTML = "";
+
+  if (symbols.length === 0) {
+    listEl.innerHTML = `<li style="color:var(--text-muted); font-size:0.8rem; text-align:center;">No symbols watched.</li>`;
+    return;
+  }
+
+  symbols.forEach(sym => {
+    const li = document.createElement("li");
+    li.id = `wl-item-${sym}`;
+    li.style.cssText = "background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:background 0.2s;";
+    li.innerHTML = `
+      <div class="wl-content" style="flex:1;">
+        <div style="font-weight:600; font-size:0.9rem;">${sym}</div>
+        <div class="wl-price" style="font-size:0.8rem; color:var(--text-muted);">Loading...</div>
+      </div>
+      <button class="wl-remove" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;">&times;</button>
+    `;
+
+    // Wire events
+    li.querySelector(".wl-content").addEventListener("click", () => loadFromWatchlist(sym));
+    li.querySelector(".wl-remove").addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeFromWatchlist(sym);
+    });
+
+    // Hover effects
+    li.onmouseover = () => li.style.background = "rgba(255,255,255,0.1)";
+    li.onmouseout = () => li.style.background = "rgba(255,255,255,0.05)";
+
+    listEl.appendChild(li);
+
+    fetchWatchlistPrice(sym);
+  });
+}
+
+function loadFromWatchlist(symbol) {
+  const input = document.getElementById("symbol");
+  if (input) {
+    input.value = symbol;
+    loadHistory();
+  } else {
+    // If not on dashboard, redirect
+    localStorage.setItem("last_search_symbol", symbol);
+    window.location.href = "dashboard.html";
+  }
+}
+
+async function fetchWatchlistPrice(symbol) {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/history?period=1d`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error("Failed");
+
+    const data = await res.json();
+    if (data.length > 0) {
+      const latest = data[data.length - 1];
+      const priceDiv = document.querySelector(`#wl-item-${symbol} .wl-price`);
+      if (priceDiv) {
+        priceDiv.textContent = `₹${latest.Close.toFixed(2)}`;
+        priceDiv.style.color = "#fff";
+      }
+    }
+  } catch (e) {
+    const priceDiv = document.querySelector(`#wl-item-${symbol} .wl-price`);
+    if (priceDiv) priceDiv.textContent = "-";
+  }
+}
+
+/* ---------- GLOBAL INITIALIZATION ---------- */
 document.addEventListener("DOMContentLoaded", () => {
+
+  updateNavbar();
+  initWatchlist();
+
+  // Wiring Buttons
   const loginBtn = document.getElementById("login-btn");
   if (loginBtn) loginBtn.addEventListener("click", login);
 
@@ -517,121 +562,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const predictBtn = document.getElementById("predict-btn");
   if (predictBtn) predictBtn.addEventListener("click", predict);
 
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) logoutBtn.addEventListener("click", logout);
-});
+  // Dashboard specific
+  setupPeriodButtons();
 
-// ===== USER PORTFOLIO REPORT (REPORT PAGE) =====
-
-async function loadUserPortfolio() {
-  const token = requireAuth();
-  if (!token) return;
-
-  const msg = document.getElementById("prof-msg");
-  const listEl = document.getElementById("positions-list");
-  const totalEl = document.getElementById("pf-total");
-
-  if (!listEl || !totalEl) return;
-
-  if (msg) {
-    msg.textContent = "";
-    msg.className = "message";
-  }
-
-  listEl.innerHTML = "";
-
-  try {
-    const res = await fetch(`${API_BASE}/reports/portfolio`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-
-    if (!res.ok) {
-      if (msg) {
-        msg.textContent = data.message || "Failed to load portfolio.";
-        msg.className = "message error";
-      }
-      return;
-    }
-
-    totalEl.textContent = data.total_value.toFixed(2);
-
-    data.positions.forEach((p) => {
-      const row = document.createElement("div");
-      row.style.display = "flex";
-      row.style.justifyContent = "space-between";
-      row.style.alignItems = "center";
-      row.style.padding = "6px 0";
-      row.style.borderBottom = "1px solid rgba(31,41,55,0.6)";
-
-      const left = document.createElement("div");
-      left.innerHTML = `<div style="font-weight:600;">${p.symbol}</div>
-                        <div class="text-small">Qty: ${p.quantity}</div>`;
-
-      const right = document.createElement("div");
-      const changeSign = p.change_abs >= 0 ? "+" : "";
-      const pct = p.change_pct.toFixed(2) + "%";
-      right.innerHTML = `
-        <div>₹${p.latest_price.toFixed(2)}</div>
-        <div class="${p.change_abs >= 0 ? "price-up" : "price-down"}">
-          ${changeSign}₹${p.change_abs.toFixed(2)} (${changeSign}${pct})
-        </div>
-      `;
-
-      row.appendChild(left);
-      row.appendChild(right);
-      listEl.appendChild(row);
-    });
-
-    if (msg) {
-      msg.textContent = "Portfolio loaded.";
-      msg.className = "message success";
-    }
-  } catch (e) {
-    if (msg) {
-      msg.textContent = "Network error while loading portfolio.";
-      msg.className = "message error";
-    }
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (document.getElementById("positions-list")) {
-    loadUserPortfolio();
-  }
-});
-
-// ===== GLOBAL NAVBAR SEARCH =====
-// When user presses Enter in the nav search, go to dashboard
-// and pre-fill the symbol field, then load history.
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("global-search");
-  if (!searchInput) return;
-
-  searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      const value = searchInput.value.trim();
-      if (!value) return;
-
-      // remember search term
-      localStorage.setItem("last_search_symbol", value);
-
-      // go to dashboard where charts live
-      window.location.href = "dashboard.html";
-    }
-  });
-
-  // If we land on dashboard, auto-use last search
+  // Auto Load Dashboard Search
   if (window.location.pathname.endsWith("dashboard.html")) {
     const stored = localStorage.getItem("last_search_symbol");
-    if (stored) {
-      const symbolInput = document.getElementById("symbol");
-      if (symbolInput) {
-        symbolInput.value = stored;
-        // optionally auto-load history
-        loadHistory();
-      }
+    const symbolInput = document.getElementById("symbol");
+    if (stored && symbolInput) {
+      symbolInput.value = stored;
       localStorage.removeItem("last_search_symbol");
+      if (localStorage.getItem("token")) loadHistory();
     }
+  }
+
+  // Auto Load Portfolio
+  loadUserPortfolio();
+
+  // Global Search Bar
+  const globalSearch = document.getElementById("global-search");
+  if (globalSearch) {
+    globalSearch.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const val = globalSearch.value.trim().toUpperCase();
+        if (val) {
+          localStorage.setItem("last_search_symbol", val);
+          window.location.href = "dashboard.html";
+        }
+      }
+    });
   }
 });

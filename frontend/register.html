@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Register – Stock Price Prediction System</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <!-- BACKGROUND VIDEO -->
   <video class="bg-video" autoplay muted loop playsinline>
@@ -12,75 +14,77 @@
   </video>
 
   <!-- NAVBAR -->
-  <nav class="ds-navbar">
+  <nav class="ds-navbar" style="background: transparent; border-bottom: none; box-shadow: none;">
     <div class="ds-navbar-left">
       <a href="index.html" class="ds-logo">
         <span class="ds-logo-icon">📈</span>
         <span class="ds-logo-text">Stock Price Prediction System</span>
       </a>
-      <div class="ds-search-wrapper">
-        <input
-          type="text"
-          class="ds-search-input"
-          placeholder="Search for stocks..."
-        />
-      </div>
     </div>
 
     <div class="ds-navbar-right">
+      <!-- Simplified nav for auth page -->
       <a href="index.html" class="ds-nav-link">Home</a>
-      <a href="dashboard.html" class="ds-nav-link">Tools</a>
-      <a href="dashboard.html" class="ds-nav-link">Portfolio</a>
       <a href="login.html" class="ds-btn ds-btn-outline">Login</a>
-      <a href="register.html" class="ds-btn ds-btn-primary">Sign Up</a>
     </div>
   </nav>
 
   <main class="page-main">
-    <div class="container small">
-      <div class="card">
-        <h1 class="center">Create Account</h1>
+    <div class="auth-container">
+      <div class="dashboard-panel">
+        <h1 class="center" style="font-size:24px; margin-bottom: 24px;">Create Account</h1>
 
-        <!-- Name -->
         <label for="reg-name">Full Name</label>
-        <input id="reg-name" type="text" placeholder="Your name" />
-
-        <!-- Email -->
-        <label for="reg-email">Email</label>
-        <input id="reg-email" type="email" placeholder="you@example.com" />
-
-        <!-- Phone -->
-        <label for="reg-phone">Phone</label>
-        <input id="reg-phone" type="text" placeholder="Phone number" />
-
-        <!-- Date of Birth (calendar) -->
-        <label for="reg-dob">Date of Birth</label>
-        <input id="reg-dob" type="date" />
-
-        <!-- Profession dropdown -->
-        <label for="reg-profession">Profession</label>
-        <select id="reg-profession">
-          <option value="">Select profession</option>
-          <option value="student">Student</option>
-          <option value="salaried">Salaried Employee</option>
-          <option value="self_employed">Self Employed / Business</option>
-          <option value="trader_investor">Trader / Investor</option>
-          <option value="other">Other</option>
-        </select>
-
-        <!-- Password -->
-        <label for="reg-password">Password</label>
-        <input id="reg-password" type="password" placeholder="********" />
-
-        <div class="auth-button-row">
-          <button id="register-btn" type="button">Register</button>
+        <div class="input-with-icon" style="margin-bottom:16px;">
+          <input id="reg-name" type="text" placeholder="John Doe" />
         </div>
 
-        <p class="text-small center">
-          Already registered? <a href="login.html">Login</a>
+        <label for="reg-email">Email</label>
+        <div class="input-with-icon" style="margin-bottom:16px;">
+          <input id="reg-email" type="email" placeholder="you@example.com" />
+        </div>
+
+        <label for="reg-dob">Date of Birth</label>
+        <div class="input-with-icon" style="margin-bottom:16px;">
+          <input id="reg-dob" type="date" />
+        </div>
+
+        <!-- Row for Phone / Profession -->
+        <div style="display:flex; gap:16px;">
+          <div style="flex:1;">
+            <label for="reg-phone">Phone</label>
+            <div class="input-with-icon" style="margin-bottom:16px;">
+              <input id="reg-phone" type="tel" placeholder="+123..." />
+            </div>
+          </div>
+          <div style="flex:1;">
+            <label for="reg-profession">Profession</label>
+            <div class="input-with-icon" style="margin-bottom:16px;">
+              <select id="reg-profession">
+                <option value="student">Student</option>
+                <option value="trader">Trader</option>
+                <option value="analyst">Analyst</option>
+                <option value="investor">Investor</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <label for="reg-password">Password</label>
+        <div class="input-with-icon" style="margin-bottom:24px;">
+          <input id="reg-password" type="password" placeholder="********" />
+        </div>
+
+        <div class="auth-button-row">
+          <button id="register-btn" class="dashboard-btn predict-btn" style="width:100%;">Sign Up</button>
+        </div>
+
+        <p class="text-small center" style="margin-top:20px;">
+          Already have an account? <a href="login.html">Login</a>
         </p>
 
-        <div id="reg-msg" class="message"></div>
+        <div id="msg" class="message"></div>
       </div>
     </div>
 
@@ -94,22 +98,14 @@
   </main>
 
   <!-- FOOTER -->
-  <footer class="ds-footer">
-    <div class="ds-footer-inner">
-      <div class="ds-footer-left">
-        <span class="ds-footer-logo">Stock Price Prediction System</span>
-        <span class="ds-footer-text">
-          © 2025 Stock Price Prediction System. All rights reserved.
-        </span>
-      </div>
-      <div class="ds-footer-links">
-        <a href="report.html">Reports</a>
-        <a href="admin.html">Admin</a>
-        <a href="contact.html">Support</a>
-      </div>
+  <footer class="ds-footer" style="padding: 1rem 2rem; border-top:none; background: transparent; text-align: center;">
+    <div style="font-size: 0.85rem; color: #64748b;">
+      © 2026 Stock Price Prediction System. <a href="#" style="color:#64748b; margin-left:10px;">Privacy</a> <a href="#"
+        style="color:#64748b; margin-left:5px;">Terms</a>
     </div>
   </footer>
 
   <script src="script.js"></script>
 </body>
+
 </html>

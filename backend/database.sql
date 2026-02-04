@@ -22,7 +22,7 @@ BEGIN
     IF NEW.role = 'admin' THEN
         IF (SELECT COUNT(*) FROM users WHERE role = 'admin') >= 1 THEN
             SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Only one admin allowed';
+            SET MESSAGE_TEXT = 'Only one admin allowed';
         END IF;
     END IF;
 END$$
@@ -34,9 +34,20 @@ BEGIN
     IF NEW.role = 'admin' AND OLD.role <> 'admin' THEN
         IF (SELECT COUNT(*) FROM users WHERE role = 'admin') >= 1 THEN
             SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Only one admin allowed';
+            SET MESSAGE_TEXT = 'Only one admin allowed';
         END IF;
     END IF;
 END$$
 
 DELIMITER ;
+
+-- portfolio table used by /api/reports/portfolio
+CREATE TABLE IF NOT EXISTS user_stocks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    symbol VARCHAR(10) NOT NULL,
+    quantity INT NOT NULL,
+    avg_price DECIMAL(10,2) NOT NULL,
+    latest_price DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
