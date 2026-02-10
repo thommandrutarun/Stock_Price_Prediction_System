@@ -51,16 +51,58 @@
       </header>
 
       <!-- Summary Cards -->
-      <div class="dashboard-controls" style="display:flex; justify-content: flex-start; gap: 40px;">
-        <div>
-          <label>Total Portfolio Value</label>
-          <div style="font-size: 2.5rem; font-weight: 800; color: #fff; line-height: 1;">
-            ₹<span id="pf-total">0.00</span>
+      <div class="dashboard-controls"
+        style="display:flex; justify-content:space-between; align-items: flex-end; gap: 40px;">
+        <div style="display:flex; gap:40px;">
+          <div>
+            <label>Total Portfolio Value</label>
+            <div style="font-size: 2.5rem; font-weight: 800; color: #fff; line-height: 1;">
+              ₹<span id="pf-total">0.00</span>
+            </div>
+          </div>
+          <div>
+            <label>Total Invested</label>
+            <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-muted); line-height: 1;">
+              ₹<span id="pf-invested">0.00</span>
+            </div>
+          </div>
+          <div>
+            <label>Total Positions</label>
+            <div id="pf-count" style="font-size: 2.5rem; font-weight: 800; color: var(--text-muted); line-height: 1;">0
+            </div>
           </div>
         </div>
         <div>
-          <label>Total Positions</label>
-          <div id="pf-count" style="font-size: 2.5rem; font-weight: 800; color: var(--text-muted); line-height: 1;">0
+          <button id="add-pos-btn" class="ds-btn ds-btn-primary" style="height:fit-content;">+ Add Position</button>
+        </div>
+      </div>
+
+      <!-- ADD POSITION MODAL -->
+      <div id="add-pos-modal" class="popup-overlay" style="display:none;">
+        <div class="popup-box" style="text-align:left; width: 400px; max-width:90%;">
+          <h3 style="margin-top:0; color:#fff;">Add to Portfolio</h3>
+
+          <label style="display:block; margin-top:15px; font-size:0.9rem;">Stock Symbol</label>
+          <input type="text" id="add-symbol" placeholder="e.g. RELIANCE.NS"
+            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px;">
+
+          <label style="display:block; margin-top:15px; font-size:0.9rem;">Quantity</label>
+          <input type="number" id="add-qty" placeholder="e.g. 10"
+            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px;">
+
+          <label style="display:block; margin-top:15px; font-size:0.9rem;">Avg Price (₹)</label>
+          <input type="number" id="add-price" placeholder="e.g. 2500"
+            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px;">
+
+          <label style="display:block; margin-top:15px; font-size:0.9rem;">Purchase Date</label>
+          <input type="date" id="add-date"
+            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px; color-scheme:dark;">
+
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+            <button id="cancel-pos-btn" class="ds-btn ds-btn-outline"
+              style="padding:6px 12px; font-size:0.9rem;">Cancel</button>
+            <button id="submit-pos-btn" class="ds-btn ds-btn-primary"
+              style="padding:6px 12px; font-size:0.9rem;">Add</button>
           </div>
         </div>
       </div>
@@ -79,6 +121,7 @@
                 <th>Quantity</th>
                 <th>Avg Price</th>
                 <th>Current Price</th>
+                <th>Purchase Date</th>
                 <th>Value</th>
                 <th>P/L</th>
                 <th>Change %</th>

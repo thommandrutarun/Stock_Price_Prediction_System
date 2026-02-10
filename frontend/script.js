@@ -2,6 +2,7 @@ const API_BASE = "http://localhost:5000/api";
 let chart = null;
 let currentChartType = 'candlestick';
 let chartSeries = []; // Store data for toggling
+let currentSymbol = "";
 
 /* ---------- POPUP UTILS ---------- */
 function showPopup(message, onClose) {
@@ -50,9 +51,26 @@ function updateNavbar() {
         logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
         newBtn.addEventListener("click", logout);
       }
+
+      // Home Page Hero Buttons Logic
+      const heroGuest = document.getElementById("hero-guest-btns");
+      const heroUser = document.getElementById("hero-user-btns");
+      if (heroGuest && heroUser) {
+        heroGuest.style.display = "none";
+        heroUser.style.display = "block";
+      }
+
     } else {
       navGuest.style.display = "flex";
       navUser.style.display = "none";
+
+      // Home Page Hero Buttons Logic
+      const heroGuest = document.getElementById("hero-guest-btns");
+      const heroUser = document.getElementById("hero-user-btns");
+      if (heroGuest && heroUser) {
+        heroGuest.style.display = "block"; // or flex? usually block is fine for div
+        heroUser.style.display = "none";
+      }
     }
   }
 }
@@ -68,7 +86,7 @@ function requireAuth() {
 
 function logout() {
   localStorage.clear();
-  window.location.href = "login.html";
+  window.location.href = "index.html";
 }
 
 /* ---------- LOGIN ---------- */
@@ -169,9 +187,8 @@ async function registerUser() {
       showPopup("Registration successful! Please log in.", () => {
         window.location.href = "login.html";
       });
-    } else if (msg) {
-      msg.textContent = data.message || "Registration failed";
-      msg.className = "message error";
+    } else {
+      showPopup(data.message || "Registration failed");
     }
   } catch (e) {
     if (msg) {
@@ -208,14 +225,27 @@ async function loadHistory() {
     });
 
     if (!res.ok) {
+      if (res.status === 401) {
+        logout();
+        return;
+      }
       const err = await res.json();
       throw new Error(err.message || "Failed to load history");
     }
 
     const json = await res.json();
     const data = json.prices; // Extract the array
+
+    console.log("DEBUG: Loaded history for:", symbol);
+    console.log("DEBUG: Data length:", data.length);
+    if (data.length > 0) {
+      console.log("DEBUG: Last price object:", data[data.length - 1]);
+      console.log("DEBUG: Last close:", data[data.length - 1].close);
+    }
+
     chartSeries = data; // Store for toggling
-    renderChart(data);
+    currentSymbol = symbol;
+    renderChart(data, symbol);
 
     if (msg) msg.textContent = "";
 
@@ -228,7 +258,12 @@ async function loadHistory() {
   }
 }
 
-function renderChart(data) {
+function renderChart(data, symbol) {
+  // Determine currency based on symbol suffix
+  const isIndian = symbol.endsWith(".NS") || symbol.endsWith(".BO");
+  const currencySymbol = isIndian ? "₹" : "$";
+  const currencyCode = isIndian ? "INR" : "USD";
+
   const options = {
     series: [{
       name: 'Price',
@@ -242,21 +277,88 @@ function renderChart(data) {
     chart: {
       type: currentChartType,
       height: 400,
-      background: 'transparent',
-      toolbar: { show: true }
+      background: '#0f172a', // Solid dark background for professional export (matches Slate-900)
+      fontFamily: 'Inter, sans-serif',
+      toolbar: {
+        show: true,
+        export: {
+          csv: {
+            filename: `${symbol}_Stock_History`,
+            columnDelimiter: ',',
+            headerCategory: 'Date',
+            headerValue: 'Price',
+          },
+          svg: {
+            filename: `${symbol}_Stock_Chart`,
+          },
+          png: {
+            filename: `${symbol}_Stock_Chart`,
+          }
+        }
+      }
+    },
+    title: {
+      text: `${symbol} Price History`,
+      align: 'left',
+      margin: 20,
+      style: {
+        fontSize: '20px',
+        fontWeight: '700',
+        color: '#f8fafc'
+      }
+    },
+    subtitle: {
+      text: 'Source: Stock Prediction System',
+      align: 'left',
+      margin: 10,
+      style: {
+        fontSize: '12px',
+        color: '#94a3b8'
+      }
     },
     theme: { mode: 'dark' },
+    grid: {
+      borderColor: '#334155',
+      strokeDashArray: 4,
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: true } },
+    },
     xaxis: {
       type: 'datetime',
-      tooltip: { enabled: true }
+      tooltip: { enabled: true },
+      axisBorder: { show: true, color: '#475569' },
+      axisTicks: { show: true, color: '#475569' },
+      labels: {
+        style: { colors: '#cbd5e1', fontSize: '11px' },
+        datetimeFormatter: {
+          year: 'yyyy',
+          month: "MMM 'yy",
+          day: 'dd MMM',
+          hour: 'HH:mm'
+        }
+      },
+      title: {
+        text: 'Date',
+        style: { color: '#94a3b8', fontSize: '13px', fontWeight: 600 }
+      }
     },
     yaxis: {
       tooltip: { enabled: true },
-      labels: { formatter: (val) => val.toFixed(2) }
+      axisBorder: { show: true, color: '#475569' },
+      axisTicks: { show: true, color: '#475569' },
+      labels: {
+        style: { colors: '#cbd5e1', fontSize: '11px' },
+        formatter: (val) => currencySymbol + val.toFixed(2)
+      },
+      title: {
+        text: `Price (${currencyCode})`,
+        style: { color: '#94a3b8', fontSize: '13px', fontWeight: 600 }
+      }
     },
     plotOptions: {
       candlestick: {
-        colors: { upward: '#10b981', downward: '#ef4444' }
+        colors: { upward: '#10b981', downward: '#ef4444' },
+        wick: { useFillColor: true }
       }
     },
     stroke: {
@@ -283,7 +385,7 @@ function setChartType(type) {
 
   // Re-render if data exists
   if (chartSeries && chartSeries.length > 0) {
-    renderChart(chartSeries);
+    renderChart(chartSeries, currentSymbol);
   }
 }
 
@@ -319,7 +421,10 @@ async function predict() {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) throw new Error("Prediction API failed");
+    if (!res.ok) {
+      if (res.status === 401) { logout(); return; }
+      throw new Error("Prediction API failed");
+    }
 
     const data = await res.json();
     list.innerHTML = "";
@@ -339,9 +444,13 @@ async function predict() {
         const d = new Date(p.date);
         const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
+        // Determine currency based on symbol suffix
+        const isIndian = symbol.endsWith(".NS") || symbol.endsWith(".BO");
+        const currencySymbol = isIndian ? "₹" : "$";
+
         li.innerHTML = `
                <span class="pred-date">${dateStr}</span>
-               <span class="pred-price">${p.predicted_close.toFixed(2)}</span>
+               <span class="pred-price">${currencySymbol}${p.predicted_close.toFixed(2)}</span>
              `;
         list.appendChild(li);
       });
@@ -376,12 +485,20 @@ async function loadUserPortfolio() {
     const data = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401) { logout(); return; }
       tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center;">${data.message || "Failed to load"}</td></tr>`;
       return;
     }
 
     // Update Summary
-    totalEl.textContent = data.total_value.toFixed(2);
+    if (totalEl) totalEl.textContent = data.total_value.toFixed(2);
+
+    // Update Total Invested
+    const investedEl = document.getElementById("pf-invested");
+    if (investedEl && data.total_invested !== undefined) {
+      investedEl.textContent = data.total_invested.toFixed(2);
+    }
+
     if (countEl) countEl.textContent = data.positions ? data.positions.length : 0;
 
     // Clear loading
@@ -396,20 +513,40 @@ async function loadUserPortfolio() {
       const tr = document.createElement("tr");
 
       // Calculations
-      const currentValue = (p.latest_price * p.quantity).toFixed(2);
-      const pl = p.change_abs.toFixed(2);
-      const pct = p.change_pct.toFixed(2) + "%";
+      const qty = Number(p.quantity);
+      const avg = Number(p.avg_price);
+      const latest = Number(p.latest_price);
 
-      const plClass = p.change_abs >= 0 ? "price-up" : "price-down";
-      const sign = p.change_abs >= 0 ? "+" : "";
+      // New fields from backend
+      const plValue = Number(p.profit_loss);
+      const chgPct = Number(p.change_pct);
+
+      const currentValue = (latest * qty).toFixed(2);
+      const pl = plValue.toFixed(2);
+      const pct = chgPct.toFixed(2) + "%";
+
+      const plClass = plValue >= 0 ? "price-up" : "price-down";
+      const sign = plValue >= 0 ? "+" : "";
+
+      // Determine currency based on symbol suffix
+      const isIndian = p.symbol.endsWith(".NS") || p.symbol.endsWith(".BO");
+      const currencySymbol = isIndian ? "₹" : "$";
 
       tr.innerHTML = `
-        <td>${p.symbol}</td>
-        <td>${p.quantity}</td>
-        <td>₹${p.avg_price.toFixed(2)}</td>
-        <td>₹${p.latest_price.toFixed(2)}</td>
-        <td style="font-weight:600;">₹${currentValue}</td>
-        <td class="${plClass}">${sign}₹${pl}</td>
+        <td>
+          <a href="dashboard.html?symbol=${p.symbol}" 
+             style="color:var(--primary); text-decoration:none; font-weight:700; transition:color 0.2s;"
+             onmouseover="this.style.color='#fff'" 
+             onmouseout="this.style.color='var(--primary)'">
+            ${p.symbol}
+          </a>
+        </td>
+        <td>${qty}</td>
+        <td>${currencySymbol}${avg.toFixed(2)}</td>
+        <td>${currencySymbol}${latest.toFixed(2)}</td>
+        <td style="color:#aaa;">${p.purchase_date ? new Date(p.purchase_date).toLocaleDateString() : '-'}</td>
+        <td style="font-weight:600;">${currencySymbol}${currentValue}</td>
+        <td class="${plClass}">${sign}${currencySymbol}${pl}</td>
         <td class="${plClass}">${sign}${pct}</td>
       `;
 
@@ -419,6 +556,70 @@ async function loadUserPortfolio() {
   } catch (e) {
     console.error(e);
     if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Network Error</td></tr>';
+  }
+}
+
+function initPortfolioUI() {
+  const addBtn = document.getElementById("add-pos-btn");
+  const modal = document.getElementById("add-pos-modal");
+  const cancelBtn = document.getElementById("cancel-pos-btn");
+  const submitBtn = document.getElementById("submit-pos-btn");
+
+  if (!addBtn || !modal) return;
+
+  function closeMod() { modal.style.display = "none"; }
+
+  addBtn.addEventListener("click", () => {
+    modal.style.display = "flex";
+  });
+
+  cancelBtn.addEventListener("click", closeMod);
+
+  submitBtn.addEventListener("click", async () => {
+    const sym = document.getElementById("add-symbol").value.trim();
+    const qty = document.getElementById("add-qty").value;
+    const price = document.getElementById("add-price").value;
+    const pDate = document.getElementById("add-date").value; // YYYY-MM-DD
+
+    if (!sym || !qty || !price || !pDate) {
+      alert("Please fill all fields (Symbol, Qty, Price, Date)");
+      return;
+    }
+
+    await addPortfolioPosition(sym, qty, price, pDate);
+    closeMod();
+    // Clear inputs
+    document.getElementById("add-symbol").value = "";
+    document.getElementById("add-qty").value = "";
+    document.getElementById("add-price").value = "";
+    document.getElementById("add-date").value = "";
+  });
+}
+
+async function addPortfolioPosition(symbol, quantity, avg_price, purchase_date) {
+  const token = requireAuth();
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/portfolio`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ symbol, quantity, avg_price, purchase_date })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      showPopup("Added successfully!");
+      loadUserPortfolio(); // Refresh table
+    } else {
+      showPopup(data.message || "Failed to add position");
+    }
+  } catch (e) {
+    console.error(e);
+    showPopup("Network Error");
   }
 }
 
@@ -538,7 +739,10 @@ async function fetchWatchlistPrice(symbol) {
       const latest = data[data.length - 1];
       const priceDiv = document.querySelector(`#wl-item-${symbol} .wl-price`);
       if (priceDiv) {
-        priceDiv.textContent = `₹${latest.close.toFixed(2)}`;
+        // Determine currency based on symbol suffix
+        const isIndian = symbol.endsWith(".NS") || symbol.endsWith(".BO");
+        const currencySymbol = isIndian ? "₹" : "$";
+        priceDiv.textContent = `${currencySymbol}${latest.close.toFixed(2)}`;
         priceDiv.style.color = "#fff";
       }
     }
@@ -572,17 +776,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Auto Load Dashboard Search
   if (window.location.pathname.endsWith("dashboard.html")) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSymbol = urlParams.get('symbol');
     const stored = localStorage.getItem("last_search_symbol");
     const symbolInput = document.getElementById("symbol");
-    if (stored && symbolInput) {
-      symbolInput.value = stored;
-      localStorage.removeItem("last_search_symbol");
-      if (localStorage.getItem("token")) loadHistory();
+
+    if (symbolInput) {
+      if (urlSymbol) {
+        symbolInput.value = urlSymbol;
+        if (localStorage.getItem("token")) loadHistory();
+      } else if (stored) {
+        symbolInput.value = stored;
+        localStorage.removeItem("last_search_symbol");
+        if (localStorage.getItem("token")) loadHistory();
+      }
     }
   }
 
   // Auto Load Portfolio
   loadUserPortfolio();
+  initPortfolioUI();
 
   // Global Search Bar
   const globalSearch = document.getElementById("global-search");

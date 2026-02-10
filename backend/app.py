@@ -33,7 +33,7 @@ CORS(
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this"
+app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this-to-something-longer-32chars"
 
 app.config["DB_HOST"] = "localhost"
 app.config["DB_USER"] = "root"
@@ -89,11 +89,23 @@ def register():
     cur = conn.cursor(dictionary=True)
 
     # Check if user already exists
-    cur.execute("SELECT id FROM users WHERE email = %s", (email,))
-    if cur.fetchone():
+    # Check if user already exists (email or phone)
+    cur.execute("SELECT email, phone FROM users WHERE email = %s OR phone = %s", (email, phone))
+    existing_user = cur.fetchone()
+
+    if existing_user:
         cur.close()
         conn.close()
-        return jsonify({"message": "User already exists"}), 400
+        
+        # Determine which field matched
+        if existing_user["email"] == email and existing_user["phone"] == phone:
+             return jsonify({"message": f"User already exists with email {email} and phone {phone}"}), 400
+        elif existing_user["email"] == email:
+             return jsonify({"message": f"User already exists with email {email}"}), 400
+        elif existing_user["phone"] == phone:
+             return jsonify({"message": f"User already exists with phone {phone}"}), 400
+        else:
+             return jsonify({"message": "User already exists"}), 400
 
     pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
@@ -377,21 +389,125 @@ def reports_summary():
 
 # -------- USER PORTFOLIO REPORT --------
 
-@app.route("/api/reports/portfolio")
+# -------- USER PORTFOLIO REPORT --------
+
+@app.route("/api/reports/portfolio", methods=["GET", "POST"])
 @jwt_required()
 def user_portfolio():
     user_id = int(get_jwt_identity())
     conn = get_db()
     cur = conn.cursor(dictionary=True)
+
+    if request.method == "POST":
+        data = request.get_json() or {}
+        symbol = data.get("symbol")
+        quantity = data.get("quantity")
+        avg_price = data.get("avg_price")
+        p_date = data.get("purchase_date") # YYYY-MM-DD
+
+        if not symbol or not quantity or not avg_price:
+            return jsonify({"message": "Symbol, quantity, and avg_price required"}), 400
+
+        # Optional: Fetch latest price content
+        latest_price = avg_price
+        
+        try:
+            cur.execute(
+                """
+                INSERT INTO user_stocks (user_id, symbol, quantity, avg_price, latest_price, purchase_date)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (user_id, symbol.upper(), quantity, avg_price, latest_price, p_date)
+            )
+            conn.commit()
+            return jsonify({"message": "Added successfully"}), 201
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"message": str(e)}), 500
+        finally:
+            cur.close()
+            conn.close()
+
+    # GET
+    # 1. Fetch all user symbols
+    cur.execute("SELECT id, symbol FROM user_stocks WHERE user_id = %s", (user_id,))
+    stocks = cur.fetchall()
+
+    if stocks:
+        # 2. Get unique symbols to minimize API calls
+        unique_symbols = list(set(s["symbol"] for s in stocks))
+        
+        # 3. Fetch current prices
+        # We can use yf.download for bulk, or Ticker for individuals.
+        # Bulk is faster.
+        try:
+            # period='1d' is enough to get latest close/current
+            # yfinance returns a DataFrame with columns MultiIndex (Price, Ticker) or just Price if 1 ticker
+            # We need to handle this carefully.
+            
+            # Using Ticker.info or history for each might be safer but slower. 
+            # Let's simple loop for now as it's more robust for various formats or just use download properly.
+            
+            current_prices = {}
+            # Batch download is tricky with yfinance recently (column formatting changed).
+            # Let's do a simple loop for reliability first, or try-catch batch.
+            
+            # Optimization: 
+            # If unique_symbols is large, batch is better.
+            # let's try batch download
+            import yfinance as yf # ensure imported
+            
+            batch_data = yf.download(unique_symbols, period="1d", progress=False)
+            
+            # Parse batch data
+            for sym in unique_symbols:
+                price = 0.0
+                try:
+                    # If simplified (1 ticker), columns are just Open, Close...
+                    if len(unique_symbols) == 1:
+                         # Access last row 'Close'
+                         price = float(batch_data["Close"].iloc[-1])
+                    else:
+                         # MultiIndex: (Price, Ticker) -> ('Close', 'AAPL')
+                         # Check if 'Close' is level 0 or level 1
+                         if isinstance(batch_data.columns, pd.MultiIndex):
+                             try:
+                                 price = float(batch_data["Close"][sym].iloc[-1])
+                             except:
+                                 # Fallback if structure is different
+                                 pass
+                except Exception:
+                    pass
+                
+                # Validation
+                if price > 0:
+                    current_prices[sym] = price
+
+            # 4. Update DB
+            for sym, price in current_prices.items():
+                cur.execute(
+                    "UPDATE user_stocks SET latest_price = %s WHERE user_id = %s AND symbol = %s",
+                    (price, user_id, sym)
+                )
+            conn.commit()
+
+        except Exception as e:
+            print(f"Error updating portfolio prices: {e}")
+            # Continue to show old prices if update fails
+
+    # 5. Retrieve Updated Data
     cur.execute(
         """
         SELECT
+            id,
             symbol,
             quantity,
             avg_price,
             latest_price,
+            purchase_date,
             latest_price * quantity AS current_value,
-            latest_price - avg_price AS change_abs,
+            (latest_price - avg_price) * quantity AS profit_loss, 
+            latest_price - avg_price AS change_abs_unit,
             (latest_price - avg_price) / avg_price * 100 AS change_pct
         FROM user_stocks
         WHERE user_id = %s
@@ -401,11 +517,14 @@ def user_portfolio():
     )
     rows = cur.fetchall()
     total_value = sum(r["current_value"] for r in rows) if rows else 0
+    total_invested = sum(r["quantity"] * r["avg_price"] for r in rows) if rows else 0
+    
     cur.close()
     conn.close()
     return jsonify(
         {
             "total_value": float(total_value),
+            "total_invested": float(total_invested),
             "positions": rows,
         }
     )

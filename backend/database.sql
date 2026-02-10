@@ -45,9 +45,10 @@ DELIMITER ;
 CREATE TABLE IF NOT EXISTS user_stocks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    symbol VARCHAR(10) NOT NULL,
+    symbol VARCHAR(50) NOT NULL,
     quantity INT NOT NULL,
     avg_price DECIMAL(10,2) NOT NULL,
     latest_price DECIMAL(10,2) NOT NULL,
+    purchase_date DATE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
