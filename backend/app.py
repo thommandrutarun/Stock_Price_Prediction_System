@@ -183,6 +183,52 @@ def list_users():
     return jsonify({"users": users})
 
 
+# -------- CONTACT & MESSAGES --------
+
+@app.route("/api/contact", methods=["POST"])
+def contact_us():
+    data = request.get_json() or {}
+    name = data.get("name")
+    email = data.get("email")
+    subject = data.get("subject")
+    message = data.get("message")
+
+    if not name or not email or not message:
+        return jsonify({"message": "Name, email, and message are required"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """
+            INSERT INTO messages (name, email, subject, message)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (name, email, subject, message)
+        )
+        conn.commit()
+        return jsonify({"message": "Message sent successfully"}), 201
+    except Exception as e:
+        print(f"Error saving message: {e}")
+        return jsonify({"message": "Failed to send message"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route("/api/admin/messages")
+@admin_required
+def list_messages():
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM messages ORDER BY timestamp DESC")
+    messages = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify({"messages": messages})
+
+
+
 # -------- yfinance HELPER --------
 
 def get_history(symbol: str, period: str):

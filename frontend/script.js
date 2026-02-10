@@ -881,6 +881,212 @@ async function loadAdminUsers() {
 }
 
 // Auto-run if on page (backup for onload)
+// Auto-run if on page (backup for onload)
 if (window.location.pathname.endsWith("admin.html")) {
   loadAdminUsers();
 }
+
+/* ---------- CONTACT FORM ---------- */
+function initContactForm() {
+  const form = document.getElementById("contact-form");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector("button[type='submit']");
+    const originalText = btn.textContent;
+    btn.textContent = "Sending...";
+    btn.disabled = true;
+
+    const formData = {
+      name: document.getElementById("name").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      subject: document.getElementById("subject").value.trim(),
+      message: document.getElementById("message").value.trim()
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showPopup("Message sent successfully!", () => {
+          form.reset();
+        });
+      } else {
+        showPopup(data.message || "Failed to send message.");
+      }
+    } catch (err) {
+      console.error(err);
+      showPopup("Network error. Please try again.");
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+}
+
+// Initialize on load
+if (document.getElementById("contact-form")) {
+  initContactForm();
+}
+
+
+/* ---------- ADMIN MESSAGES ---------- */
+async function loadAdminMessages() {
+  const tableBody = document.getElementById("messages-table-body");
+  const statusMsg = document.getElementById("admin-msgs-status");
+  if (!tableBody) return;
+
+  const token = requireAuth();
+  if (!token) return;
+
+  if (statusMsg) statusMsg.textContent = "Loading messages...";
+  tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/messages`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (statusMsg) {
+        statusMsg.textContent = data.message || "Failed to load messages";
+        statusMsg.className = "message error";
+      }
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error loading messages</td></tr>';
+      return;
+    }
+
+    if (statusMsg) statusMsg.textContent = "";
+    tableBody.innerHTML = "";
+
+    if (!data.messages || data.messages.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No messages found.</td></tr>';
+      return;
+    }
+
+    data.messages.forEach(msg => {
+      const tr = document.createElement("tr");
+      const dateStr = new Date(msg.timestamp).toLocaleString();
+
+      tr.innerHTML = `
+                <td>#${msg.id}</td>
+                <td style="font-size:0.85rem; color:#aaa;">${dateStr}</td>
+                <td style="font-weight:600; color:#fff;">${msg.name}</td>
+                <td>${msg.email}</td>
+                <td>${msg.subject || '-'}</td>
+                <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${msg.message}">
+                    ${msg.message}
+                </td>
+            `;
+      tableBody.appendChild(tr);
+    });
+
+  } catch (e) {
+    console.error(e);
+    if (statusMsg) {
+      statusMsg.textContent = "Network error";
+      statusMsg.className = "message error";
+    }
+  }
+}
+
+/* ---------- ADMIN BUTTONS LOGIC ---------- */
+function initAdminButtons() {
+  const addUserBtn = document.querySelector(".dashboard-btn.load-btn");
+  if (addUserBtn) {
+    addUserBtn.addEventListener("click", () => {
+      window.location.href = "register.html";
+    });
+  }
+
+  const exportBtn = document.querySelector(".toolbar-actions button:nth-child(3)");
+  if (exportBtn && exportBtn.textContent.includes("Export")) {
+    exportBtn.addEventListener("click", exportUsersToCSV);
+  }
+
+  const allBtn = document.querySelector(".toolbar-actions button:nth-child(1)");
+  const adminBtn = document.querySelector(".toolbar-actions button:nth-child(2)");
+
+  if (allBtn && adminBtn) {
+    allBtn.addEventListener("click", () => {
+      filterByRole('all');
+      allBtn.classList.add("filter-active");
+      adminBtn.classList.remove("filter-active");
+    });
+
+    adminBtn.addEventListener("click", () => {
+      filterByRole('admin');
+      adminBtn.classList.add("filter-active");
+      allBtn.classList.remove("filter-active");
+    });
+  }
+}
+
+function filterByRole(role) {
+  const tbody = document.getElementById("users-table-body");
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll("tr");
+
+  rows.forEach(row => {
+    // Role is in last column (index 6)
+    const roleCell = row.cells[6];
+    if (!roleCell) return;
+    const roleText = roleCell.textContent.toLowerCase();
+
+    if (role === 'all') {
+      row.style.display = "";
+    } else if (role === 'admin') {
+      row.style.display = roleText.includes("admin") ? "" : "none";
+    }
+  });
+}
+
+function exportUsersToCSV() {
+  const tbody = document.getElementById("users-table-body");
+  if (!tbody) return;
+
+  let csv = [];
+  // Header
+  csv.push(["ID", "Name", "Email", "Phone", "DOB", "Profession", "Role"].join(","));
+
+  const rows = tbody.querySelectorAll("tr");
+  rows.forEach(row => {
+    if (row.style.display === "none") return; // Export only visible? Or all? Usually visible feels more intuitive if filtered. Let's do visible.
+
+    const cols = row.querySelectorAll("td");
+    let rowData = [];
+    cols.forEach(col => rowData.push('"' + col.innerText + '"'));
+    csv.push(rowData.join(","));
+  });
+
+  const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+  const downloadLink = document.createElement("a");
+  downloadLink.download = "users_export.csv";
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.style.display = "none";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+// Call initButtons when on admin page
+if (window.location.pathname.endsWith("admin.html")) {
+  // We already have loadAdminUsers running.
+  // We can init buttons immediately as they are static in HTML
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAdminButtons);
+  } else {
+    initAdminButtons();
+  }
+}
+
+

@@ -19,16 +19,18 @@
     </div>
     <nav class="admin-navbar-right">
       <a href="index.html" class="admin-nav-link">Home</a>
-      <a href="dashboard.html" class="admin-nav-link">Dashboard</a>
-      <a href="report.html" class="admin-nav-link">Reports</a>
-      <a href="admin.html" class="admin-nav-link active">Users</a>
+
+      <a href="portfolio.html" class="admin-nav-link">Reports</a>
+      <a href="#" class="admin-nav-link active" id="nav-users-btn" onclick="showAdminSection('users')">Users</a>
+      <a href="#" class="admin-nav-link" id="nav-messages-btn" onclick="showAdminSection('messages')">Messages</a>
       <button class="btn-secondary" onclick="logout()">Log out</button>
     </nav>
   </header>
 
   <!-- Main content -->
   <main class="admin-page">
-    <section class="admin-panel">
+    <!-- USERS SECTION -->
+    <section class="admin-panel" id="section-users">
       <div class="admin-panel-header">
         <div>
           <h1 class="admin-title">Users Directory</h1>
@@ -104,7 +106,45 @@
         </table>
       </div>
     </section>
+
+    <!-- MESSAGES SECTION -->
+    <section class="admin-panel" id="section-messages" style="display: none;">
+      <div class="admin-panel-header">
+        <div>
+          <h1 class="admin-title">User Messages</h1>
+          <p class="admin-subtitle">
+            View inquiries sent via the contact form.
+          </p>
+        </div>
+        <div class="admin-actions">
+          <button class="btn-secondary small" onclick="loadAdminMessages()">Refresh</button>
+        </div>
+      </div>
+
+      <p id="admin-msgs-status" class="message"></p>
+
+      <div class="table-wrapper">
+        <table id="messages-table" class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Subject</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody id="messages-table-body">
+            <tr>
+              <td colspan="6" style="text-align:center;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
+
 
   <!-- Footer -->
   <footer class="site-footer">
@@ -113,7 +153,8 @@
       <span>© 2026 Stock Price Prediction System. All rights reserved.</span>
     </div>
     <div class="site-footer-right">
-      <a href="report.html">Reports</a>
+      <a href="portfolio.html" class="admin-nav-link">Reports</a>
+
       <a href="admin.html">Admin</a>
       <a href="#">Support</a>
     </div>
@@ -125,20 +166,28 @@
     // This relies on loadAdminUsers in script.js already populating the table.
     // You can call this from loadAdminUsers after appending rows if you prefer.
     document.addEventListener("DOMContentLoaded", () => {
-      const observer = new MutationObserver(() => {
-        const tbody = document.getElementById("users-table-body");
-        const badge = document.getElementById("stat-total-users");
-        if (tbody && badge) {
-          const count = tbody.querySelectorAll("tr").length;
-          // Animate count? Simple text update for now
-          badge.textContent = count;
-        }
-      });
-      const tbody = document.getElementById("users-table-body");
-      if (tbody) {
-        observer.observe(tbody, { childList: true });
+      // Default load
+      if (document.body.classList.contains("admin-body")) {
+        // ensure users are loaded
+        // loadAdminUsers(); // This is already called by onload in body tag, but we can verify
       }
     });
+
+    function showAdminSection(section) {
+      // Toggle Nav Active
+      document.querySelectorAll(".admin-nav-link").forEach(el => el.classList.remove("active"));
+      const navBtn = document.getElementById("nav-" + section + "-btn");
+      if (navBtn) navBtn.classList.add("active");
+
+      // Toggle Sections
+      document.getElementById("section-users").style.display = (section === 'users') ? 'block' : 'none';
+      document.getElementById("section-messages").style.display = (section === 'messages') ? 'block' : 'none';
+
+      if (section === 'messages') {
+        loadAdminMessages();
+      }
+    }
+
 
     // Simple search filter
     function filterUsers() {

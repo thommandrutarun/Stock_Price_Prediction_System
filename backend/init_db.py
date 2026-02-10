@@ -34,9 +34,21 @@ def init_db():
             quantity INT NOT NULL,
             avg_price DECIMAL(10,2) NOT NULL,
             latest_price DECIMAL(10,2) NOT NULL,
+            purchase_date DATE,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
+        """,
         """
+        CREATE TABLE IF NOT EXISTS messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) NOT NULL,
+            subject VARCHAR(255),
+            message TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        """
+
     ]
     
     for cmd in commands:
