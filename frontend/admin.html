@@ -5,9 +5,10 @@
   <meta charset="UTF-8" />
   <title>Admin – Users | Stock Price Prediction System</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body class="admin-body" onload="loadAdminUsers()">
+<body class="admin-body" onload="showAdminSection('reports')">
   <!-- Top admin navbar -->
   <header class="admin-navbar">
     <div class="admin-navbar-left">
@@ -18,20 +19,96 @@
       </div>
     </div>
     <nav class="admin-navbar-right">
-      <a href="index.html" class="admin-nav-link">Home</a>
-
-      <a href="portfolio.html" class="admin-nav-link">Reports</a>
-      <a href="#" class="admin-nav-link active" id="nav-users-btn" onclick="showAdminSection('users')">Users</a>
+      <a href="#" class="admin-nav-link active" id="nav-reports-btn" onclick="showAdminSection('reports')">System
+        Report</a>
+      <a href="#" class="admin-nav-link" id="nav-users-btn" onclick="showAdminSection('users')">Users</a>
       <a href="#" class="admin-nav-link" id="nav-admins-btn" onclick="showAdminSection('admins')">Admins</a>
       <a href="#" class="admin-nav-link" id="nav-messages-btn" onclick="showAdminSection('messages')">Messages</a>
       <a href="#" class="admin-nav-link" id="nav-logs-btn" style="display:none;"
         onclick="showAdminSection('logs')">Activity Logs</a>
+
+      <span style="border-left: 1px solid rgba(255,255,255,0.1); height: 24px; margin: 0 0.5rem;"></span>
+
+      <a href="index.html" class="admin-nav-link">Home</a>
       <button class="btn-secondary" onclick="logout()">Log out</button>
     </nav>
   </header>
 
   <!-- Main content -->
   <main class="admin-page">
+
+    <!-- SYSTEM REPORT SECTION -->
+    <section class="admin-panel" id="section-reports" style="display: none;">
+      <div class="admin-panel-header">
+        <div>
+          <h1 class="admin-title">System Report</h1>
+          <p class="admin-subtitle">
+            Overview of platform performance and key metrics.
+          </p>
+        </div>
+        <div class="admin-actions">
+          <button class="btn-secondary small" onclick="loadSystemReport()">Refresh Data</button>
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">👥</div>
+          <div class="stat-content">
+            <div class="stat-value" id="rep-total-users">--</div>
+            <div class="stat-label">Total Users</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">📈</div>
+          <div class="stat-content">
+            <div class="stat-value" id="rep-total-stocks">--</div>
+            <div class="stat-label">Stocks Tracked</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">⭐</div>
+          <div class="stat-content">
+            <div class="stat-value" id="rep-pop-stock">--</div>
+            <div class="stat-label">Top Stock</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">💬</div>
+          <div class="stat-content">
+            <div class="stat-value" id="rep-total-msgs">--</div>
+            <div class="stat-label">Messages</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="dashboard-panels" style="grid-template-rows: auto; grid-template-columns: 2fr 1fr; margin-top: 2rem;">
+
+        <!-- Main Chart -->
+        <div class="dashboard-panel">
+          <div class="dashboard-panel-header">
+            <h3 class="dashboard-panel-title">User Growth Trend</h3>
+          </div>
+          <div class="dashboard-chart-area" style="min-height: 300px; position: relative;">
+            <canvas id="userGrowthChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Side Chart -->
+        <div class="dashboard-panel">
+          <div class="dashboard-panel-header">
+            <h3 class="dashboard-panel-title">Platform Activity</h3>
+          </div>
+          <div class="dashboard-chart-area" style="min-height: 300px; position: relative;">
+            <canvas id="activityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
     <!-- USERS SECTION -->
     <section class="admin-panel" id="section-users">
       <div class="admin-panel-header">
@@ -300,6 +377,8 @@
       document.getElementById("section-admins").style.display = (section === 'admins') ? 'block' : 'none';
       const logsSec = document.getElementById("section-logs");
       if (logsSec) logsSec.style.display = (section === 'logs') ? 'block' : 'none';
+      const repSec = document.getElementById("section-reports");
+      if (repSec) repSec.style.display = (section === 'reports') ? 'block' : 'none';
 
       if (section === 'messages') {
         loadAdminMessages();
@@ -307,6 +386,8 @@
         loadAdmins();
       } else if (section === 'logs') {
         loadAdminLogs();
+      } else if (section === 'reports') {
+        loadSystemReport();
       }
     }
 

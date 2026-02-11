@@ -747,7 +747,65 @@ def user_portfolio():
     )
 
 
-# -------- HEALTH CHECK --------
+# -------- ADMIN SYSTEM REPORT --------
+@app.route("/api/admin/system-stats", methods=["GET"])
+@admin_required
+def get_system_stats():
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    try:
+        # 1. Total Users
+        cur.execute("SELECT COUNT(*) as count FROM users")
+        total_users = cur.fetchone()["count"]
+        
+        # 2. New Users Today (Assuming id is somewhat chronological or created_at exists, 
+        # but since we don't have created_at, we might skip "Today" or just return total for now.
+        # Let's check schema... users table has id, name, email, password, role. No created_at.
+        # We will just return Total for now.)
+        new_users_today = 0 
+        
+        # 3. Total Stocks Tracked (watchlists)
+        # We don't have a watchlist table yet in this context? 
+        # Ah, we have 'user_stocks' which is the portfolio. Let's count total rows there.
+        cur.execute("SELECT COUNT(*) as count FROM user_stocks")
+        total_stocks_tracked = cur.fetchone()["count"]
+        
+        # 4. Most Popular Stock
+        cur.execute("""
+            SELECT symbol, COUNT(*) as freq 
+            FROM user_stocks 
+            GROUP BY symbol 
+            ORDER BY freq DESC 
+            LIMIT 1
+        """)
+        pop_stock_row = cur.fetchone()
+        most_popular_stock = pop_stock_row["symbol"] if pop_stock_row else "N/A"
+        
+        # 5. Message Stats
+        # We need a messages table. Did we create it in a previous task? 
+        # The user mentioned "User Messages" page exists, so table must exist.
+        # Let's check context... yes, 'messages' table exists.
+        cur.execute("SELECT COUNT(*) as count FROM messages")
+        total_messages = cur.fetchone()["count"]
+        
+        # Unread messages? Table schema might not have 'is_read'.
+        # Let's assume just total for now.
+        
+        return jsonify({
+            "total_users": total_users,
+            "new_users_today": new_users_today, # Placeholder
+            "total_stocks_tracked": total_stocks_tracked,
+            "most_popular_stock": most_popular_stock,
+            "total_messages": total_messages
+        })
+        
+    except Exception as e:
+        print(f"Error fetching system stats: {e}")
+        return jsonify({"error": "Failed to fetch stats"}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 @app.route("/")
 def home():

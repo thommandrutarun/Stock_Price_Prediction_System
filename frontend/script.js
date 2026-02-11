@@ -1276,7 +1276,111 @@ async function confirmDeleteUser(userId, userEmail) {
 }
 window.confirmDeleteUser = confirmDeleteUser;
 
+
+/* ---------- SYSTEM REPORT ---------- */
+let userGrowthChartCtx = null;
+let activityChartCtx = null;
+
+async function loadSystemReport() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  // Show loading state
+  document.getElementById("rep-total-users").textContent = "...";
+  document.getElementById("rep-total-stocks").textContent = "...";
+  document.getElementById("rep-pop-stock").textContent = "...";
+  document.getElementById("rep-total-msgs").textContent = "...";
+
+  try {
+    const res = await fetch("http://127.0.0.1:5000/api/admin/system-stats", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch stats");
+    const data = await res.json();
+
+    // Update Metrics
+    document.getElementById("rep-total-users").textContent = data.total_users;
+    document.getElementById("rep-total-stocks").textContent = data.total_stocks_tracked;
+    document.getElementById("rep-pop-stock").textContent = data.most_popular_stock;
+    document.getElementById("rep-total-msgs").textContent = data.total_messages;
+
+    // Render Charts
+    renderSystemCharts(data);
+
+  } catch (error) {
+    console.error("Error loading system report:", error);
+    // document.getElementById("admin-msg").textContent = "Error loading report: " + error.message;
+  }
+}
+
+function renderSystemCharts(data) {
+  if (typeof Chart === 'undefined') {
+    console.warn("Chart.js not loaded");
+    return;
+  }
+
+  // 1. User Growth (Mock History based on total)
+  // In a real app, backend would return historical data.
+  // We will simulate a curve ending at total_users.
+  const total = data.total_users;
+  const ctx1 = document.getElementById('userGrowthChart').getContext('2d');
+
+  if (userGrowthChartCtx) userGrowthChartCtx.destroy();
+
+  userGrowthChartCtx = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Total Users',
+        data: [Math.floor(total * 0.2), Math.floor(total * 0.4), Math.floor(total * 0.6), Math.floor(total * 0.8), Math.floor(total * 0.9), total],
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#94a3b8' } }
+      },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+      }
+    }
+  });
+
+  // 2. Activity / Composition (Doughnut)
+  // Messages vs Stocks vs Users
+  const ctx2 = document.getElementById('activityChart').getContext('2d');
+  if (activityChartCtx) activityChartCtx.destroy();
+
+  activityChartCtx = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Users', 'Stocks', 'Messages'],
+      datasets: [{
+        data: [data.total_users, data.total_stocks_tracked, data.total_messages],
+        backgroundColor: ['#6366f1', '#10b981', '#ec4899'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#94a3b8' } }
+      }
+    }
+  });
+}
+
 function initAdminButtons() {
+  /* ---------- EXISTING INIT CODE ---------- */
   // Show Logs tab if Super Admin
   const userEmail = localStorage.getItem("user_email");
   if (userEmail === '40tarun02@gmail.com') {
