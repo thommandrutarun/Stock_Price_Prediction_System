@@ -183,6 +183,38 @@ def list_users():
     return jsonify({"users": users})
 
 
+@app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+@admin_required
+def delete_user(user_id):
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Check if user exists and is not the locked admin
+    cur.execute("SELECT email, role FROM users WHERE id = %s", (user_id,))
+    user = cur.fetchone()
+    
+    if not user:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "User not found"}), 404
+        
+    if user['email'] == '40tarun02@gmail.com' or user['role'] == 'admin':
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Cannot delete admin account"}), 403
+
+    try:
+        cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+        return jsonify({"message": "User deleted successfully"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
 # -------- CONTACT & MESSAGES --------
 
 @app.route("/api/contact", methods=["POST"])

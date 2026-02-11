@@ -20,9 +20,9 @@ BEFORE INSERT ON users
 FOR EACH ROW
 BEGIN
     IF NEW.role = 'admin' THEN
-        IF (SELECT COUNT(*) FROM users WHERE role = 'admin') >= 1 THEN
+        IF NEW.email <> '40tarun02@gmail.com' THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Only one admin allowed';
+            SET MESSAGE_TEXT = 'Admin role is restricted to 40tarun02@gmail.com only.';
         END IF;
     END IF;
 END$$
@@ -31,11 +31,22 @@ CREATE TRIGGER one_admin_only_update
 BEFORE UPDATE ON users
 FOR EACH ROW
 BEGIN
-    IF NEW.role = 'admin' AND OLD.role <> 'admin' THEN
-        IF (SELECT COUNT(*) FROM users WHERE role = 'admin') >= 1 THEN
+    -- Prevent promoting others
+    IF NEW.role = 'admin' AND NEW.email <> '40tarun02@gmail.com' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Admin role is restricted to 40tarun02@gmail.com only.';
+    END IF;
+
+    -- Prevent demoting the locked admin
+    IF OLD.email = '40tarun02@gmail.com' AND OLD.role = 'admin' AND NEW.role <> 'admin' THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Only one admin allowed';
-        END IF;
+            SET MESSAGE_TEXT = 'Cannot demote the locked admin account.';
+    END IF;
+    
+    -- Also prevent changing the email of the admin account to something else while keeping role admin
+    IF OLD.email = '40tarun02@gmail.com' AND NEW.email <> '40tarun02@gmail.com' AND NEW.role = 'admin' THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Cannot change email of the locked admin account.';
     END IF;
 END$$
 

@@ -863,6 +863,12 @@ async function loadAdminUsers() {
         <td>${u.dob || '-'}</td>
         <td>${u.profession || '-'}</td>
         <td>${roleBadge}</td>
+        <td>
+           ${(u.role === 'admin' || u.email === '40tarun02@gmail.com')
+          ? '<span style="color:#64748b; font-size:0.8rem;">Locked</span>'
+          : `<button onclick="confirmDeleteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; color:#ef4444;" title="Remove User">🗑️</button>`
+        }
+        </td>
       `;
       tableBody.appendChild(tr);
     });
@@ -1000,11 +1006,45 @@ async function loadAdminMessages() {
 }
 
 /* ---------- ADMIN BUTTONS LOGIC ---------- */
+async function confirmDeleteUser(userId, userEmail) {
+  if (!confirm(`Are you sure you want to remove user ${userEmail}? This action cannot be undone.`)) {
+    return;
+  }
+
+  // Fix: Use correct auth function
+  const token = requireAuth();
+  if (!token) return;
+
+  try {
+    // API endpoint call
+    const res = await fetch(`${API_BASE}/admin/users/${userId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("User removed successfully.");
+      loadAdminUsers(); // Refresh table
+    } else {
+      alert(data.message || "Failed to remove user");
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Network error");
+  }
+}
+window.confirmDeleteUser = confirmDeleteUser;
+
 function initAdminButtons() {
-  const addUserBtn = document.querySelector(".dashboard-btn.load-btn");
-  if (addUserBtn) {
-    addUserBtn.addEventListener("click", () => {
-      window.location.href = "register.html";
+  const removeUserBtn = document.getElementById("remove-user-btn");
+  if (removeUserBtn) {
+    removeUserBtn.addEventListener("click", () => {
+      const id = prompt("Enter User ID to remove (or use the trash icons in the table):");
+      if (id) {
+        confirmDeleteUser(id, "ID: " + id);
+      }
     });
   }
 
