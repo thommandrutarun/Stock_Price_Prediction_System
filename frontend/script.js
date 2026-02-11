@@ -52,6 +52,25 @@ function updateNavbar() {
         newBtn.addEventListener("click", logout);
       }
 
+      // Admin Link Logic
+      const role = localStorage.getItem("user_role");
+      const adminLink = document.getElementById("nav-admin-link");
+      const dashboardLink = document.getElementById("nav-dashboard-link");
+      const portfolioLink = document.getElementById("nav-portfolio-link");
+
+      if (adminLink) {
+        adminLink.style.display = (role === 'admin') ? 'block' : 'none';
+      }
+
+      // Hide User Links for Admin
+      if (role === 'admin') {
+        if (dashboardLink) dashboardLink.style.display = 'none';
+        if (portfolioLink) portfolioLink.style.display = 'none';
+      } else {
+        if (dashboardLink) dashboardLink.style.display = 'block';
+        if (portfolioLink) portfolioLink.style.display = 'block';
+      }
+
       // Home Page Hero Buttons Logic
       const heroGuest = document.getElementById("hero-guest-btns");
       const heroUser = document.getElementById("hero-user-btns");
