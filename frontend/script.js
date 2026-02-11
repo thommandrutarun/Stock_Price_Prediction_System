@@ -855,6 +855,16 @@ async function loadAdminUsers() {
         ? '<span style="background:rgba(99,102,241,0.2); color:#818cf8; padding:2px 8px; border-radius:12px; font-size:0.75rem; border:1px solid rgba(99,102,241,0.3);">Admin</span>'
         : '<span style="background:rgba(148,163,184,0.2); color:#94a3b8; padding:2px 8px; border-radius:12px; font-size:0.75rem;">User</span>';
 
+      let actionHtml = '';
+      if (u.role === 'admin' || u.email === '40tarun02@gmail.com') {
+        actionHtml = '<span style="color:#64748b; font-size:0.8rem;">Locked / Admin</span>';
+      } else {
+        actionHtml = `
+           <button onclick="promoteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; margin-right:8px;" title="Promote to Admin">⬆️</button>
+           <button onclick="confirmDeleteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; color:#ef4444;" title="Remove User">🗑️</button>
+         `;
+      }
+
       tr.innerHTML = `
         <td>#${u.id}</td>
         <td style="font-weight:600; color:#fff;">${u.name}</td>
@@ -863,12 +873,7 @@ async function loadAdminUsers() {
         <td>${u.dob || '-'}</td>
         <td>${u.profession || '-'}</td>
         <td>${roleBadge}</td>
-        <td>
-           ${(u.role === 'admin' || u.email === '40tarun02@gmail.com')
-          ? '<span style="color:#64748b; font-size:0.8rem;">Locked</span>'
-          : `<button onclick="confirmDeleteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; color:#ef4444;" title="Remove User">🗑️</button>`
-        }
-        </td>
+        <td>${actionHtml}</td>
       `;
       tableBody.appendChild(tr);
     });
@@ -983,27 +988,261 @@ async function loadAdminMessages() {
       const tr = document.createElement("tr");
       const dateStr = new Date(msg.timestamp).toLocaleString();
 
+      // Truncate message for table view
+      const shortMsg = msg.message.length > 50 ? msg.message.substring(0, 50) + "..." : msg.message;
+
+      // Encode message data for safe passing (or just pass ID and look up, but ID lookup needs full list stored.
+      // Easiest is to attach data to the row or just pass ID and fetch/find.
+      // Let's store messages in a global variable for easy access or just pass strings carefully.
+      // Improve: Just pass ID and find in `allMessages` array?
+      // Let's attach to window or just encoded strings.
+      // Better: store in a map.
+      // For simplicity in this script, let's just make `viewMessage` take all params or index.
+
       tr.innerHTML = `
                 <td>#${msg.id}</td>
                 <td style="font-size:0.85rem; color:#aaa;">${dateStr}</td>
                 <td style="font-weight:600; color:#fff;">${msg.name}</td>
                 <td>${msg.email}</td>
                 <td>${msg.subject || '-'}</td>
-                <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${msg.message}">
-                    ${msg.message}
+                <td style="color:#ccc;">${shortMsg}</td>
+                <td>
+                    <button onclick="viewMessage('${msg.id}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.email)}', '${escapeHtml(msg.subject || "")}', '${escapeHtml(msg.message)}', '${dateStr}')" 
+                            class="action-btn view-btn" title="View Details">
+                        👁️
+                    </button>
                 </td>
             `;
       tableBody.appendChild(tr);
     });
 
   } catch (e) {
-    console.error(e);
+    console.error("Error loading messages:", e);
     if (statusMsg) {
-      statusMsg.textContent = "Network error";
+      statusMsg.textContent = "Error: " + e.message;
       statusMsg.className = "message error";
     }
   }
 }
+
+
+// Helper to prevent XSS
+function escapeHtml(text) {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/* ---------- MESSAGE MODAL ---------- */
+function viewMessage(id, name, email, subject, message, date) {
+  document.getElementById("msg-modal-from").textContent = name;
+  document.getElementById("msg-modal-email").textContent = email;
+  document.getElementById("msg-modal-date").textContent = date;
+  document.getElementById("msg-modal-subject").textContent = subject || "(No Subject)";
+  document.getElementById("msg-modal-body").textContent = message;
+
+  // Setup Reply Button
+  const replyBtn = document.getElementById("msg-modal-reply-btn");
+  if (replyBtn) {
+    replyBtn.href = `mailto:${email}?subject=Re: ${escapeHtml(subject || 'Inquiry')}`;
+  }
+
+  const modal = document.getElementById("message-modal");
+  if (modal) {
+    modal.style.display = "flex";
+    // Trigger reflow
+    void modal.offsetWidth;
+    modal.classList.add("show");
+  }
+}
+
+function closeMessageModal() {
+  const modal = document.getElementById("message-modal");
+  if (modal) {
+    modal.classList.remove("show");
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 300);
+  }
+}
+
+// Close modal on outside click
+window.onclick = function (event) {
+  const modal = document.getElementById("message-modal");
+  if (event.target == modal) {
+    closeMessageModal();
+  }
+}
+
+// Global exports
+window.viewMessage = viewMessage;
+window.closeMessageModal = closeMessageModal;
+window.escapeHtml = escapeHtml;
+
+/* ---------- MULTI-ADMIN & LOGS ---------- */
+async function loadAdmins() {
+  const tableBody = document.getElementById("admins-table-body");
+  if (!tableBody) return;
+
+  const token = requireAuth();
+  if (!token) return;
+
+  tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/users`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error("Failed to load users");
+    const data = await res.json();
+
+    // Filter for admins
+    const admins = data.users.filter(u => u.role === 'admin');
+
+    tableBody.innerHTML = "";
+    if (admins.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No admins found.</td></tr>';
+      return;
+    }
+
+    admins.forEach(u => {
+      const tr = document.createElement("tr");
+      // Super Admin check
+      const isSuper = u.email === '40tarun02@gmail.com';
+
+      let actionBtn = "";
+      if (isSuper) {
+        actionBtn = '<span style="color:#64748b; font-size:0.8rem;">Super Admin</span>';
+      } else {
+        // Add Revoke button
+        actionBtn = `<button onclick="revokeAdmin(${u.id}, '${u.email}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" title="Revoke Admin">Revoke</button>`;
+      }
+
+      tr.innerHTML = `
+        <td>#${u.id}</td>
+        <td style="font-weight:600; color:#fff;">${u.name}</td>
+        <td>${u.email}</td>
+        <td><span style="background:rgba(99,102,241,0.2); color:#818cf8; padding:2px 8px; border-radius:12px; font-size:0.75rem; border:1px solid rgba(99,102,241,0.3);">Admin</span></td>
+        <td>${actionBtn}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+  } catch (e) {
+    console.error(e);
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error loading admins</td></tr>';
+  }
+}
+
+async function loadAdminLogs() {
+  const tableBody = document.getElementById("logs-table-body");
+  if (!tableBody) return;
+
+  const token = requireAuth();
+  if (!token) return;
+
+  tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading logs...</td></tr>';
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/logs`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (res.status === 403) {
+      tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">Access Denied: Super Admin only.</td></tr>';
+      return;
+    }
+
+    if (!res.ok) throw new Error("Failed to load logs");
+
+    const data = await res.json();
+    const logs = data.logs;
+
+    tableBody.innerHTML = "";
+    if (!logs || logs.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No logs found.</td></tr>';
+      return;
+    }
+
+    logs.forEach(l => {
+      const tr = document.createElement("tr");
+      const dateStr = new Date(l.timestamp).toLocaleString();
+      tr.innerHTML = `
+        <td>${l.id}</td>
+        <td style="color:#aaa; font-size:0.85rem;">${dateStr}</td>
+        <td style="font-weight:600;">${l.admin_email}</td>
+        <td style="color:#10b981;">${l.action}</td>
+        <td>${l.target || '-'}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+  } catch (e) {
+    console.error(e);
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error loading logs</td></tr>';
+  }
+}
+
+async function promoteUser(userId, email) {
+  if (!confirm(`Promote ${email} to Admin?`)) return;
+
+  const token = requireAuth();
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/promote`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ user_id: userId })
+    });
+    const data = await res.json();
+    alert(data.message);
+    if (res.ok) {
+      loadAdminUsers();
+      loadAdmins(); // in case open
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Network Error");
+  }
+}
+
+async function revokeAdmin(userId, email) {
+  if (!confirm(`Revoke Admin privileges from ${email}?`)) return;
+
+  const token = requireAuth();
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/revoke`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ user_id: userId })
+    });
+    const data = await res.json();
+    alert(data.message);
+    if (res.ok) {
+      loadAdmins();
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Network Error");
+  }
+}
+
+// Global Exports
+window.revokeAdmin = revokeAdmin;
+window.promoteUser = promoteUser;
 
 /* ---------- ADMIN BUTTONS LOGIC ---------- */
 async function confirmDeleteUser(userId, userEmail) {
@@ -1038,6 +1277,13 @@ async function confirmDeleteUser(userId, userEmail) {
 window.confirmDeleteUser = confirmDeleteUser;
 
 function initAdminButtons() {
+  // Show Logs tab if Super Admin
+  const userEmail = localStorage.getItem("user_email");
+  if (userEmail === '40tarun02@gmail.com') {
+    const logsBtn = document.getElementById("nav-logs-btn");
+    if (logsBtn) logsBtn.style.display = "inline-block";
+  }
+
   const removeUserBtn = document.getElementById("remove-user-btn");
   if (removeUserBtn) {
     removeUserBtn.addEventListener("click", () => {

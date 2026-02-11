@@ -22,7 +22,10 @@
 
       <a href="portfolio.html" class="admin-nav-link">Reports</a>
       <a href="#" class="admin-nav-link active" id="nav-users-btn" onclick="showAdminSection('users')">Users</a>
+      <a href="#" class="admin-nav-link" id="nav-admins-btn" onclick="showAdminSection('admins')">Admins</a>
       <a href="#" class="admin-nav-link" id="nav-messages-btn" onclick="showAdminSection('messages')">Messages</a>
+      <a href="#" class="admin-nav-link" id="nav-logs-btn" style="display:none;"
+        onclick="showAdminSection('logs')">Activity Logs</a>
       <button class="btn-secondary" onclick="logout()">Log out</button>
     </nav>
   </header>
@@ -135,11 +138,81 @@
               <th>Email</th>
               <th>Subject</th>
               <th>Message</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="messages-table-body">
             <tr>
               <td colspan="6" style="text-align:center;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <!-- ADMINS SECTION -->
+    <section class="admin-panel" id="section-admins" style="display: none;">
+      <div class="admin-panel-header">
+        <div>
+          <h1 class="admin-title">Administrators</h1>
+          <p class="admin-subtitle">
+            Manage admin privileges and access.
+          </p>
+        </div>
+        <div class="admin-actions">
+          <!-- Maybe add 'Promote New Admin' button that opens a modal to select user? 
+                For now, we can simple list admins and allow Revoke. 
+                PROMOTION is better done from Users list. -->
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="admins-table" class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admins-table-body">
+            <tr>
+              <td colspan="5" style="text-align:center;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- LOGS SECTION -->
+    <section class="admin-panel" id="section-logs" style="display: none;">
+      <div class="admin-panel-header">
+        <div>
+          <h1 class="admin-title">Activity Logs</h1>
+          <p class="admin-subtitle">
+            Audit trail of administrative actions. (Visible to Super Admin only)
+          </p>
+        </div>
+        <div class="admin-actions">
+          <button class="btn-secondary small" onclick="loadAdminLogs()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="logs-table" class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>Admin</th>
+              <th>Action</th>
+              <th>Target</th>
+            </tr>
+          </thead>
+          <tbody id="logs-table-body">
+            <tr>
+              <td colspan="5" style="text-align:center;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -161,6 +234,46 @@
       <a href="#">Support</a>
     </div>
   </footer>
+  <!-- MESSAGE DETAILS MODAL (Enhanced) -->
+  <div id="message-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Message Details</h2>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-grid">
+          <div class="modal-field">
+            <span class="modal-label">From</span>
+            <span id="msg-modal-from" class="modal-value"></span>
+            <span id="msg-modal-email" class="modal-value highlight" style="font-size:0.85rem;"></span>
+          </div>
+          <div class="modal-field">
+            <span class="modal-label">Date</span>
+            <span id="msg-modal-date" class="modal-value"></span>
+          </div>
+        </div>
+
+        <div class="modal-field" style="margin-bottom: 1.5rem;">
+          <span class="modal-label" style="margin-bottom:0.5rem;">Subject</span>
+          <span id="msg-modal-subject" class="modal-value" style="font-size:1.1rem; font-weight:700;"></span>
+        </div>
+
+        <div class="modal-field">
+          <span class="modal-label" style="margin-bottom:0.5rem;">Message Body</span>
+          <div id="msg-modal-body" class="modal-message-box"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeMessageModal()">Close</button>
+        <a id="msg-modal-reply-btn" href="#" class="ds-btn ds-btn-primary"
+          style="text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;">
+          <span>↩️ Reply via Email</span>
+        </a>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
   <script>
@@ -184,9 +297,16 @@
       // Toggle Sections
       document.getElementById("section-users").style.display = (section === 'users') ? 'block' : 'none';
       document.getElementById("section-messages").style.display = (section === 'messages') ? 'block' : 'none';
+      document.getElementById("section-admins").style.display = (section === 'admins') ? 'block' : 'none';
+      const logsSec = document.getElementById("section-logs");
+      if (logsSec) logsSec.style.display = (section === 'logs') ? 'block' : 'none';
 
       if (section === 'messages') {
         loadAdminMessages();
+      } else if (section === 'admins') {
+        loadAdmins();
+      } else if (section === 'logs') {
+        loadAdminLogs();
       }
     }
 

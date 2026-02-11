@@ -70,6 +70,21 @@ def admin_required(fn):
     return wrapper
 
 
+def log_admin_action(admin_email, action, target):
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO admin_logs (admin_email, action, target) VALUES (%s, %s, %s)",
+            (admin_email, action, target)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Failed to log admin action: {e}")
+
+
 # -------- AUTH ROUTES --------
 
 @app.route("/api/auth/register", methods=["POST"])
@@ -186,10 +201,17 @@ def list_users():
 @app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
 @admin_required
 def delete_user(user_id):
+    current_admin_id = int(get_jwt_identity())
+    
     conn = get_db()
     cur = conn.cursor(dictionary=True)
     
-    # Check if user exists and is not the locked admin
+    # Get Admin Email for logging
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    admin_email = admin["email"] if admin else "unknown"
+
+    # Check if user exists
     cur.execute("SELECT email, role FROM users WHERE id = %s", (user_id,))
     user = cur.fetchone()
     
@@ -198,21 +220,138 @@ def delete_user(user_id):
         conn.close()
         return jsonify({"message": "User not found"}), 404
         
-    if user['email'] == '40tarun02@gmail.com' or user['role'] == 'admin':
+    if user['email'] == '40tarun02@gmail.com':
         cur.close()
         conn.close()
-        return jsonify({"message": "Cannot delete admin account"}), 403
+        return jsonify({"message": "Cannot delete Super Admin account"}), 403
 
     try:
         cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
         conn.commit()
+        
+        # LOG ACTION
+        cur.close()  # close dict cursor to use helper if needed, or just insert here. 
+        # Actually helper manages connection, so close first.
+        conn.close()
+        
+        log_admin_action(admin_email, "DELETE_USER", f"ID: {user_id}, Email: {user['email']}")
+        
         return jsonify({"message": "User deleted successfully"}), 200
     except Exception as e:
-        conn.rollback()
+        if conn.is_connected():
+            conn.rollback()
+            conn.close()
         return jsonify({"message": str(e)}), 500
-    finally:
+
+
+@app.route("/api/admin/promote", methods=["POST"])
+@admin_required
+def promote_admin():
+    data = request.get_json() or {}
+    target_id = data.get("user_id")
+    
+    current_admin_id = int(get_jwt_identity())
+    
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Get current admin info
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    admin_email = admin["email"]
+    
+    # Get target user
+    cur.execute("SELECT email, role FROM users WHERE id = %s", (target_id,))
+    target = cur.fetchone()
+    
+    if not target:
         cur.close()
         conn.close()
+        return jsonify({"message": "User not found"}), 404
+        
+    if target["role"] == "admin":
+        cur.close()
+        conn.close()
+        return jsonify({"message": "User is already admin"}), 400
+
+    try:
+        cur.execute("UPDATE users SET role = 'admin' WHERE id = %s", (target_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        log_admin_action(admin_email, "PROMOTE_ADMIN", f"ID: {target_id}, Email: {target['email']}")
+        return jsonify({"message": "User promoted to Admin"}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+@app.route("/api/admin/revoke", methods=["POST"])
+@admin_required
+def revoke_admin():
+    data = request.get_json() or {}
+    target_id = data.get("user_id")
+    
+    current_admin_id = int(get_jwt_identity())
+    
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Get current admin info
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    admin_email = admin["email"]
+    
+    # Get target user
+    cur.execute("SELECT email, role FROM users WHERE id = %s", (target_id,))
+    target = cur.fetchone()
+    
+    if not target:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "User not found"}), 404
+    
+    # PROTECT SUPER ADMIN
+    if target["email"] == '40tarun02@gmail.com':
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Cannot revoke Super Admin"}), 403
+
+    try:
+        cur.execute("UPDATE users SET role = 'user' WHERE id = %s", (target_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        log_admin_action(admin_email, "REVOKE_ADMIN", f"ID: {target_id}, Email: {target['email']}")
+        return jsonify({"message": "Admin privileges revoked"}), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+
+@app.route("/api/admin/logs")
+@admin_required
+def get_admin_logs():
+    current_admin_id = int(get_jwt_identity())
+    
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Verify Super Admin
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    
+    if not admin or admin["email"] != '40tarun02@gmail.com':
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Access Denied: Super Admin only"}), 403
+
+    cur.execute("SELECT * FROM admin_logs ORDER BY timestamp DESC LIMIT 100")
+    logs = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    return jsonify({"logs": logs})
 
 
 # -------- CONTACT & MESSAGES --------
