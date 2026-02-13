@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <title>Stock Price Prediction System – Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="trading.css" />
 
   <script src="script.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -32,9 +33,15 @@
 
       <!-- USER NAV -->
       <div id="nav-user" style="display:flex; gap:20px; align-items:center;">
+        <div id="wallet-display" class="wallet-badge" style="display:none;">
+          <span>💰</span>
+          <span id="wallet-balance">$100,000.00</span>
+        </div>
+
         <span id="user-name-display" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
         <a href="index.html" class="ds-nav-link">Home</a>
         <a href="dashboard.html" class="ds-nav-link active">Dashboard</a>
+        <a href="trade.html" class="ds-nav-link">Trade</a>
         <a href="portfolio.html" class="ds-nav-link">Portfolio</a>
         <button id="logout-btn-nav" class="ds-btn ds-btn-outline">Log out</button>
       </div>
@@ -125,6 +132,8 @@
 
         <!-- RIGHT SIDEBAR (WATCHLIST) -->
         <aside class="dashboard-sidebar" style="position: sticky; top: 100px;">
+
+          <!-- Watchlist Widget -->
           <div class="dashboard-panel" style="padding: 1.2rem;">
             <div class="dashboard-panel-header" style="margin-bottom: 1rem;">
               <span class="dashboard-panel-title">Watchlist</span>

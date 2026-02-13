@@ -57,6 +57,7 @@ function updateNavbar() {
       const adminLink = document.getElementById("nav-admin-link");
       const dashboardLink = document.getElementById("nav-dashboard-link");
       const portfolioLink = document.getElementById("nav-portfolio-link");
+      const tradeLink = document.getElementById("nav-trade-link");
 
       if (adminLink) {
         adminLink.style.display = (role === 'admin') ? 'block' : 'none';
@@ -66,9 +67,11 @@ function updateNavbar() {
       if (role === 'admin') {
         if (dashboardLink) dashboardLink.style.display = 'none';
         if (portfolioLink) portfolioLink.style.display = 'none';
+        if (tradeLink) tradeLink.style.display = 'none';
       } else {
         if (dashboardLink) dashboardLink.style.display = 'block';
         if (portfolioLink) portfolioLink.style.display = 'block';
+        if (tradeLink) tradeLink.style.display = 'block';
       }
 
       // Home Page Hero Buttons Logic
@@ -574,7 +577,39 @@ async function loadUserPortfolio() {
 
   } catch (e) {
     console.error(e);
-    if (tableBody) tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Network Error</td></tr>';
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Network Error</td></tr>';
+  }
+}
+
+async function deletePortfolioPosition(symbol) {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  if (!confirm(`Are you sure you want to DELETE your position in ${symbol} from the portfolio records? This validation is irreversible.`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/portfolio`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ symbol })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showPopup(`Success! Deleted ${symbol} from portfolio.`);
+      loadUserPortfolio(); // Reload table
+    } else {
+      showPopup(data.message || "Failed to delete position");
+    }
+  } catch (e) {
+    console.error(e);
+    showPopup("Network Error");
   }
 }
 
@@ -608,11 +643,76 @@ function initPortfolioUI() {
     await addPortfolioPosition(sym, qty, price, pDate);
     closeMod();
     // Clear inputs
-    document.getElementById("add-symbol").value = "";
     document.getElementById("add-qty").value = "";
     document.getElementById("add-price").value = "";
     document.getElementById("add-date").value = "";
   });
+
+  /* Delete Position Modal Logic */
+  const delBtn = document.getElementById("del-pos-btn");
+  const delModal = document.getElementById("del-pos-modal");
+  const cancelDelBtn = document.getElementById("cancel-del-btn");
+  const submitDelBtn = document.getElementById("submit-del-btn");
+  const delSelect = document.getElementById("del-symbol-select");
+
+  if (delBtn && delModal) {
+    function closeDelMod() { delModal.style.display = "none"; }
+
+    delBtn.addEventListener("click", async () => {
+      // Populate dropdown
+      delSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+      delModal.style.display = "flex";
+
+      const token = requireAuth();
+      if (!token) return;
+
+      try {
+        // Re-use portfolio endpoint
+        const res = await fetch(`${API_BASE}/reports/portfolio`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to load");
+
+        const data = await res.json();
+
+        delSelect.innerHTML = '<option value="" disabled selected>Select a symbol</option>';
+
+        if (data.positions && data.positions.length > 0) {
+          data.positions.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.symbol;
+            opt.textContent = `${p.symbol} (${p.quantity})`;
+            delSelect.appendChild(opt);
+          });
+        } else {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.disabled = true;
+          opt.textContent = "No positions found";
+          delSelect.appendChild(opt);
+        }
+
+      } catch (e) {
+        console.error(e);
+        delSelect.innerHTML = '<option value="" disabled selected>Error loading symbols</option>';
+      }
+    });
+
+    cancelDelBtn.addEventListener("click", closeDelMod);
+
+    submitDelBtn.addEventListener("click", async () => {
+      const sym = delSelect.value;
+      if (!sym) {
+        alert("Please select a symbol");
+        return;
+      }
+
+      await deletePortfolioPosition(sym);
+      closeDelMod();
+      delSelect.value = "";
+    });
+  }
 }
 
 async function addPortfolioPosition(symbol, quantity, avg_price, purchase_date) {
@@ -793,11 +893,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Dashboard specific
   setupPeriodButtons();
 
+
   // Auto Load Dashboard Search
   if (window.location.pathname.endsWith("dashboard.html")) {
     const urlParams = new URLSearchParams(window.location.search);
     const urlSymbol = urlParams.get('symbol');
     const stored = localStorage.getItem("last_search_symbol");
+
     const symbolInput = document.getElementById("symbol");
 
     if (symbolInput) {
@@ -813,8 +915,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Auto Load Portfolio
-  loadUserPortfolio();
-  initPortfolioUI();
+  if (typeof loadUserPortfolio === "function") loadUserPortfolio();
+  if (typeof initPortfolioUI === "function") initPortfolioUI();
 
   // Global Search Bar
   const globalSearch = document.getElementById("global-search");
@@ -829,11 +931,268 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-});
+
+  /* ---------- VIRTUAL TRADING INIT ---------- */
+  const tradeBtn = document.getElementById("trade-btn");
+  if (tradeBtn) tradeBtn.addEventListener("click", openTradeModal);
+
+  initWalletDisplay();
+  initTradePage(); // New
+
+}); // End of Global Initialization
+
+/* ---------- VIRTUAL TRADING LOGIC (TRADE PAGE) ---------- */
+let pageTradeMode = 'buy'; // 'buy' or 'sell'
+let pageCurrentPrice = 0;
+
+async function initTradePage() {
+  const symbolInput = document.getElementById("trade-page-symbol");
+  const fetchBtn = document.getElementById("fetch-price-btn");
+
+  // Safety check: if we are not on trade.html, these IDs won't exist.
+  if (!symbolInput || !fetchBtn) return;
+
+  // Check URL params for auto-loading
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlSymbol = urlParams.get('symbol');
+
+  if (urlSymbol) {
+    symbolInput.value = urlSymbol;
+    await loadTradeSymbol(urlSymbol);
+  }
+
+  fetchBtn.addEventListener("click", () => {
+    const val = symbolInput.value.trim().toUpperCase();
+    if (val) loadTradeSymbol(val);
+  });
+
+  // Also allow Enter key
+  symbolInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const val = symbolInput.value.trim().toUpperCase();
+      if (val) loadTradeSymbol(val);
+    }
+  });
+}
+
+async function loadTradeSymbol(symbol) {
+  const interfaceDiv = document.getElementById("trade-interface");
+  const emptyState = document.getElementById("trade-empty-state");
+  const priceDisplay = document.getElementById("page-price-display");
+  const symbolDisplay = document.getElementById("page-symbol-display");
+
+  if (!interfaceDiv) return;
+
+  if (emptyState) emptyState.style.display = "none"; // Hide empty state
+  interfaceDiv.style.display = "block"; // Show interface (was flex or block? using block is fine)
+
+  symbolDisplay.textContent = symbol;
+  priceDisplay.textContent = "Fetching...";
+  priceDisplay.style.color = "#94a3b8";
+
+  // 1. Get Price
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      priceDisplay.textContent = "Please login";
+      return;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    // Use 1d period to get latest close
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/history?period=1d`, { headers });
+
+    if (res.status === 401) {
+      priceDisplay.textContent = "Session expired";
+      alert("Session expired. Please log in again.");
+      localStorage.removeItem("token");
+      window.location.href = "index.html";
+      return;
+    }
+
+    if (!res.ok) {
+      priceDisplay.textContent = "Error";
+      return;
+    }
+
+    const json = await res.json();
+
+    if (json.prices && json.prices.length > 0) {
+      pageCurrentPrice = json.prices[json.prices.length - 1].close;
+      priceDisplay.textContent = `Current Price: ${formatCurrency(pageCurrentPrice, symbol)}`;
+      priceDisplay.style.color = "#fff"; // Was var(--trade-buy) in CSS but #fff is fine for contrast
+    } else {
+      priceDisplay.textContent = "Price unavailable";
+      pageCurrentPrice = 0;
+    }
+  } catch (e) {
+    console.error(e);
+    priceDisplay.textContent = "Network Error";
+  }
+
+  // 2. Reset Quantity
+  document.getElementById("page-quantity").value = 1;
+  updatePageTradeTotal();
+
+  // 3. Fetch Wallet/Holdings
+  fetchPageWalletAndHoldings(symbol);
+}
+
+// Helper for currency formatting
+function formatCurrency(val, symbol) {
+  const isIn = symbol.endsWith(".NS") || symbol.endsWith(".BO");
+  const sign = isIn ? "₹" : "$";
+  return `${sign}${val.toFixed(2)}`;
+}
+
+function updatePageTradeTotal() {
+  const qty = document.getElementById("page-quantity").value;
+  const total = (qty * pageCurrentPrice).toFixed(2);
+  // Use generic dollar sign or infer from symbol? Let's use generic for now or match loadTradeSymbol logic if we stored symbol
+  document.getElementById("page-total").textContent = `${total}`;
+}
+
+function setPageTradeMode(mode) {
+  pageTradeMode = mode;
+  document.querySelectorAll(".trade-tab").forEach(t => t.classList.remove("active-buy", "active-sell"));
+
+  const btn = document.getElementById("page-submit-btn");
+
+  if (mode === 'buy') {
+    document.getElementById("page-tab-buy").classList.add("active-buy");
+    btn.textContent = "Place Buy Order";
+    btn.className = "submit-order-btn btn-buy";
+  } else {
+    document.getElementById("page-tab-sell").classList.add("active-sell");
+    btn.textContent = "Place Sell Order";
+    btn.className = "submit-order-btn btn-sell";
+  }
+}
+
+async function fetchPageWalletAndHoldings(symbol) {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/portfolio`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (data.wallet_balance !== undefined) {
+      const formatted = `$${data.wallet_balance.toFixed(2)}`;
+      const pc = document.getElementById("page-cash");
+      if (pc) pc.textContent = formatted;
+
+      const wb = document.getElementById("wallet-balance");
+      if (wb) wb.textContent = formatted;
+
+      localStorage.setItem("wallet_balance", data.wallet_balance);
+    }
+
+    const position = data.positions ? data.positions.find(p => p.symbol === symbol) : null;
+    const ow = document.getElementById("page-owned");
+    if (ow) ow.textContent = position ? position.quantity : 0;
+
+  } catch (e) {
+    console.error("Error fetching trade info", e);
+  }
+}
+
+async function executePageTrade() {
+  const qtyInput = document.getElementById("page-quantity");
+  const qty = qtyInput ? qtyInput.value : 0;
+  const symbol = document.getElementById("page-symbol-display").textContent;
+  const token = localStorage.getItem("token");
+  const msg = document.getElementById("page-trade-msg");
+  const btn = document.getElementById("page-submit-btn");
+
+  if (qty <= 0) { alert("Invalid quantity"); return; }
+  if (!token) { alert("Please login"); return; }
+
+  // New Client-Side Validation
+  if (pageTradeMode === 'sell') {
+    const ownedText = document.getElementById("page-owned").textContent;
+    // content is like "5 Shares" or just "0" initially?
+    // fetchPageWalletAndHoldings sets it as `${holdings} Shares`
+    const owned = parseInt(ownedText) || 0;
+
+    if (qty > owned) {
+      msg.textContent = `Insufficient shares. You own ${owned}.`;
+      msg.style.color = "#ef4444";
+      return;
+    }
+  }
+
+  const endpoint = pageTradeMode === 'buy' ? '/trade/buy' : '/trade/sell';
+
+  btn.disabled = true;
+  msg.textContent = "Processing...";
+  msg.style.color = "#ccc";
+
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ symbol, quantity: qty })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      msg.textContent = `Success! ${pageTradeMode.toUpperCase()} executed.`;
+      msg.style.color = "#10b981";
+
+      if (data.new_balance !== undefined) {
+        const formatted = `$${data.new_balance.toFixed(2)}`;
+        document.getElementById("page-cash").textContent = formatted;
+        document.getElementById("wallet-balance").textContent = formatted;
+      }
+
+      // Refresh holdings
+      fetchPageWalletAndHoldings(symbol);
+
+      setTimeout(() => {
+        msg.textContent = "";
+        btn.disabled = false;
+      }, 2000);
+    } else {
+      msg.textContent = data.message || "Failed";
+      msg.style.color = "#ef4444";
+      btn.disabled = false;
+    }
+  } catch (e) {
+    msg.textContent = "Network Error";
+    msg.style.color = "#ef4444";
+    btn.disabled = false;
+  }
+}
+
+function initWalletDisplay() {
+  const balance = localStorage.getItem("wallet_balance");
+  if (balance) {
+    const el = document.getElementById("wallet-balance");
+    if (el) {
+      el.textContent = `$${parseFloat(balance).toFixed(2)}`;
+      document.getElementById("wallet-display").style.display = "flex";
+    }
+  }
+}
+
 /* ---------- ADMIN DASHBOARD ---------- */
+/* ---------- ADMIN DASHBOARD (PAGINATION & FILTERING) ---------- */
+let allUsers = [];
+let filteredUsers = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
 async function loadAdminUsers() {
   const tableBody = document.getElementById("users-table-body");
-  if (!tableBody) return; // Not on admin page
+  if (!tableBody) return;
 
   const token = requireAuth();
   if (!token) return;
@@ -845,7 +1204,6 @@ async function loadAdminUsers() {
     const res = await fetch(`${API_BASE}/admin/users`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-
     const data = await res.json();
 
     if (!res.ok) {
@@ -858,48 +1216,11 @@ async function loadAdminUsers() {
 
     if (msg) msg.textContent = "";
 
-    // Clear loading
-    tableBody.innerHTML = "";
+    // Store data globally
+    allUsers = data.users || [];
 
-    if (!data.users || data.users.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No users found.</td></tr>';
-      return;
-    }
-
-    data.users.forEach((u) => {
-      const tr = document.createElement("tr");
-
-      // Role badge style
-      const roleBadge = u.role === 'admin'
-        ? '<span style="background:rgba(99,102,241,0.2); color:#818cf8; padding:2px 8px; border-radius:12px; font-size:0.75rem; border:1px solid rgba(99,102,241,0.3);">Admin</span>'
-        : '<span style="background:rgba(148,163,184,0.2); color:#94a3b8; padding:2px 8px; border-radius:12px; font-size:0.75rem;">User</span>';
-
-      let actionHtml = '';
-      if (u.role === 'admin' || u.email === '40tarun02@gmail.com') {
-        actionHtml = '<span style="color:#64748b; font-size:0.8rem;">Locked / Admin</span>';
-      } else {
-        actionHtml = `
-           <button onclick="promoteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; margin-right:8px;" title="Promote to Admin">⬆️</button>
-           <button onclick="confirmDeleteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; color:#ef4444;" title="Remove User">🗑️</button>
-         `;
-      }
-
-      tr.innerHTML = `
-        <td>#${u.id}</td>
-        <td style="font-weight:600; color:#fff;">${u.name}</td>
-        <td>${u.email}</td>
-        <td>${u.phone || '-'}</td>
-        <td>${u.dob || '-'}</td>
-        <td>${u.profession || '-'}</td>
-        <td>${roleBadge}</td>
-        <td>${actionHtml}</td>
-      `;
-      tableBody.appendChild(tr);
-    });
-
-    // Update stats if elements exist
-    const totalBadge = document.getElementById("stat-total-users");
-    if (totalBadge) totalBadge.textContent = data.users.length;
+    // Initial Filter & Render
+    applyFilterAndRender();
 
   } catch (e) {
     console.error(e);
@@ -910,10 +1231,104 @@ async function loadAdminUsers() {
   }
 }
 
-// Auto-run if on page (backup for onload)
-// Auto-run if on page (backup for onload)
+// Global Filter Function
+window.filterUsers = function () {
+  applyFilterAndRender();
+}
+
+function applyFilterAndRender() {
+  const searchInput = document.getElementById("user-search");
+  const roleSelect = document.getElementById("role-filter");
+
+  const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+  const roleValue = roleSelect ? roleSelect.value : "all";
+
+  filteredUsers = allUsers.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm) || user.email.toLowerCase().includes(searchTerm);
+    const matchesRole = roleValue === "all" ? true : user.role === roleValue;
+    return matchesSearch && matchesRole;
+  });
+
+  currentPage = 1;
+  renderUsersTable();
+}
+
+function renderUsersTable() {
+  const tableBody = document.getElementById("users-table-body");
+  const selectAllCb = document.getElementById("select-all-users");
+  if (!tableBody) return;
+
+  tableBody.innerHTML = "";
+  if (selectAllCb) selectAllCb.checked = false;
+
+  if (filteredUsers.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding: 2rem;">No users found matching your criteria.</td></tr>';
+    updatePaginationControls();
+    return;
+  }
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
+  const pageUsers = filteredUsers.slice(startIndex, endIndex);
+
+  pageUsers.forEach(u => {
+    const tr = document.createElement("tr");
+
+    const roleBadge = u.role === 'admin'
+      ? '<span style="background:rgba(99,102,241,0.2); color:#818cf8; padding:2px 8px; border-radius:12px; font-size:0.75rem; border:1px solid rgba(99,102,241,0.3);">Admin</span>'
+      : '<span style="background:rgba(148,163,184,0.2); color:#94a3b8; padding:2px 8px; border-radius:12px; font-size:0.75rem;">User</span>';
+
+    let actionHtml = '';
+    if (u.role === 'admin' || u.email === '40tarun02@gmail.com') {
+      actionHtml = '<span style="color:#64748b; font-size:0.8rem;">Locked / Admin</span>';
+    } else {
+      actionHtml = `
+               <button onclick="promoteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; margin-right:8px;" title="Promote to Admin">⬆️</button>
+               <button onclick="confirmDeleteUser(${u.id}, '${u.email}')" style="background:transparent; border:none; cursor:pointer; color:#ef4444;" title="Remove User">🗑️</button>
+             `;
+    }
+
+    tr.innerHTML = `
+            <td>#${u.id}</td>
+            <td style="font-weight:600; color:#fff;">${u.name}</td>
+            <td>${u.email}</td>
+            <td>${u.phone || '-'}</td>
+            <td>${u.dob || '-'}</td>
+            <td>${u.profession || '-'}</td>
+            <td>${roleBadge}</td>
+            <td>${actionHtml}</td>
+        `;
+    tableBody.appendChild(tr);
+  });
+
+  updatePaginationControls();
+}
+
+function updatePaginationControls() {
+  const prevBtn = document.getElementById("prev-page-btn");
+  const nextBtn = document.getElementById("next-page-btn");
+  const pageInfo = document.getElementById("page-info");
+
+  if (!prevBtn || !nextBtn || !pageInfo) return;
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
+
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage === totalPages;
+
+  prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderUsersTable(); } };
+  nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderUsersTable(); } };
+}
+
+window.toggleSelectAll = function (source) { }
+
+// Auto-run logic
 if (window.location.pathname.endsWith("admin.html")) {
-  loadAdminUsers();
+  // We don't call loadAdminUsers immediately here because body onload might call it via showAdminSection
+  // But showAdminSection calls loadAdminUsers only when section is 'users'.
+  // We can leave it to the UI to trigger.
 }
 
 /* ---------- CONTACT FORM ---------- */
@@ -967,7 +1382,10 @@ if (document.getElementById("contact-form")) {
 }
 
 
-/* ---------- ADMIN MESSAGES ---------- */
+/* ---------- ADMIN MESSAGES (PAGINATION) ---------- */
+let allMessages = [];
+let currentMsgPage = 1;
+
 async function loadAdminMessages() {
   const tableBody = document.getElementById("messages-table-body");
   const statusMsg = document.getElementById("admin-msgs-status");
@@ -976,8 +1394,11 @@ async function loadAdminMessages() {
   const token = requireAuth();
   if (!token) return;
 
-  if (statusMsg) statusMsg.textContent = "Loading messages...";
-  tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+  if (statusMsg) {
+    statusMsg.textContent = "Loading messages...";
+    statusMsg.className = "message";
+  }
+  tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading...</td></tr>';
 
   try {
     const res = await fetch(`${API_BASE}/admin/messages`, {
@@ -991,49 +1412,14 @@ async function loadAdminMessages() {
         statusMsg.textContent = data.message || "Failed to load messages";
         statusMsg.className = "message error";
       }
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error loading messages</td></tr>';
+      tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Error loading messages</td></tr>';
       return;
     }
 
     if (statusMsg) statusMsg.textContent = "";
-    tableBody.innerHTML = "";
-
-    if (!data.messages || data.messages.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No messages found.</td></tr>';
-      return;
-    }
-
-    data.messages.forEach(msg => {
-      const tr = document.createElement("tr");
-      const dateStr = new Date(msg.timestamp).toLocaleString();
-
-      // Truncate message for table view
-      const shortMsg = msg.message.length > 50 ? msg.message.substring(0, 50) + "..." : msg.message;
-
-      // Encode message data for safe passing (or just pass ID and look up, but ID lookup needs full list stored.
-      // Easiest is to attach data to the row or just pass ID and fetch/find.
-      // Let's store messages in a global variable for easy access or just pass strings carefully.
-      // Improve: Just pass ID and find in `allMessages` array?
-      // Let's attach to window or just encoded strings.
-      // Better: store in a map.
-      // For simplicity in this script, let's just make `viewMessage` take all params or index.
-
-      tr.innerHTML = `
-                <td>#${msg.id}</td>
-                <td style="font-size:0.85rem; color:#aaa;">${dateStr}</td>
-                <td style="font-weight:600; color:#fff;">${msg.name}</td>
-                <td>${msg.email}</td>
-                <td>${msg.subject || '-'}</td>
-                <td style="color:#ccc;">${shortMsg}</td>
-                <td>
-                    <button onclick="viewMessage('${msg.id}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.email)}', '${escapeHtml(msg.subject || "")}', '${escapeHtml(msg.message)}', '${dateStr}')" 
-                            class="action-btn view-btn" title="View Details">
-                        👁️
-                    </button>
-                </td>
-            `;
-      tableBody.appendChild(tr);
-    });
+    allMessages = data.messages || [];
+    currentMsgPage = 1;
+    renderMessagesTable();
 
   } catch (e) {
     console.error("Error loading messages:", e);
@@ -1043,6 +1429,110 @@ async function loadAdminMessages() {
     }
   }
 }
+
+let currentRenderedMessages = [];
+
+function renderMessagesTable(dataList = null) {
+  const tableBody = document.getElementById("messages-table-body");
+  const selectAllCb = document.getElementById("select-all-msgs");
+  if (!tableBody) return;
+
+  tableBody.innerHTML = "";
+  if (selectAllCb) selectAllCb.checked = false;
+
+  // Update the currently rendered list reference
+  currentRenderedMessages = dataList || allMessages;
+
+  if (currentRenderedMessages.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding: 2rem;">No messages found.</td></tr>';
+    updateMsgPagination();
+    return;
+  }
+
+  const startIndex = (currentMsgPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, currentRenderedMessages.length);
+  const pageMsgs = currentRenderedMessages.slice(startIndex, endIndex);
+
+  pageMsgs.forEach(msg => {
+    const tr = document.createElement("tr");
+    const dateStr = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : 'N/A';
+    const shortMsg = msg.message.length > 50 ? msg.message.substring(0, 50) + "..." : msg.message;
+
+    tr.innerHTML = `
+            <td>#${msg.id}</td>
+            <td style="font-size:0.85rem; color:#aaa;">${dateStr}</td>
+            <td style="font-weight:600; color:#fff;">${msg.name}</td>
+            <td>${msg.email}</td>
+            <td>${msg.subject || '-'}</td>
+            <td style="color:#ccc;">${shortMsg}</td>
+            <td>
+                <button onclick="viewMessage('${msg.id}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.email)}', '${escapeHtml(msg.subject || "")}', '${escapeHtml(msg.message)}', '${dateStr}')" 
+                        class="action-btn view-btn" title="View Details">
+                    👁️
+                </button>
+            </td>
+        `;
+    tableBody.appendChild(tr);
+  });
+
+  updateMsgPagination();
+}
+
+function updateMsgPagination() {
+  const prevBtn = document.getElementById("msg-prev-page-btn");
+  const nextBtn = document.getElementById("msg-next-page-btn");
+  const pageInfo = document.getElementById("msg-page-info");
+
+  if (!prevBtn || !nextBtn || !pageInfo) return;
+
+  const totalPages = Math.ceil(currentRenderedMessages.length / itemsPerPage) || 1;
+  pageInfo.textContent = `Page ${currentMsgPage} of ${totalPages}`;
+
+  prevBtn.disabled = currentMsgPage === 1;
+  nextBtn.disabled = currentMsgPage === totalPages;
+
+  prevBtn.onclick = () => { if (currentMsgPage > 1) { currentMsgPage--; renderMessagesTable(currentRenderedMessages); } };
+  nextBtn.onclick = () => { if (currentMsgPage < totalPages) { currentMsgPage++; renderMessagesTable(currentRenderedMessages); } };
+}
+
+window.toggleSelectAllMsgs = function (source) { }
+
+
+// Global exports
+window.loadAdminMessages = loadAdminMessages;
+window.renderMessagesTable = renderMessagesTable;
+window.loadAdminUsers = loadAdminUsers;
+
+/* ---------- MESSAGE FILTERING ---------- */
+let filteredMessages = [];
+
+window.filterMessages = function () {
+  const searchInput = document.getElementById("msg-search");
+  const searchTerm = searchInput ? searchInput.value.toLowerCase() : "";
+
+  filteredMessages = allMessages.filter(msg => {
+    return (
+      msg.name.toLowerCase().includes(searchTerm) ||
+      msg.email.toLowerCase().includes(searchTerm) ||
+      (msg.subject && msg.subject.toLowerCase().includes(searchTerm)) ||
+      msg.message.toLowerCase().includes(searchTerm)
+    );
+  });
+
+  currentMsgPage = 1;
+  renderFilteredMessages();
+}
+
+// Separate render for filtered state (logic reused)
+function renderFilteredMessages() {
+  // Temporarily swap allMessages for filtered rendering, then swap back 
+  // or just pass a list to renderMessagesTable.
+  // Let's refactor renderMessagesTable to take an optional list.
+  renderMessagesTable(filteredMessages);
+}
+
+// REFACTOR renderMessagesTable to accept list
+// Actually update it in place since it's cleaner.
 
 
 // Helper to prevent XSS
@@ -1262,6 +1752,7 @@ async function revokeAdmin(userId, email) {
 // Global Exports
 window.revokeAdmin = revokeAdmin;
 window.promoteUser = promoteUser;
+window.closePosition = closePosition;
 
 /* ---------- ADMIN BUTTONS LOGIC ---------- */
 async function confirmDeleteUser(userId, userEmail) {
@@ -1306,8 +1797,6 @@ async function loadSystemReport() {
 
   // Show loading state
   document.getElementById("rep-total-users").textContent = "...";
-  document.getElementById("rep-total-stocks").textContent = "...";
-  document.getElementById("rep-pop-stock").textContent = "...";
   document.getElementById("rep-total-msgs").textContent = "...";
 
   try {
@@ -1320,8 +1809,6 @@ async function loadSystemReport() {
 
     // Update Metrics
     document.getElementById("rep-total-users").textContent = data.total_users;
-    document.getElementById("rep-total-stocks").textContent = data.total_stocks_tracked;
-    document.getElementById("rep-pop-stock").textContent = data.most_popular_stock;
     document.getElementById("rep-total-msgs").textContent = data.total_messages;
 
     // Render Charts
@@ -1350,10 +1837,10 @@ function renderSystemCharts(data) {
   userGrowthChartCtx = new Chart(ctx1, {
     type: 'line',
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      labels: getLast6Months(),
       datasets: [{
         label: 'Total Users',
-        data: [Math.floor(total * 0.2), Math.floor(total * 0.4), Math.floor(total * 0.6), Math.floor(total * 0.8), Math.floor(total * 0.9), total],
+        data: generateMockGrowthData(total),
         borderColor: '#6366f1',
         backgroundColor: 'rgba(99, 102, 241, 0.1)',
         fill: true,
@@ -1364,14 +1851,43 @@ function renderSystemCharts(data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#94a3b8' } }
+        legend: { labels: { color: '#94a3b8' } },
+        tooltip: { mode: 'index', intersect: false }
       },
       scales: {
-        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#94a3b8', precision: 0 }
+        },
         x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
       }
     }
   });
+
+  function getLast6Months() {
+    const months = [];
+    const date = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(date.getFullYear(), date.getMonth() - i, 1);
+      months.push(d.toLocaleString('default', { month: 'short' }));
+    }
+    return months;
+  }
+
+  function generateMockGrowthData(finalTotal) {
+    // Generate 6 data points ending at finalTotal, purely for visual demo
+    // Start small, grow to final
+    if (finalTotal === 0) return [0, 0, 0, 0, 0, 0];
+    const data = [];
+    for (let i = 0; i < 5; i++) {
+      // Random growth curve
+      const ratio = (i + 1) / 7; // 1/7, 2/7... not linear
+      data.push(Math.floor(finalTotal * ratio));
+    }
+    data.push(finalTotal);
+    return data;
+  }
 
   // 2. Activity / Composition (Doughnut)
   // Messages vs Stocks vs Users

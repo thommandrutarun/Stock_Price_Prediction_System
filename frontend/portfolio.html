@@ -33,6 +33,7 @@
         <span id="user-name-display" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
         <a href="index.html" class="ds-nav-link">Home</a>
         <a href="dashboard.html" class="ds-nav-link">Dashboard</a>
+        <a href="trade.html" class="ds-nav-link">Trade</a>
         <a href="portfolio.html" class="ds-nav-link active">Portfolio</a>
         <button id="logout-btn-nav" class="ds-btn ds-btn-outline">Log out</button>
       </div>
@@ -52,69 +53,99 @@
 
       <!-- Summary Cards -->
       <div class="dashboard-controls"
-        style="display:flex; justify-content:space-between; align-items: flex-end; gap: 40px;">
-        <div style="display:flex; gap:40px;">
-          <div>
-            <label>Total Portfolio Value</label>
-            <div style="font-size: 2.5rem; font-weight: 800; color: #fff; line-height: 1;">
-              ₹<span id="pf-total">0.00</span>
-            </div>
+        style="display:flex; justify-content:space-between; align-items: flex-end; gap: 40px; background: transparent; border: none; padding: 0; box-shadow: none;">
+        <div style="display:flex; gap:20px; flex-wrap: wrap;">
+          <div class="ds-stat-card">
+            <span class="ds-stat-label">Total Value</span>
+            <div class="ds-stat-value">₹<span id="pf-total">0.00</span></div>
+            <div class="ds-stat-sub">Real-time valuation</div>
           </div>
-          <div>
-            <label>Total Invested</label>
-            <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-muted); line-height: 1;">
-              ₹<span id="pf-invested">0.00</span>
-            </div>
+
+          <div class="ds-stat-card">
+            <span class="ds-stat-label">Total Invested</span>
+            <div class="ds-stat-value" style="color: var(--text-muted);">₹<span id="pf-invested">0.00</span></div>
+            <div class="ds-stat-sub">Cost basis</div>
           </div>
-          <div>
-            <label>Total Positions</label>
-            <div id="pf-count" style="font-size: 2.5rem; font-weight: 800; color: var(--text-muted); line-height: 1;">0
-            </div>
+
+          <div class="ds-stat-card">
+            <span class="ds-stat-label">Positions</span>
+            <div id="pf-count" class="ds-stat-value" style="color: var(--text-muted);">0</div>
+            <div class="ds-stat-sub">Active holdings</div>
           </div>
         </div>
-        <div>
-          <button id="add-pos-btn" class="ds-btn ds-btn-primary" style="height:fit-content;">+ Add Position</button>
+
+        <div style="display:flex; gap: 10px;">
+          <button id="del-pos-btn" class="ds-btn ds-btn-outline"
+            style="border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;">
+            <span style="font-size: 1.1em; margin-right: 5px;">✕</span> Delete Position
+          </button>
+          <button id="add-pos-btn" class="ds-btn ds-btn-primary">
+            <span style="font-size: 1.1em; margin-right: 5px;">+</span> Add Position
+          </button>
         </div>
       </div>
 
       <!-- ADD POSITION MODAL -->
-      <div id="add-pos-modal" class="popup-overlay" style="display:none;">
-        <div class="popup-box" style="text-align:left; width: 400px; max-width:90%;">
-          <h3 style="margin-top:0; color:#fff;">Add to Portfolio</h3>
+      <div id="add-pos-modal" class="ds-modal-overlay" style="display:none;">
+        <div class="ds-modal-box">
+          <h3>Add to Portfolio</h3>
 
-          <label style="display:block; margin-top:15px; font-size:0.9rem;">Stock Symbol</label>
-          <input type="text" id="add-symbol" placeholder="e.g. RELIANCE.NS"
-            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px;">
+          <label>Stock Symbol</label>
+          <input type="text" id="add-symbol" placeholder="e.g. RELIANCE.NS">
 
-          <label style="display:block; margin-top:15px; font-size:0.9rem;">Quantity</label>
-          <input type="number" id="add-qty" placeholder="e.g. 10"
-            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px;">
+          <label>Quantity</label>
+          <input type="number" id="add-qty" placeholder="e.g. 10">
 
-          <label style="display:block; margin-top:15px; font-size:0.9rem;">Avg Price (₹)</label>
-          <input type="number" id="add-price" placeholder="e.g. 2500"
-            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px;">
+          <label>Avg Price (₹)</label>
+          <input type="number" id="add-price" placeholder="e.g. 2500">
 
-          <label style="display:block; margin-top:15px; font-size:0.9rem;">Purchase Date</label>
-          <input type="date" id="add-date"
-            style="width:100%; padding:8px; margin-top:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:4px; color-scheme:dark;">
+          <label>Purchase Date</label>
+          <input type="date" id="add-date" style="color-scheme:dark;">
 
-          <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
-            <button id="cancel-pos-btn" class="ds-btn ds-btn-outline"
-              style="padding:6px 12px; font-size:0.9rem;">Cancel</button>
-            <button id="submit-pos-btn" class="ds-btn ds-btn-primary"
-              style="padding:6px 12px; font-size:0.9rem;">Add</button>
+          <div class="ds-modal-actions">
+            <button id="cancel-pos-btn" class="ds-btn ds-btn-outline">Cancel</button>
+            <button id="submit-pos-btn" class="ds-btn ds-btn-primary">Add</button>
           </div>
         </div>
       </div>
 
-      <section class="dashboard-panel">
-        <div class="dashboard-panel-header">
-          <span class="dashboard-panel-title">Your Holdings</span>
-          <span class="dashboard-panel-meta">Real-time valuation based on latest market data</span>
+      <!-- DELETE POSITION MODAL -->
+      <div id="del-pos-modal" class="ds-modal-overlay" style="display:none;">
+        <div class="ds-modal-box">
+          <h3>Delete Position</h3>
+          <p>
+            Select a stock from your portfolio to permanently remove it and its history.
+          </p>
+
+          <label>Stock Symbol</label>
+          <select id="del-symbol-select">
+            <option value="" disabled selected>Select a symbol</option>
+          </select>
+
+          <div class="ds-modal-actions">
+            <button id="cancel-del-btn" class="ds-btn ds-btn-outline">Cancel</button>
+            <button id="submit-del-btn" class="ds-btn ds-btn-primary"
+              style="background: var(--danger); border-color: var(--danger); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">Delete
+              Position</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="ds-table-container">
+        <div class="dashboard-panel-header" style="padding: 1.5rem; margin-bottom: 0;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div
+              style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary);">
+            </div>
+            <span
+              style="text-transform: uppercase; font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted); font-size: 0.85rem;">Your
+              Holdings</span>
+          </div>
+          <span style="color: var(--text-muted); font-size: 0.85rem;">Real-time market data</span>
         </div>
 
         <div class="table-wrapper">
-          <table class="data-table">
+          <table class="ds-table">
             <thead>
               <tr>
                 <th>Symbol</th>
@@ -132,9 +163,10 @@
             </tbody>
           </table>
         </div>
-
-        <p id="prof-msg" class="message" style="margin-top:12px;"></p>
       </section>
+
+      <p id="prof-msg" class="message"
+        style="margin-top:12px; text-align: center; color: var(--text-muted); font-size: 0.9rem;"></p>
 
     </section>
   </main>

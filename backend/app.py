@@ -16,6 +16,11 @@ from functools import wraps
 from model import predict_price  # your ML helper
 
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load .env file
+
 # -------- CONFIG --------
 
 app = Flask(__name__)
@@ -33,12 +38,12 @@ CORS(
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-app.config["JWT_SECRET_KEY"] = "super-secret-key-change-this-to-something-longer-32chars"
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "fallback-secret-dev-only")
 
-app.config["DB_HOST"] = "localhost"
-app.config["DB_USER"] = "root"
-app.config["DB_PASSWORD"] = "Tarun@2004"  # change for production
-app.config["DB_NAME"] = "stock_prediction"
+app.config["DB_HOST"] = os.getenv("DB_HOST", "localhost")
+app.config["DB_USER"] = os.getenv("DB_USER", "root")
+app.config["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "")
+app.config["DB_NAME"] = os.getenv("DB_NAME", "stock_prediction")
 
 
 def get_db():
@@ -152,7 +157,7 @@ def login():
     conn = get_db()
     cur = conn.cursor(dictionary=True)
     cur.execute(
-        "SELECT id, name, email, password, role FROM users WHERE email = %s",
+        "SELECT id, name, email, password, role, wallet_balance FROM users WHERE email = %s",
         (email,),
     )
 
@@ -174,6 +179,7 @@ def login():
                     "email": user["email"],
                     "name": user["name"],
                     "role": user["role"],
+                    "wallet_balance": float(user.get("wallet_balance") or 0)
                 },
             }
         ),
@@ -195,7 +201,16 @@ def list_users():
     users = cur.fetchall()
     cur.close()
     conn.close()
-    return jsonify({"users": users})
+    
+    # helper for json serialization
+    safe_users = []
+    for u in users:
+        # Convert date to string
+        if isinstance(u.get("dob"), (dt.date, dt.datetime)):
+             u["dob"] = str(u["dob"])
+        safe_users.append(u)
+
+    return jsonify({"users": safe_users})
 
 
 @app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
@@ -351,7 +366,15 @@ def get_admin_logs():
     
     cur.close()
     conn.close()
-    return jsonify({"logs": logs})
+    
+    # Format timestamps
+    safe_logs = []
+    for l in logs:
+        if isinstance(l.get("timestamp"), (dt.date, dt.datetime)):
+            l["timestamp"] = l["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+        safe_logs.append(l)
+
+    return jsonify({"logs": safe_logs})
 
 
 # -------- CONTACT & MESSAGES --------
@@ -396,7 +419,15 @@ def list_messages():
     messages = cur.fetchall()
     cur.close()
     conn.close()
-    return jsonify({"messages": messages})
+    
+    # Format timestamps
+    safe_msgs = []
+    for m in messages:
+        if isinstance(m.get("timestamp"), (dt.date, dt.datetime)):
+            m["timestamp"] = m["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+        safe_msgs.append(m)
+        
+    return jsonify({"messages": safe_msgs})
 
 
 
@@ -608,12 +639,34 @@ def reports_summary():
 
 # -------- USER PORTFOLIO REPORT --------
 
-@app.route("/api/reports/portfolio", methods=["GET", "POST"])
+@app.route("/api/reports/portfolio", methods=["GET", "POST", "DELETE"])
 @jwt_required()
 def user_portfolio():
     user_id = int(get_jwt_identity())
     conn = get_db()
     cur = conn.cursor(dictionary=True)
+
+    if request.method == "DELETE":
+        data = request.get_json() or {}
+        symbol = data.get("symbol")
+        if not symbol:
+            cur.close()
+            conn.close()
+            return jsonify({"message": "Symbol required"}), 400
+        
+        try:
+            cur.execute("DELETE FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol.upper()))
+            conn.commit()
+            if cur.rowcount == 0:
+                 return jsonify({"message": "Position not found"}), 404
+            return jsonify({"message": "Deleted successfully"}), 200
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"message": str(e)}), 500
+        finally:
+             if conn.is_connected():
+                cur.close()
+                conn.close()
 
     if request.method == "POST":
         data = request.get_json() or {}
@@ -736,15 +789,196 @@ def user_portfolio():
     total_value = sum(r["current_value"] for r in rows) if rows else 0
     total_invested = sum(r["quantity"] * r["avg_price"] for r in rows) if rows else 0
     
+    # Fetch user wallet
+    cur.execute("SELECT wallet_balance FROM users WHERE id = %s", (user_id,))
+    user_row = cur.fetchone()
+    # Handle case where user_row might be None (though unlikely with token)
+    wallet_balance = float(user_row["wallet_balance"] or 0) if user_row else 0.0
+
     cur.close()
     conn.close()
     return jsonify(
         {
             "total_value": float(total_value),
             "total_invested": float(total_invested),
+            "wallet_balance": wallet_balance,
             "positions": rows,
         }
     )
+
+
+# -------- TRADING ENGINE (GAMIFICATION) --------
+
+@app.route("/api/trade/buy", methods=["POST"])
+@jwt_required()
+def trade_buy():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    symbol = data.get("symbol")
+    quantity = data.get("quantity")
+
+    if not symbol or not quantity or int(quantity) <= 0:
+        return jsonify({"message": "Invalid symbol or quantity"}), 400
+    
+    quantity = int(quantity)
+    symbol = symbol.upper().strip()
+
+    # 1. Get Live Price
+    try:
+        # Use simple 1d fetch
+        df = get_history(symbol, "1d")
+        if df.empty:
+             return jsonify({"message": "Could not fetch live price"}), 400
+        current_price = float(df.iloc[-1]["close"])
+    except Exception as e:
+        return jsonify({"message": f"Error fetching price: {str(e)}"}), 500
+
+    total_cost = current_price * quantity
+
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+
+    try:
+        # 2. Check Balance
+        cur.execute("SELECT wallet_balance FROM users WHERE id = %s", (user_id,))
+        user = cur.fetchone()
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+            
+        balance = float(user["wallet_balance"] or 0)
+        
+        if balance < total_cost:
+            return jsonify({"message": f"Insufficient funds. Required: ${total_cost:.2f}, Available: ${balance:.2f}"}), 400
+
+        # 3. Execute Trade
+        # Deduct Balance
+        new_balance = balance - total_cost
+        cur.execute("UPDATE users SET wallet_balance = %s WHERE id = %s", (new_balance, user_id))
+
+        # Add Stock to Portfolio
+        # Check if already owns
+        cur.execute("SELECT id, quantity, avg_price FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol))
+        existing = cur.fetchone()
+
+        if existing:
+            new_qty = existing["quantity"] + quantity
+            # New Avg Price = ((Old Qty * Old Avg) + (New Qty * New Price)) / Total Qty
+            old_total_val = existing["quantity"] * float(existing["avg_price"])
+            new_total_val = old_total_val + total_cost
+            new_avg = new_total_val / new_qty
+            
+            cur.execute(
+                "UPDATE user_stocks SET quantity = %s, avg_price = %s, latest_price = %s WHERE id = %s",
+                (new_qty, new_avg, current_price, existing["id"])
+            )
+        else:
+            cur.execute(
+                "INSERT INTO user_stocks (user_id, symbol, quantity, avg_price, latest_price, purchase_date) VALUES (%s, %s, %s, %s, %s, %s)",
+                (user_id, symbol, quantity, current_price, current_price, dt.date.today())
+            )
+
+        # Log Transaction
+        cur.execute(
+            """
+            INSERT INTO transactions (user_id, symbol, type, quantity, price, total_amount)
+            VALUES (%s, %s, 'BUY', %s, %s, %s)
+            """,
+            (user_id, symbol, quantity, current_price, total_cost)
+        )
+
+        conn.commit()
+        return jsonify({
+            "message": f"Bought {quantity} {symbol} @ {current_price:.2f}",
+            "new_balance": new_balance
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Trade Error: {e}")
+        return jsonify({"message": "Trade failed"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route("/api/trade/sell", methods=["POST"])
+@jwt_required()
+def trade_sell():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    symbol = data.get("symbol")
+    quantity = data.get("quantity")
+
+    if not symbol or not quantity or int(quantity) <= 0:
+        return jsonify({"message": "Invalid symbol or quantity"}), 400
+    
+    quantity = int(quantity)
+    symbol = symbol.upper().strip()
+
+    # 1. Get Live Price
+    try:
+        df = get_history(symbol, "1d")
+        if df.empty:
+             return jsonify({"message": "Could not fetch live price"}), 400
+        current_price = float(df.iloc[-1]["close"])
+    except Exception as e:
+        return jsonify({"message": f"Error fetching price: {str(e)}"}), 500
+
+    total_sale_value = current_price * quantity
+
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+
+    try:
+        # 2. Check Holdings
+        cur.execute("SELECT id, quantity, avg_price FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol))
+        existing = cur.fetchone()
+        
+        if not existing or existing["quantity"] < quantity:
+            return jsonify({"message": "Insufficient shares to sell"}), 400
+
+        # 3. Execute Trade
+        # Update Holdings
+        new_qty = existing["quantity"] - quantity
+        if new_qty == 0:
+            cur.execute("DELETE FROM user_stocks WHERE id = %s", (existing["id"],))
+        else:
+            cur.execute(
+                "UPDATE user_stocks SET quantity = %s, latest_price = %s WHERE id = %s",
+                (new_qty, current_price, existing["id"])
+            )
+
+        # Add Balance
+        cur.execute("UPDATE users SET wallet_balance = wallet_balance + %s WHERE id = %s", (total_sale_value, user_id))
+
+        # Log Transaction
+        cur.execute(
+            """
+            INSERT INTO transactions (user_id, symbol, type, quantity, price, total_amount)
+            VALUES (%s, %s, 'SELL', %s, %s, %s)
+            """,
+            (user_id, symbol, quantity, current_price, total_sale_value)
+        )
+
+        # Fetch new balance for return
+        cur.execute("SELECT wallet_balance FROM users WHERE id = %s", (user_id,))
+        new_bal = cur.fetchone()["wallet_balance"]
+
+        conn.commit()
+        return jsonify({
+            "message": f"Sold {quantity} {symbol} @ {current_price:.2f}",
+            "new_balance": float(new_bal)
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Trade Error: {e}")
+        return jsonify({"message": "Trade failed"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
 
 
 # -------- ADMIN SYSTEM REPORT --------

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Stock Price Prediction System – Trade</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="trading.css" />
+
+    <script src="script.js" defer></script>
+</head>
+
+<body class="dashboard-body">
+    <!-- NAVBAR -->
+    <header class="ds-navbar">
+        <div class="ds-navbar-left">
+            <a href="index.html" class="ds-logo">
+                <span class="ds-logo-icon">📈</span>
+                <span class="ds-logo-text">Stock Price Prediction System</span>
+            </a>
+        </div>
+        <div class="ds-navbar-right">
+            <!-- USER NAV -->
+            <div id="nav-user" style="display:flex; gap:20px; align-items:center;">
+                <div id="wallet-display" class="wallet-badge" style="display:none;">
+                    <span>💰</span>
+                    <span id="wallet-balance">$100,000.00</span>
+                </div>
+
+                <span id="user-name-display" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
+                <a href="index.html" class="ds-nav-link">Home</a>
+                <a href="dashboard.html" class="ds-nav-link">Dashboard</a>
+                <a href="trade.html" class="ds-nav-link active">Trade</a>
+                <a href="portfolio.html" class="ds-nav-link">Portfolio</a>
+                <button id="logout-btn-nav" class="ds-btn ds-btn-outline">Log out</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="ds-main">
+        <div class="trade-container">
+            <div class="trade-panel">
+                <!-- Top Bar -->
+                <div class="trade-header-section">
+                    <h2 class="trade-header-title">Order Entry</h2>
+                    <div class="trade-symbol-input-group">
+                        <input type="text" id="trade-page-symbol" class="trade-symbol-input" placeholder="SYMBOL"
+                            style="text-transform: uppercase;">
+                        <button id="fetch-price-btn" class="btn-fetch">LOAD</button>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <!-- Initial State: Centered 'Search' Message -->
+                <div id="trade-interface" style="display:none;">
+                    <div class="trade-grid">
+                        <!-- Left: Market Data -->
+                        <div class="market-data-col">
+                            <div id="page-symbol-display" class="market-symbol-display">---</div>
+                            <div id="page-price-display" class="market-price-display">$0.00</div>
+                            <div class="market-change">Real-time Data</div>
+                        </div>
+
+                        <!-- Right: Order Form -->
+                        <div class="order-entry-col">
+                            <!-- Tabs -->
+                            <div class="trade-type-tabs">
+                                <button id="page-tab-buy" class="type-tab active-buy"
+                                    onclick="setPageTradeMode('buy')">Buy</button>
+                                <button id="page-tab-sell" class="type-tab"
+                                    onclick="setPageTradeMode('sell')">Sell</button>
+                            </div>
+
+                            <!-- Inputs -->
+                            <div class="order-field">
+                                <label class="order-label">Quantity</label>
+                                <div class="order-input-wrapper">
+                                    <input type="number" id="page-quantity" class="order-input" min="1" value="1"
+                                        oninput="updatePageTradeTotal()">
+                                </div>
+                            </div>
+
+                            <!-- Summary -->
+                            <div class="order-summary">
+                                <div class="summary-row">
+                                    <span>Buying Power</span>
+                                    <span class="summary-val" id="page-cash">$0.00</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Position</span>
+                                    <span class="summary-val" id="page-owned">0 Shares</span>
+                                </div>
+                                <div class="summary-row summary-total">
+                                    <span>Estimated Total</span>
+                                    <span class="summary-val" id="page-total">$0.00</span>
+                                </div>
+                            </div>
+
+                            <button id="page-submit-btn" class="submit-order-btn btn-buy"
+                                onclick="executePageTrade()">Place Order</button>
+                            <p id="page-trade-msg"
+                                style="text-align: center; margin-top: 1rem; font-size: 0.9rem; min-height: 1.2rem;">
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="trade-empty-state" style="padding:4rem; text-align:center; color:#64748b;">
+                    <h3>Enter a symbol to start trading</h3>
+                    <p>Real-time market data is required to place orders.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="ds-footer">
+        <div class="ds-footer-inner">
+            <div class="ds-footer-left">
+                <span class="ds-footer-logo">Stock Price Prediction System</span>
+                <span>© 2026. All rights reserved.</span>
+            </div>
+            <div class="ds-footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
