@@ -5,7 +5,23 @@
   <meta charset="UTF-8" />
   <title>Admin – Users | Stock Price Prediction System</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .dashboard-chart-area canvas {
+      max-height: 100%;
+      width: 100% !important;
+    }
+  </style>
+  <script src="https://unpkg.com/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script>
+    window.addEventListener('load', function () {
+      if (typeof Chart === 'undefined') {
+        const ban = document.createElement('div');
+        ban.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;z-index:9999;padding:1rem;text-align:center;font-weight:bold;';
+        ban.innerText = 'CRITICAL ERROR: Chart.js library failed to load. Please check internet connection or ad-blockers.';
+        document.body.appendChild(ban);
+      }
+    });
+  </script>
 </head>
 
 <body class="admin-body" onload="showAdminSection('reports')">

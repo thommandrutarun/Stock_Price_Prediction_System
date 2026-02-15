@@ -1752,7 +1752,7 @@ async function revokeAdmin(userId, email) {
 // Global Exports
 window.revokeAdmin = revokeAdmin;
 window.promoteUser = promoteUser;
-window.closePosition = closePosition;
+// window.closePosition = closePosition; // Function not defined
 
 /* ---------- ADMIN BUTTONS LOGIC ---------- */
 async function confirmDeleteUser(userId, userEmail) {
@@ -1788,59 +1788,69 @@ window.confirmDeleteUser = confirmDeleteUser;
 
 
 /* ---------- SYSTEM REPORT ---------- */
-let userGrowthChartCtx = null;
-let activityChartCtx = null;
+var userGrowthChartCtx = null;
+var activityChartCtx = null;
 
 async function loadSystemReport() {
   const token = localStorage.getItem("token");
   if (!token) return;
 
-  // Show loading state
-  document.getElementById("rep-total-users").textContent = "...";
-  document.getElementById("rep-total-msgs").textContent = "...";
-
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/admin/system-stats", {
-      headers: { "Authorization": "Bearer " + token }
+    const res = await fetch(`${API_BASE}/admin/system-stats`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) throw new Error("Failed to fetch stats");
+    if (!res.ok) throw new Error(`Status: ${res.status}`);
     const data = await res.json();
 
+    console.log("System Stats Data:", data);
+
     // Update Metrics
-    document.getElementById("rep-total-users").textContent = data.total_users;
-    document.getElementById("rep-total-msgs").textContent = data.total_messages;
+    const usersEl = document.getElementById("rep-total-users");
+    const msgsEl = document.getElementById("rep-total-msgs");
+    if (usersEl) usersEl.textContent = data.total_users;
+    if (msgsEl) msgsEl.textContent = data.total_messages;
 
     // Render Charts
-    renderSystemCharts(data);
+    setTimeout(() => renderSystemCharts(data), 100);
 
   } catch (error) {
     console.error("Error loading system report:", error);
-    // document.getElementById("admin-msg").textContent = "Error loading report: " + error.message;
   }
 }
 
 function renderSystemCharts(data) {
   if (typeof Chart === 'undefined') {
-    console.warn("Chart.js not loaded");
+    console.error("Chart.js not loaded");
     return;
   }
 
-  // 1. User Growth (Mock History based on total)
-  // In a real app, backend would return historical data.
-  // We will simulate a curve ending at total_users.
-  const total = data.total_users;
-  const ctx1 = document.getElementById('userGrowthChart').getContext('2d');
+  const canvas1 = document.getElementById('userGrowthChart');
+  const canvas2 = document.getElementById('activityChart');
 
-  if (userGrowthChartCtx) userGrowthChartCtx.destroy();
+  if (!canvas1 || !canvas2) {
+    console.error("Chart canvas elements not found");
+    return;
+  }
 
-  userGrowthChartCtx = new Chart(ctx1, {
+  // Ensure fresh start
+  if (userGrowthChartCtx instanceof Chart) {
+    userGrowthChartCtx.destroy();
+  }
+  if (activityChartCtx instanceof Chart) {
+    activityChartCtx.destroy();
+  }
+
+  // 1. User Growth (Line)
+  const users = Number(data.total_users) || 0;
+
+  userGrowthChartCtx = new Chart(canvas1, {
     type: 'line',
     data: {
       labels: getLast6Months(),
       datasets: [{
         label: 'Total Users',
-        data: generateMockGrowthData(total),
+        data: generateMockGrowthData(users),
         borderColor: '#6366f1',
         backgroundColor: 'rgba(99, 102, 241, 0.1)',
         fill: true,
@@ -1851,8 +1861,7 @@ function renderSystemCharts(data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#94a3b8' } },
-        tooltip: { mode: 'index', intersect: false }
+        legend: { labels: { color: '#94a3b8' } }
       },
       scales: {
         y: {
@@ -1860,7 +1869,40 @@ function renderSystemCharts(data) {
           grid: { color: 'rgba(255,255,255,0.05)' },
           ticks: { color: '#94a3b8', precision: 0 }
         },
-        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+        x: {
+          grid: { display: false },
+          ticks: { color: '#94a3b8' }
+        }
+      }
+    }
+  });
+
+  // 2. Platform Activity (Doughnut)
+  const tracked = Number(data.total_stocks_tracked) || 0;
+  const msgs = Number(data.total_messages) || 0;
+
+  activityChartCtx = new Chart(canvas2, {
+    type: 'doughnut',
+    data: {
+      labels: ['Users', 'Stocks', 'Messages'],
+      datasets: [{
+        data: [users, tracked, msgs],
+        backgroundColor: ['#6366f1', '#10b981', '#ec4899'],
+        borderWidth: 0,
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', padding: 20 }
+        }
+      },
+      layout: {
+        padding: 10
       }
     }
   });
@@ -1876,42 +1918,15 @@ function renderSystemCharts(data) {
   }
 
   function generateMockGrowthData(finalTotal) {
-    // Generate 6 data points ending at finalTotal, purely for visual demo
-    // Start small, grow to final
     if (finalTotal === 0) return [0, 0, 0, 0, 0, 0];
-    const data = [];
+    const mockData = [];
     for (let i = 0; i < 5; i++) {
-      // Random growth curve
-      const ratio = (i + 1) / 7; // 1/7, 2/7... not linear
-      data.push(Math.floor(finalTotal * ratio));
+      const ratio = (i + 1) / 7;
+      mockData.push(Math.floor(finalTotal * ratio));
     }
-    data.push(finalTotal);
-    return data;
+    mockData.push(finalTotal);
+    return mockData;
   }
-
-  // 2. Activity / Composition (Doughnut)
-  // Messages vs Stocks vs Users
-  const ctx2 = document.getElementById('activityChart').getContext('2d');
-  if (activityChartCtx) activityChartCtx.destroy();
-
-  activityChartCtx = new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-      labels: ['Users', 'Stocks', 'Messages'],
-      datasets: [{
-        data: [data.total_users, data.total_stocks_tracked, data.total_messages],
-        backgroundColor: ['#6366f1', '#10b981', '#ec4899'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#94a3b8' } }
-      }
-    }
-  });
 }
 
 function initAdminButtons() {
