@@ -13,7 +13,7 @@ import mysql.connector
 import pandas as pd
 from functools import wraps
 
-from model import predict_price  # your ML helper
+from lstm_model import predict_lstm
 
 
 import os
@@ -452,6 +452,7 @@ def get_history(symbol: str, period: str):
         "3mo": {"p": "3mo", "i": "1d"},
         "6mo": {"p": "6mo", "i": "1d"},
         "1y":  {"p": "1y",  "i": "1d"},
+        "2y":  {"p": "2y",  "i": "1d"},
         "3y":  {"p": "3y",  "i": "1wk"}, # 3y not supported natively, fetch 5y
         "5y":  {"p": "5y",  "i": "1wk"},
         "max": {"p": "max", "i": "1wk"}, # or 1mo
@@ -583,33 +584,48 @@ def stock_history(symbol):
     return jsonify({"prices": data}), 200
 
 
-# -------- SIMPLE PREDICTION USING model.py --------
+# -------- AI PREDICTIONS (LSTM) --------
 
 @app.route("/api/stocks/<symbol>/predict")
 @jwt_required()
 def predict(symbol):
     days = int(request.args.get("days", 5))
     try:
-        hist = get_history(symbol, "1mo")
+        # Fetch 2y data to ensure we have enough for 60-day lookback + training
+        # We need roughly 100+ points. 
+        # "1y" or "2y" is safer than "1mo".
+        hist = get_history(symbol, "2y")
     except Exception:
         return jsonify({"predictions": [], "message": "Could not fetch history"}), 502
 
-    closes = hist["close"].astype(float).tail(30).tolist()
-    if len(closes) < 5:
-        return jsonify({"message": "Not enough data", "predictions": []}), 400
+    # Get closing prices
+    closes = hist["close"].astype(float).tolist()
+    
+    # Check if we have enough data (60 lookback + 10 min training)
+    # We need at least look_back + 10
+    if len(closes) < 75:
+        return jsonify({"message": "Not enough historical data (need ~75 days)", "predictions": []}), 400
+
+    # Ensure days is reasonable limit
+    if days > 30: days = 30
+
+    try:
+        # Use LSTM to predict sequence
+        # This returns a list of N floats
+        predicted_prices = predict_lstm(closes, days=days)
+    except Exception as e:
+        print(f"LSTM Error: {e}")
+        # Fallback or error? Let's return error so user knows
+        return jsonify({"message": f"AI Model Error: {str(e)}", "predictions": []}), 500
 
     today = dt.date.today()
     predictions = []
-    last_prices = closes[:]  # copy
 
-    for i in range(1, days + 1):
-        next_price = predict_price(last_prices)
-        next_price = float(next_price)
-        last_prices.append(next_price)
+    for i, price in enumerate(predicted_prices):
         predictions.append(
             {
-                "date": (today + dt.timedelta(days=i)).strftime("%Y-%m-%d"),
-                "predicted_close": next_price,
+                "date": (today + dt.timedelta(days=i+1)).strftime("%Y-%m-%d"),
+                "predicted_close": price,
             }
         )
 
