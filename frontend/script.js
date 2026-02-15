@@ -28,7 +28,24 @@ function showPopup(message, onClose) {
   }
 
   btn.addEventListener("click", closeHandler);
+  btn.addEventListener("click", closeHandler);
 }
+
+/* ---------- MOBILE MENU ---------- */
+function toggleMobileMenu() {
+  const mobileMenu = document.querySelector(".ds-navbar-mobile");
+  if (mobileMenu) {
+    mobileMenu.classList.toggle("show");
+  }
+}
+
+// Initialize Mobile Menu
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.querySelector(".ds-navbar-toggle");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", toggleMobileMenu);
+  }
+});
 
 /* ---------- NAVBAR & AUTH STATE ---------- */
 function updateNavbar() {
@@ -37,42 +54,66 @@ function updateNavbar() {
 
   const navGuest = document.getElementById("nav-guest");
   const navUser = document.getElementById("nav-user");
+  const navGuestMobile = document.getElementById("nav-guest-mobile");
+  const navUserMobile = document.getElementById("nav-user-mobile");
+
   const nameDisplay = document.getElementById("user-name-display");
+  const nameDisplayMobile = document.getElementById("user-name-display-mobile");
+
   const logoutBtn = document.getElementById("logout-btn-nav");
+  const logoutBtnMobile = document.getElementById("logout-btn-nav-mobile");
 
   if (navGuest && navUser) {
     if (token) {
       navGuest.style.display = "none";
       navUser.style.display = "flex";
+
+      if (navGuestMobile) navGuestMobile.style.display = "none";
+      if (navUserMobile) navUserMobile.style.display = "flex";
+
       if (nameDisplay) nameDisplay.textContent = `login:- ${userEmail}`;
+      if (nameDisplayMobile) nameDisplayMobile.textContent = `login:- ${userEmail}`;
+
       if (logoutBtn) {
-        // Remove old listeners to avoid duplicates if called multiple times (though mostly once)
         const newBtn = logoutBtn.cloneNode(true);
         logoutBtn.parentNode.replaceChild(newBtn, logoutBtn);
         newBtn.addEventListener("click", logout);
       }
 
+      if (logoutBtnMobile) {
+        const newBtnMobile = logoutBtnMobile.cloneNode(true);
+        logoutBtnMobile.parentNode.replaceChild(newBtnMobile, logoutBtnMobile);
+        newBtnMobile.addEventListener("click", logout);
+      }
+
       // Admin Link Logic
       const role = localStorage.getItem("user_role");
       const adminLink = document.getElementById("nav-admin-link");
-      const dashboardLink = document.getElementById("nav-dashboard-link");
-      const portfolioLink = document.getElementById("nav-portfolio-link");
-      const tradeLink = document.getElementById("nav-trade-link");
+      const adminLinkMobile = document.getElementById("nav-admin-link-mobile");
 
-      if (adminLink) {
-        adminLink.style.display = (role === 'admin') ? 'block' : 'none';
-      }
+      const dashboardLink = document.getElementById("nav-dashboard-link");
+      const dashboardLinkMobile = document.getElementById("nav-dashboard-link-mobile");
+
+      const portfolioLink = document.getElementById("nav-portfolio-link");
+      const portfolioLinkMobile = document.getElementById("nav-portfolio-link-mobile");
+
+      const tradeLink = document.getElementById("nav-trade-link");
+      const tradeLinkMobile = document.getElementById("nav-trade-link-mobile");
+
+      if (adminLink) adminLink.style.display = (role === 'admin') ? 'block' : 'none';
+      if (adminLinkMobile) adminLinkMobile.style.display = (role === 'admin') ? 'block' : 'none';
 
       // Hide User Links for Admin
-      if (role === 'admin') {
-        if (dashboardLink) dashboardLink.style.display = 'none';
-        if (portfolioLink) portfolioLink.style.display = 'none';
-        if (tradeLink) tradeLink.style.display = 'none';
-      } else {
-        if (dashboardLink) dashboardLink.style.display = 'block';
-        if (portfolioLink) portfolioLink.style.display = 'block';
-        if (tradeLink) tradeLink.style.display = 'block';
-      }
+      const isUser = (role !== 'admin');
+      if (dashboardLink) dashboardLink.style.display = isUser ? 'block' : 'none';
+      if (dashboardLinkMobile) dashboardLinkMobile.style.display = isUser ? 'block' : 'none';
+
+      if (portfolioLink) portfolioLink.style.display = isUser ? 'block' : 'none';
+      if (portfolioLinkMobile) portfolioLinkMobile.style.display = isUser ? 'block' : 'none';
+
+      if (tradeLink) tradeLink.style.display = isUser ? 'block' : 'none';
+      if (tradeLinkMobile) tradeLinkMobile.style.display = isUser ? 'block' : 'none';
+
 
       // Home Page Hero Buttons Logic
       const heroGuest = document.getElementById("hero-guest-btns");
@@ -86,11 +127,14 @@ function updateNavbar() {
       navGuest.style.display = "flex";
       navUser.style.display = "none";
 
+      if (navGuestMobile) navGuestMobile.style.display = "flex";
+      if (navUserMobile) navUserMobile.style.display = "none";
+
       // Home Page Hero Buttons Logic
       const heroGuest = document.getElementById("hero-guest-btns");
       const heroUser = document.getElementById("hero-user-btns");
       if (heroGuest && heroUser) {
-        heroGuest.style.display = "block"; // or flex? usually block is fine for div
+        heroGuest.style.display = "block";
         heroUser.style.display = "none";
       }
     }
@@ -386,7 +430,28 @@ function renderChart(data, symbol) {
     stroke: {
       curve: 'smooth',
       width: 2
-    }
+    },
+    responsive: [
+      {
+        breakpoint: 768,
+        options: {
+          chart: {
+            height: 300
+          },
+          xaxis: {
+            labels: { show: false } // Hide labels on small screens if crowded
+          }
+        }
+      },
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            height: 250
+          }
+        }
+      }
+    ],
   };
 
   const chartEl = document.querySelector("#stockChart");
@@ -2026,6 +2091,40 @@ if (window.location.pathname.endsWith("admin.html")) {
     document.addEventListener("DOMContentLoaded", initAdminButtons);
   } else {
     initAdminButtons();
+  }
+}
+
+async function resetBalance() {
+  if (!confirm("Are you sure you want to reset your wallet balance to $100,000.00? This cannot be undone.")) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) { alert("Please login"); return; }
+
+  try {
+    const res = await fetch(`${API_BASE}/wallet/reset`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("Balance reset successfully!");
+      // Update local storage and UI
+      localStorage.setItem("wallet_balance", data.new_balance);
+
+      const els = document.querySelectorAll("#wallet-balance, #page-cash");
+      els.forEach(el => el.textContent = `$${data.new_balance.toFixed(2)}`);
+
+      // Reload if on trade page to refresh validation logic
+      if (window.location.pathname.endsWith("trade.html")) {
+        location.reload();
+      }
+    } else {
+      alert(data.message || "Failed to reset");
+    }
+  } catch (e) {
+    console.error(e);
+    alert("Network Error");
   }
 }
 

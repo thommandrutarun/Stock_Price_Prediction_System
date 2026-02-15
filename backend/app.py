@@ -132,10 +132,10 @@ def register():
     # Always create normal user (role = 'user')
     cur.execute(
         """
-        INSERT INTO users (name, email, password, phone, dob, profession, role)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO users (name, email, password, phone, dob, profession, role, wallet_balance)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """,
-        (name, email, pw_hash, phone, dob, profession, "user"),
+        (name, email, pw_hash, phone, dob, profession, "user", 100000.0),
     )
 
     conn.commit()
@@ -997,6 +997,44 @@ def trade_sell():
 
 
 
+
+@app.route("/api/reports/transactions", methods=["GET"])
+@jwt_required()
+def get_user_transactions():
+    user_id = int(get_jwt_identity())
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    try:
+        # Fetch transactions
+        # Assuming table has: id, user_id, symbol, type, quantity, price, total_amount, timestamp
+        cur.execute("""
+            SELECT id, symbol, type, quantity, price, total_amount, timestamp 
+            FROM transactions 
+            WHERE user_id = %s 
+            ORDER BY timestamp DESC 
+            LIMIT 50
+        """, (user_id,))
+        
+        txs = cur.fetchall()
+        
+        # Format timestamp
+        safe_txs = []
+        for t in txs:
+            if isinstance(t.get("timestamp"), (dt.date, dt.datetime)):
+                t["timestamp"] = t["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+            safe_txs.append(t)
+            
+        return jsonify({"transactions": safe_txs}), 200
+        
+    except Exception as e:
+        print(f"Error fetching transactions: {e}")
+        return jsonify({"transactions": [], "message": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
 # -------- ADMIN SYSTEM REPORT --------
 @app.route("/api/admin/system-stats", methods=["GET"])
 @admin_required
@@ -1060,6 +1098,27 @@ def get_system_stats():
 @app.route("/")
 def home():
     return "Stock Price Prediction Backend Running"
+
+
+
+@app.route("/api/wallet/reset", methods=["POST"])
+@jwt_required()
+def reset_balance():
+    user_id = int(get_jwt_identity())
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        # Reset to 100,000
+        cur.execute("UPDATE users SET wallet_balance = 100000.0 WHERE id = %s", (user_id,))
+        conn.commit()
+        return jsonify({"message": "Wallet balance reset to $100,000.00", "new_balance": 100000.0}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"message": "Failed to reset balance"}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 if __name__ == "__main__":
