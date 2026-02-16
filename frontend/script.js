@@ -492,6 +492,9 @@ async function predict() {
   if (!symbolInput) return;
   const symbol = symbolInput.value.trim().toUpperCase();
 
+  const intervalSelect = document.getElementById("predict-interval");
+  const interval = intervalSelect ? intervalSelect.value : "1d";
+
   if (!symbol) { alert("Enter symbol first"); return; }
 
   const token = requireAuth();
@@ -504,7 +507,7 @@ async function predict() {
   list.innerHTML = "<li>Loading predictions...</li>";
 
   try {
-    const res = await fetch(`${API_BASE}/stocks/${symbol}/predict`, {
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/predict?days=5&interval=${interval}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -529,7 +532,16 @@ async function predict() {
         if (trendClass) li.classList.add(trendClass);
 
         const d = new Date(p.date);
-        const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        let dateStr;
+        if (interval === '1d') {
+          dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        } else {
+          // Intraday: show Time
+          dateStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+          // Maybe add date if it crosses midnight? usually just time is fine for intraday sequence
+          // Or "Day HH:mm"
+          dateStr = d.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
 
         // Determine currency based on symbol suffix
         const isIndian = symbol.endsWith(".NS") || symbol.endsWith(".BO");
@@ -1102,21 +1114,39 @@ async function loadTradeSymbol(symbol) {
 
   // 3. Fetch Wallet/Holdings
   fetchPageWalletAndHoldings(symbol);
+
+  // 4. Load Chart
+  loadTradeChart(symbol, tradeCurrentRange);
 }
 
 // Helper for currency formatting
 function formatCurrency(val, symbol) {
+  if (!symbol) return `$${val.toFixed(2)}`;
   const isIn = symbol.endsWith(".NS") || symbol.endsWith(".BO");
   const sign = isIn ? "₹" : "$";
   return `${sign}${val.toFixed(2)}`;
 }
 
+
 function updatePageTradeTotal() {
   const qty = document.getElementById("page-quantity").value;
+  const symbol = document.getElementById("page-symbol-display").textContent;
   const total = (qty * pageCurrentPrice).toFixed(2);
-  // Use generic dollar sign or infer from symbol? Let's use generic for now or match loadTradeSymbol logic if we stored symbol
-  document.getElementById("page-total").textContent = `${total}`;
+  const el = document.getElementById("page-total");
+
+  const isIn = symbol.endsWith(".NS") || symbol.endsWith(".BO");
+
+  if (isIn) {
+    // 1 USD = 84 INR approx
+    const usdEst = (total / 84).toFixed(2);
+    el.textContent = `₹${total} (≈$${usdEst})`;
+    el.style.fontSize = "0.9rem"; // slightly smaller to fit
+  } else {
+    el.textContent = `$${total}`;
+    el.style.fontSize = "1.1rem";
+  }
 }
+
 
 function setPageTradeMode(mode) {
   pageTradeMode = mode;
@@ -2129,3 +2159,232 @@ async function resetBalance() {
 }
 
 
+
+/* ---------- PROFESSIONAL TRADE DASHBOARD ---------- */
+
+let tradeChart = null; // ApexCharts instance
+let tradeCurrentRange = '1d';
+
+async function initTradeDashboard() {
+  const symbol = document.getElementById("trade-page-symbol").value.trim().toUpperCase() || "TCS.NS"; // Default
+
+  // 1. Load Chart
+  await loadTradeChart(symbol, tradeCurrentRange);
+
+  // 2. Load Positions Tab
+  loadTradePositions();
+
+  // 3. Load History Tab
+  loadTradeHistory();
+}
+
+async function loadTradeChart(symbol, range) {
+  const container = document.querySelector("#trade-chart-container");
+  if (!container) return;
+
+  container.innerHTML = '<div style="color:#aaa; text-align:center; padding-top:150px;">Loading Chart...</div>';
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    container.innerHTML = '<div style="color:#aaa; text-align:center; padding-top:150px;">Please Login to view Chart</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/history?period=${range}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error("Chart data failed");
+
+    const json = await res.json();
+    const data = json.prices;
+
+    renderTradeChart(data, symbol);
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = '<div style="color:#ef4444; text-align:center; padding-top:150px;">Chart Failed</div>';
+  }
+}
+
+function renderTradeChart(data, symbol) {
+  const container = document.querySelector("#trade-chart-container");
+  container.innerHTML = "";
+
+  const options = {
+    series: [{
+      name: 'Price',
+      data: data.map(d => ({ x: new Date(d.date), y: d.close }))
+    }],
+    chart: {
+      type: 'area', // Professional look
+      height: 350,
+      background: 'transparent',
+      toolbar: { show: false },
+      zoom: { enabled: false }
+    },
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth', width: 2, colors: ['#3b82f6'] },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.3,
+        opacityTo: 0.0,
+        stops: [0, 90, 100],
+        colorStops: []
+      }
+    },
+    theme: { mode: 'dark' },
+    xaxis: {
+      type: 'datetime',
+      tooltip: { enabled: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: { style: { colors: '#64748b' } }
+    },
+    yaxis: {
+      opposite: true, // Price on right like pro platforms
+      labels: {
+        style: { colors: '#64748b' },
+        formatter: (val) => val.toFixed(2)
+      }
+    },
+    grid: {
+      borderColor: 'rgba(255,255,255,0.05)',
+      strokeDashArray: 4,
+    },
+    tooltip: {
+      theme: 'dark',
+      x: { format: 'dd MMM HH:mm' }
+    }
+  };
+
+  tradeChart = new ApexCharts(container, options);
+  tradeChart.render();
+
+  // Update Title
+  document.getElementById("chart-title").textContent = `${symbol} Price Chart`;
+}
+
+function setTradeChartRange(range) {
+  tradeCurrentRange = range;
+
+  // Sub-nav active state
+  document.querySelectorAll(".chart-controls .t-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector(`.chart-controls .t-btn[data-range="${range}"]`).classList.add("active");
+
+  const symbol = document.getElementById("page-symbol-display").textContent;
+  if (symbol && symbol !== "---") loadTradeChart(symbol, range);
+}
+
+function switchTradeTab(tab) {
+  // 1. Tabs UI
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  // Find button by text mostly or index. 
+  // Simple check:
+  const btns = document.querySelectorAll(".tab-btn");
+  if (tab === 'positions') btns[0].classList.add("active");
+  else btns[1].classList.add("active");
+
+  // 2. Content UI
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+  document.getElementById(`tab-content-${tab}`).classList.add("active");
+
+  // 3. Data Refresh
+  if (tab === 'positions') loadTradePositions();
+  else loadTradeHistory();
+}
+
+async function loadTradePositions() {
+  const tbody = document.getElementById("trade-positions-body");
+  if (!tbody) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/portfolio`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    tbody.innerHTML = "";
+
+    if (!data.positions || data.positions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:1rem;">No Open Positions</td></tr>`;
+      return;
+    }
+
+    data.positions.forEach(p => {
+      const pl = Number(p.profit_loss);
+      const plClass = pl >= 0 ? 'text-green' : 'text-red'; // assume utility classes or inline style
+      const plColor = pl >= 0 ? '#10b981' : '#ef4444';
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+            <td style="font-weight:600; color:#fff;">${p.symbol}</td>
+            <td>${p.quantity}</td>
+            <td>${Number(p.avg_price).toFixed(2)}</td>
+            <td>${Number(p.latest_price).toFixed(2)}</td>
+            <td style="color:${plColor}">${pl.toFixed(2)}</td>
+            <td>
+                <button onclick="tradeSelectSymbol('${p.symbol}')" style="background:rgba(255,255,255,0.1); border:none; color:#fff; padding:2px 8px; border-radius:4px; cursor:pointer;">Trade</button>
+            </td>
+        `;
+      tbody.appendChild(tr);
+    });
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function loadTradeHistory() {
+  const tbody = document.getElementById("trade-history-body");
+  if (!tbody) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/reports/transactions`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    tbody.innerHTML = "";
+
+    if (!data.transactions || data.transactions.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:1rem;">No recent activity</td></tr>`;
+      return;
+    }
+
+    data.transactions.forEach(t => {
+      const typeColor = t.type === 'BUY' ? '#10b981' : '#ef4444'; // Green / Red
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+            <td style="color:#94a3b8; font-size:0.85rem;">${new Date(t.timestamp).toLocaleDateString()}</td>
+            <td style="font-weight:600;">${t.symbol}</td>
+            <td style="color:${typeColor}; font-weight:700;">${t.type}</td>
+            <td>${t.quantity}</td>
+            <td>${t.price.toFixed(2)}</td>
+            <td>${t.total_amount.toFixed(2)}</td>
+        `;
+      tbody.appendChild(tr);
+    });
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function tradeSelectSymbol(symbol) {
+  const input = document.getElementById("trade-page-symbol");
+  if (input) {
+    input.value = symbol;
+    document.getElementById("fetch-price-btn").click();
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}

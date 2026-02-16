@@ -1,0 +1,17 @@
+Starting tests including prediction...
+
+--- Testing AAPL with interval_key=1d ---
+Fetched 502 rows.
+Running prediction with 502 points...
+FAIL: Prediction error: name 'predict_lstm' is not defined
+
+--- Testing AAPL with interval_key=1m ---
+Fetched 1950 rows.
+Running prediction with 1950 points...
+FAIL: Prediction error: name 'predict_lstm' is not defined
+
+--- Testing INFY.NS with interval_key=1d ---
+Fetched 495 rows.
+Running prediction with 495 points...
+FAIL: Prediction error: name 'predict_lstm' is not defined
+Done.

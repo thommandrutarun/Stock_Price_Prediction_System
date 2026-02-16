@@ -446,6 +446,9 @@ def get_history(symbol: str, period: str):
     # User "3Y" -> "5y"? yfinance doesn't have 3y. We can use "5y" and slice? Or "5y" is fine.
     
     period_config = {
+        "1m":  {"p": "5d",  "i": "1m"},
+        "5m":  {"p": "1mo", "i": "5m"},
+        "15m": {"p": "1mo", "i": "15m"},
         "1d":  {"p": "1d",  "i": "5m"},
         "1w":  {"p": "5d",  "i": "15m"},
         "1mo": {"p": "1mo", "i": "1h"},  # 1h for 1mo is good detail
@@ -496,6 +499,8 @@ def get_history(symbol: str, period: str):
         if date_col in df.columns:
             df[date_col] = pd.to_datetime(df[date_col]).dt.tz_localize(None)
             df = df[df[date_col] >= cutoff]
+
+    print(f"DEBUG: get_history({symbol}, {period}) -> shape {df.shape}")
 
     # Normalize column names to Title Case for checking
     # Some versions return 'open', some 'Open'
@@ -589,45 +594,93 @@ def stock_history(symbol):
 @app.route("/api/stocks/<symbol>/predict")
 @jwt_required()
 def predict(symbol):
-    days = int(request.args.get("days", 5))
+    steps = int(request.args.get("days", 5)) # "days" here really means "steps"
+    interval = request.args.get("interval", "1d")
+
+    # Determine validation limits based on interval
+    if interval == "1m":
+         period_key = "1m"
+         # fail if < 60 lookback + 10 buffer
+         min_data_points = 75 
+    elif interval == "5m":
+         period_key = "5m"
+         min_data_points = 75
+    elif interval == "15m":
+         period_key = "15m"
+         min_data_points = 75
+    else:
+         period_key = "2y" # default for 1d
+         min_data_points = 75
+
     try:
-        # Fetch 2y data to ensure we have enough for 60-day lookback + training
-        # We need roughly 100+ points. 
-        # "1y" or "2y" is safer than "1mo".
-        hist = get_history(symbol, "2y")
-    except Exception:
+        # Fetch appropriate history
+        hist = get_history(symbol, period_key)
+    except Exception as e:
+        print(f"Prediction Error (fetch): {e}")
         return jsonify({"predictions": [], "message": "Could not fetch history"}), 502
+
+    if hist.empty:
+         return jsonify({"predictions": [], "message": "No data found"}), 404
 
     # Get closing prices
     closes = hist["close"].astype(float).tolist()
     
     # Check if we have enough data (60 lookback + 10 min training)
     # We need at least look_back + 10
-    if len(closes) < 75:
-        return jsonify({"message": "Not enough historical data (need ~75 days)", "predictions": []}), 400
+    if len(closes) < min_data_points:
+        return jsonify({"message": f"Not enough historical data for {symbol} (need {min_data_points} points, got {len(closes)})", "predictions": []}), 400
 
-    # Ensure days is reasonable limit
-    if days > 30: days = 30
+    # Ensure steps is reasonable limit
+    if steps > 60: steps = 60 # Allow more steps for intraday (1 hour)
 
     try:
         # Use LSTM to predict sequence
         # This returns a list of N floats
-        predicted_prices = predict_lstm(closes, days=days)
+        predicted_prices = predict_lstm(closes, days=steps)
     except Exception as e:
         print(f"LSTM Error: {e}")
-        # Fallback or error? Let's return error so user knows
         return jsonify({"message": f"AI Model Error: {str(e)}", "predictions": []}), 500
 
-    today = dt.date.today()
+    # Construct response with dates/times
+    # Get last date from hist
+    last_date_val = hist.iloc[-1]["date"]
+    
+    # Ensure it's a datetime object
+    if not isinstance(last_date_val, (dt.date, dt.datetime)):
+        last_date_val = pd.to_datetime(last_date_val)
+
+    # If pandas timestamp, convert to pydatetime
+    if isinstance(last_date_val, pd.Timestamp):
+        last_date_val = last_date_val.to_pydatetime()
+
     predictions = []
+    # User requested "based on the present day"
+    # Instead of continuing from the last historical date (which might be Friday),
+    # we anchor the *labels* to the current moment so they appear as "future" predictions relative to now.
+    current_date = dt.datetime.now()
 
     for i, price in enumerate(predicted_prices):
-        predictions.append(
-            {
-                "date": (today + dt.timedelta(days=i+1)).strftime("%Y-%m-%d"),
-                "predicted_close": price,
-            }
-        )
+        if interval == "1m":
+             current_date += dt.timedelta(minutes=1)
+             date_str = current_date.strftime("%Y-%m-%d %H:%M")
+        elif interval == "5m":
+             current_date += dt.timedelta(minutes=5)
+             date_str = current_date.strftime("%Y-%m-%d %H:%M")
+        elif interval == "15m":
+             current_date += dt.timedelta(minutes=15)
+             date_str = current_date.strftime("%Y-%m-%d %H:%M")
+        else:
+             current_date += dt.timedelta(days=1)
+             # Skip weekends for daily predictions
+             while current_date.weekday() >= 5: # 5=Saturday, 6=Sunday
+                 current_date += dt.timedelta(days=1)
+                 
+             date_str = current_date.strftime("%Y-%m-%d")
+
+        predictions.append({
+            "date": date_str,
+            "predicted_close": price
+        })
 
     return jsonify({"predictions": predictions}), 200
 
@@ -825,6 +878,7 @@ def user_portfolio():
 
 # -------- TRADING ENGINE (GAMIFICATION) --------
 
+
 @app.route("/api/trade/buy", methods=["POST"])
 @jwt_required()
 def trade_buy():
@@ -841,7 +895,6 @@ def trade_buy():
 
     # 1. Get Live Price
     try:
-        # Use simple 1d fetch
         df = get_history(symbol, "1d")
         if df.empty:
              return jsonify({"message": "Could not fetch live price"}), 400
@@ -849,13 +902,22 @@ def trade_buy():
     except Exception as e:
         return jsonify({"message": f"Error fetching price: {str(e)}"}), 500
 
-    total_cost = current_price * quantity
+    # 2. Currency Conversion
+    # Default wallet is USD. If stock is INR, convert cost to USD.
+    is_inr = symbol.endswith(".NS") or symbol.endswith(".BO")
+    exchange_rate = 84.0 if is_inr else 1.0 # 1 USD = 84 INR
+    
+    # Cost in Stock Currency
+    total_cost_native = current_price * quantity
+    
+    # Cost in Wallet Currency (USD)
+    total_cost_usd = total_cost_native / exchange_rate
 
     conn = get_db()
     cur = conn.cursor(dictionary=True)
 
     try:
-        # 2. Check Balance
+        # 3. Check Balance
         cur.execute("SELECT wallet_balance FROM users WHERE id = %s", (user_id,))
         user = cur.fetchone()
         if not user:
@@ -863,24 +925,23 @@ def trade_buy():
             
         balance = float(user["wallet_balance"] or 0)
         
-        if balance < total_cost:
-            return jsonify({"message": f"Insufficient funds. Required: ${total_cost:.2f}, Available: ${balance:.2f}"}), 400
+        if balance < total_cost_usd:
+            return jsonify({"message": f"Insufficient funds. Cost: ${total_cost_usd:.2f}, Balance: ${balance:.2f}"}), 400
 
-        # 3. Execute Trade
-        # Deduct Balance
-        new_balance = balance - total_cost
+        # 4. Execute Trade
+        # Deduct Balance (USD)
+        new_balance = balance - total_cost_usd
         cur.execute("UPDATE users SET wallet_balance = %s WHERE id = %s", (new_balance, user_id))
 
         # Add Stock to Portfolio
-        # Check if already owns
         cur.execute("SELECT id, quantity, avg_price FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol))
         existing = cur.fetchone()
 
         if existing:
             new_qty = existing["quantity"] + quantity
-            # New Avg Price = ((Old Qty * Old Avg) + (New Qty * New Price)) / Total Qty
+            # Update Avg Price (Weighted Average in Native Currency)
             old_total_val = existing["quantity"] * float(existing["avg_price"])
-            new_total_val = old_total_val + total_cost
+            new_total_val = old_total_val + total_cost_native
             new_avg = new_total_val / new_qty
             
             cur.execute(
@@ -894,12 +955,14 @@ def trade_buy():
             )
 
         # Log Transaction
+        # Store Price/Total in Native Currency (or maybe USD? Let's store Native and add a 'currency' column later if needed.
+        # For now, let's store Native so user sees history in ₹)
         cur.execute(
             """
             INSERT INTO transactions (user_id, symbol, type, quantity, price, total_amount)
             VALUES (%s, %s, 'BUY', %s, %s, %s)
             """,
-            (user_id, symbol, quantity, current_price, total_cost)
+            (user_id, symbol, quantity, current_price, total_cost_native)
         )
 
         conn.commit()
@@ -915,6 +978,7 @@ def trade_buy():
     finally:
         cur.close()
         conn.close()
+
 
 
 @app.route("/api/trade/sell", methods=["POST"])
@@ -940,20 +1004,25 @@ def trade_sell():
     except Exception as e:
         return jsonify({"message": f"Error fetching price: {str(e)}"}), 500
 
-    total_sale_value = current_price * quantity
+    # 2. Currency Conversion
+    is_inr = symbol.endswith(".NS") or symbol.endswith(".BO")
+    exchange_rate = 84.0 if is_inr else 1.0 # 1 USD = 84 INR
+    
+    total_sale_value_native = current_price * quantity
+    total_sale_value_usd = total_sale_value_native / exchange_rate
 
     conn = get_db()
     cur = conn.cursor(dictionary=True)
 
     try:
-        # 2. Check Holdings
+        # 3. Check Holdings
         cur.execute("SELECT id, quantity, avg_price FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol))
         existing = cur.fetchone()
         
         if not existing or existing["quantity"] < quantity:
             return jsonify({"message": "Insufficient shares to sell"}), 400
 
-        # 3. Execute Trade
+        # 4. Execute Trade
         # Update Holdings
         new_qty = existing["quantity"] - quantity
         if new_qty == 0:
@@ -964,8 +1033,8 @@ def trade_sell():
                 (new_qty, current_price, existing["id"])
             )
 
-        # Add Balance
-        cur.execute("UPDATE users SET wallet_balance = wallet_balance + %s WHERE id = %s", (total_sale_value, user_id))
+        # Add Balance (USD)
+        cur.execute("UPDATE users SET wallet_balance = wallet_balance + %s WHERE id = %s", (total_sale_value_usd, user_id))
 
         # Log Transaction
         cur.execute(
@@ -973,7 +1042,7 @@ def trade_sell():
             INSERT INTO transactions (user_id, symbol, type, quantity, price, total_amount)
             VALUES (%s, %s, 'SELL', %s, %s, %s)
             """,
-            (user_id, symbol, quantity, current_price, total_sale_value)
+            (user_id, symbol, quantity, current_price, total_sale_value_native)
         )
 
         # Fetch new balance for return
