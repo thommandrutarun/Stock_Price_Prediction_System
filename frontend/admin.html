@@ -3,7 +3,6 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin – Users | Stock Price Prediction System</title>
   <link rel="stylesheet" href="style.css" />
   <style>
@@ -35,43 +34,20 @@
         <span class="logo-subtitle">Admin Console</span>
       </div>
     </div>
-    <div class="ds-navbar-right">
-      <div id="nav-user" style="display:flex; gap:20px; align-items:center;">
-        <a href="#" class="admin-nav-link active" id="nav-reports-btn" onclick="showAdminSection('reports')">System
-          Report</a>
-        <a href="#" class="admin-nav-link" id="nav-users-btn" onclick="showAdminSection('users')">Users</a>
-        <a href="#" class="admin-nav-link" id="nav-admins-btn" onclick="showAdminSection('admins')">Admins</a>
-        <a href="#" class="admin-nav-link" id="nav-messages-btn" onclick="showAdminSection('messages')">Messages</a>
+    <nav class="admin-navbar-right">
+      <a href="#" class="admin-nav-link active" id="nav-reports-btn" onclick="showAdminSection('reports')">System
+        Report</a>
+      <a href="#" class="admin-nav-link" id="nav-users-btn" onclick="showAdminSection('users')">Users</a>
+      <a href="#" class="admin-nav-link" id="nav-admins-btn" onclick="showAdminSection('admins')">Admins</a>
+      <a href="#" class="admin-nav-link" id="nav-messages-btn" onclick="showAdminSection('messages')">Messages</a>
+      <a href="#" class="admin-nav-link" id="nav-logs-btn" style="display:none;"
+        onclick="showAdminSection('logs')">Activity Logs</a>
 
-        <span style="border-left: 1px solid rgba(255,255,255,0.1); height: 24px;"></span>
+      <span style="border-left: 1px solid rgba(255,255,255,0.1); height: 24px; margin: 0 0.5rem;"></span>
 
-        <span id="user-name-display" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
-        <a href="index.html" class="ds-nav-link">Home</a>
-        <button id="logout-btn-nav" class="ds-btn ds-btn-outline" onclick="logout()">Log out</button>
-      </div>
-    </div>
-
-    <!-- MOBILE TOGGLE & MENU -->
-    <button class="ds-navbar-toggle" aria-label="Toggle Menu">☰</button>
-    <div class="ds-navbar-mobile">
-      <div id="nav-user-mobile" style="display:flex; flex-direction:column; gap:10px;">
-        <div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;">
-          <span id="user-name-display-mobile" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
-        </div>
-
-        <div
-          style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 5px; display:flex; flex-direction:column; gap:10px;">
-          <a href="#" class="admin-nav-link" onclick="showAdminSection('reports')">System Report</a>
-          <a href="#" class="admin-nav-link" onclick="showAdminSection('users')">Users</a>
-          <a href="#" class="admin-nav-link" onclick="showAdminSection('admins')">Admins</a>
-          <a href="#" class="admin-nav-link" onclick="showAdminSection('messages')">Messages</a>
-        </div>
-
-        <a href="index.html" class="ds-nav-link">Home</a>
-        <button id="logout-btn-nav-mobile" class="ds-btn ds-btn-outline" style="width:100%; margin-top:10px;"
-          onclick="logout()">Log out</button>
-      </div>
-    </div>
+      <a href="index.html" class="admin-nav-link">Home</a>
+      <button class="btn-secondary" onclick="logout()">Log out</button>
+    </nav>
   </header>
 
   <!-- Main content -->
@@ -92,7 +68,7 @@
       </div>
 
       <!-- Metrics Grid -->
-      <div class="stats-grid admin-stats-grid">
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
         <div class="stat-card">
           <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">👥</div>
           <div class="stat-content">
@@ -111,14 +87,14 @@
       </div>
 
       <!-- Charts Row -->
-      <div class="dashboard-panels dashboard-layout-grid">
+      <div class="dashboard-panels" style="grid-template-rows: auto; grid-template-columns: 2fr 1fr; margin-top: 2rem;">
 
         <!-- Main Chart -->
         <div class="dashboard-panel">
           <div class="dashboard-panel-header">
             <h3 class="dashboard-panel-title">User Growth Trend</h3>
           </div>
-          <div class="dashboard-chart-area" style="min-height: 250px; position: relative;">
+          <div class="dashboard-chart-area" style="min-height: 300px; position: relative;">
             <canvas id="userGrowthChart"></canvas>
           </div>
         </div>
@@ -128,7 +104,7 @@
           <div class="dashboard-panel-header">
             <h3 class="dashboard-panel-title">Platform Activity</h3>
           </div>
-          <div class="dashboard-chart-area" style="min-height: 250px; position: relative;">
+          <div class="dashboard-chart-area" style="min-height: 300px; position: relative;">
             <canvas id="activityChart"></canvas>
           </div>
         </div>

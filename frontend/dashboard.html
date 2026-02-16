@@ -3,7 +3,6 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Stock Price Prediction System – Dashboard</title>
   <link rel="stylesheet" href="style.css" />
 
@@ -46,29 +45,6 @@
         <button id="logout-btn-nav" class="ds-btn ds-btn-outline">Log out</button>
       </div>
     </div>
-
-    <!-- MOBILE TOGGLE & MENU -->
-    <button class="ds-navbar-toggle" aria-label="Toggle Menu">☰</button>
-    <div class="ds-navbar-mobile">
-      <div id="nav-guest-mobile" style="display:flex; flex-direction:column; gap:10px;">
-        <a href="login.html" class="ds-btn ds-btn-outline" style="text-align:center;">Log in</a>
-        <a href="register.html" class="ds-btn ds-btn-primary" style="text-align:center;">Sign up</a>
-      </div>
-
-      <div id="nav-user-mobile" style="display:none; flex-direction:column; gap:10px;">
-        <div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;">
-          <span id="user-name-display-mobile" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
-        </div>
-        <a href="index.html" class="ds-nav-link">Home</a>
-        <a href="admin.html" id="nav-admin-link-mobile" class="ds-nav-link" style="display:none; color:#f472b6;">Admin
-          Console</a>
-        <a href="dashboard.html" id="nav-dashboard-link-mobile" class="ds-nav-link">Dashboard</a>
-        <a href="trade.html" id="nav-trade-link-mobile" class="ds-nav-link">Trade</a>
-        <a href="portfolio.html" id="nav-portfolio-link-mobile" class="ds-nav-link">Portfolio</a>
-        <button id="logout-btn-nav-mobile" class="ds-btn ds-btn-outline" style="width:100%; margin-top:10px;">Log
-          out</button>
-      </div>
-    </div>
   </header>
 
   <main class="ds-main">
@@ -82,7 +58,7 @@
         </div>
       </header>
 
-      <div class="dashboard-layout-grid">
+      <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 2rem; align-items: start;">
 
         <!-- LEFT MAIN CONTENT -->
         <div class="dashboard-content">
