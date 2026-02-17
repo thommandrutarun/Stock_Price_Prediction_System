@@ -547,7 +547,8 @@ def stock_history(symbol):
     try:
         hist = get_history(symbol, period)
     except ValueError as e:
-        return jsonify({"prices": [], "message": str(e)}), 404
+        # Instead of 404 w/ error, return 200 with empty list to avoid console errors
+        return jsonify({"prices": [], "message": str(e)}), 200
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -587,6 +588,48 @@ def stock_history(symbol):
         data.append(entry)
 
     return jsonify({"prices": data}), 200
+
+
+@app.route("/api/stocks/<symbol>/quote")
+@jwt_required()
+def stock_quote(symbol):
+    try:
+        # Fetch just the latest price or a small history
+        # period='1d', interval='1m' is usually good for "current" price
+        ticker = yf.Ticker(symbol)
+        
+        # FastTrack: use fast_info if available (newer yfinance)
+        # However, fast_info sometimes fails on NS stocks. 
+        # Safer to use history(period="1d") and take last close.
+        
+        hist = ticker.history(period="1d")
+        if hist.empty:
+            # Try 5d if 1d is empty (weekend/holiday)
+            hist = ticker.history(period="5d")
+        
+        if hist.empty:
+            return jsonify({"price": 0.0, "change": 0.0, "symbol": symbol}), 200
+
+        current_price = hist["Close"].iloc[-1]
+        
+        # Calculate change if possible
+        prev_close = hist["Open"].iloc[0] # or Close of prev day if we had it
+        if len(hist) > 1:
+            prev_close = hist["Close"].iloc[-2]
+             
+        change = current_price - prev_close
+        percent = (change / prev_close) * 100 if prev_close != 0 else 0
+
+        return jsonify({
+            "symbol": symbol,
+            "price": float(current_price),
+            "change": float(change),
+            "percent": float(percent)
+        }), 200
+
+    except Exception as e:
+        print(f"Error fetching quote for {symbol}: {e}")
+        return jsonify({"message": "Error fetching quote", "error": str(e)}), 500
 
 
 # -------- AI PREDICTIONS (LSTM) --------

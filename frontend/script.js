@@ -48,6 +48,25 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ---------- NAVBAR & AUTH STATE ---------- */
+function setSymbol(symbol) {
+  const input = document.getElementById("global-search");
+  if (input) {
+    input.value = symbol;
+    // Trigger search logic if standard search button exists or just loadHistory directly?
+    // Let's assume dashboard has specific input.
+    // If we are on dashboard, we might need to populate that input instead?
+    // checking page:
+    const dashInput = document.getElementById("symbol");
+    if (dashInput) {
+      dashInput.value = symbol;
+      loadHistory();
+    } else {
+      // We might be on home page or elsewhere
+      window.location.href = `dashboard.html?symbol=${symbol}`;
+    }
+  }
+}
+
 function updateNavbar() {
   const token = localStorage.getItem("token");
   const userEmail = localStorage.getItem("user_email") || "User";
@@ -492,8 +511,16 @@ async function predict() {
   if (!symbolInput) return;
   const symbol = symbolInput.value.trim().toUpperCase();
 
-  const intervalSelect = document.getElementById("predict-interval");
-  const interval = intervalSelect ? intervalSelect.value : "1d";
+  // Support for Button Group (Tabs) or Fallback to Select
+  let interval = "1d";
+  const intervalGroup = document.getElementById("predict-interval-group");
+  if (intervalGroup) {
+    const activeBtn = intervalGroup.querySelector(".interval-btn.active");
+    if (activeBtn) interval = activeBtn.getAttribute("data-value");
+  } else {
+    const intervalSelect = document.getElementById("predict-interval");
+    if (intervalSelect) interval = intervalSelect.value;
+  }
 
   if (!symbol) { alert("Enter symbol first"); return; }
 
@@ -523,6 +550,9 @@ async function predict() {
       data.predictions.forEach((p, idx) => {
         const li = document.createElement("li");
 
+        li.classList.add("prediction-item");
+        li.style.animationDelay = `${idx * 0.1}s`;
+
         // Trend logic
         let trendClass = "";
         if (idx > 0) {
@@ -537,9 +567,8 @@ async function predict() {
           dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         } else {
           // Intraday: show Time
-          dateStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-          // Maybe add date if it crosses midnight? usually just time is fine for intraday sequence
-          // Or "Day HH:mm"
+          // dateStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+          // Combined
           dateStr = d.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
         }
 
@@ -2368,8 +2397,8 @@ async function loadTradeHistory() {
             <td style="font-weight:600;">${t.symbol}</td>
             <td style="color:${typeColor}; font-weight:700;">${t.type}</td>
             <td>${t.quantity}</td>
-            <td>${t.price.toFixed(2)}</td>
-            <td>${t.total_amount.toFixed(2)}</td>
+            <td>${Number(t.price).toFixed(2)}</td>
+            <td>${Number(t.total_amount).toFixed(2)}</td>
         `;
       tbody.appendChild(tr);
     });
@@ -2388,3 +2417,265 @@ function tradeSelectSymbol(symbol) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
+/* ---------- SEARCH BAR & URL PARAMS LOGIC ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const globalSearch = document.getElementById('global-search');
+  const dashboardSymbolInput = document.getElementById('symbol');
+
+  // 1. Handle Global Search input (Enter key)
+  if (globalSearch) {
+    globalSearch.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const symbol = globalSearch.value.trim().toUpperCase();
+        if (symbol) {
+          if (dashboardSymbolInput) {
+            // On Dashboard: Update symbol input and Load
+            dashboardSymbolInput.value = symbol;
+            if (typeof loadHistory === 'function') {
+              loadHistory();
+            }
+          } else {
+            // On other pages: Redirect to dashboard
+            window.location.href = 'dashboard.html?symbol=' + encodeURIComponent(symbol);
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Handle URL Query Params (e.g. ?symbol=AAPL)
+  const urlParams = new URLSearchParams(window.location.search);
+  const symbolParam = urlParams.get('symbol');
+
+  if (symbolParam && dashboardSymbolInput) {
+    // Auto-load if on dashboard
+    const sym = symbolParam.trim().toUpperCase();
+    dashboardSymbolInput.value = sym;
+    if (globalSearch) globalSearch.value = sym;
+
+    // Short delay to ensure other inits are done
+    setTimeout(() => {
+      if (typeof loadHistory === 'function') {
+        loadHistory();
+      }
+    }, 500);
+  }
+});
+
+
+/* ---------- PREDICTION INTERVAL TABS ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const intervalBtns = document.querySelectorAll('#predict-interval-group .interval-btn');
+  if (intervalBtns.length > 0) {
+    intervalBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove active from all
+        intervalBtns.forEach(b => b.classList.remove('active'));
+        // Add active to clicked
+        btn.classList.add('active');
+      });
+    });
+  }
+});
+
+
+/* =========================================
+   NEW TRADE PAGE LOGIC (PRO DASHBOARD)
+   ========================================= */
+
+let tradeChartInstance = null;
+let currentTradeRange = '1d';
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if we are on the Trade Page by looking for the chart container
+  if (document.getElementById('trade-chart-container')) {
+    initTradePage();
+  }
+});
+
+function initTradePage() {
+  console.log('Initializing Trade Page...');
+
+  // Initialize empty chart
+  initTradeChart();
+
+  // Load initial data if symbol is present
+  const symbolInput = document.getElementById('trade-page-symbol');
+  if (symbolInput && symbolInput.value) {
+    fetchTradePageData(symbolInput.value);
+  }
+
+  // Hook up 'LOAD' button
+  const fetchBtn = document.getElementById('fetch-price-btn');
+  if (fetchBtn) {
+    fetchBtn.addEventListener('click', () => {
+      const sym = symbolInput.value.trim().toUpperCase();
+      if (sym) fetchTradePageData(sym);
+    });
+  }
+
+  // Load Tabs Data
+  loadTradePositions();
+  loadTradeHistory();
+}
+
+function fetchTradePageData(symbol) {
+  // Show Interface / Hide Empty State
+  const emptyState = document.getElementById('trade-empty-state');
+  const interfaceDiv = document.getElementById('trade-interface');
+  if (emptyState) emptyState.style.display = 'none';
+  if (interfaceDiv) interfaceDiv.style.display = 'block';
+
+  // 1. Update Market Data Display
+  fetchStockPriceForTrade(symbol);
+
+  // 2. Load Chart
+  loadTradeChart(symbol, currentTradeRange);
+
+  // 3. Update Title
+  const chartTitle = document.getElementById('chart-title');
+  if (chartTitle) chartTitle.textContent = `Price Chart: ${symbol}`;
+}
+
+async function fetchStockPriceForTrade(symbol) {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/quote`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const price = data.price;
+      // Update displays
+      document.getElementById('page-symbol-display').textContent = symbol;
+      document.getElementById('page-price-display').textContent = '$' + price.toFixed(2);
+    }
+  } catch (e) { console.error('Trade Price Error:', e); }
+}
+
+/* ---------- CHART LOGIC ---------- */
+
+function initTradeChart() {
+  const options = {
+    series: [],
+    chart: {
+      type: 'area',
+      height: 350,
+      background: 'transparent',
+      toolbar: { show: false },
+      animations: { enabled: true }
+    },
+    colors: ['#2dd4bf'],
+    stroke: { curve: 'smooth', width: 2 },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.4,
+        opacityTo: 0.05,
+        stops: [0, 90, 100]
+      }
+    },
+    dataLabels: { enabled: false },
+    xaxis: {
+      type: 'datetime',
+      tooltip: { enabled: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: { style: { colors: '#94a3b8' } }
+    },
+    yaxis: {
+      labels: {
+        style: { colors: '#94a3b8' },
+        formatter: (val) => val.toFixed(2)
+      }
+    },
+    grid: {
+      borderColor: '#334155',
+      strokeDashArray: 4
+    },
+    theme: { mode: 'dark' }
+  };
+
+  const container = document.querySelector('#trade-chart-container');
+  if (container) {
+    tradeChartInstance = new ApexCharts(container, options);
+    tradeChartInstance.render();
+  }
+}
+
+async function loadTradeChart(symbol, range) {
+  if (!symbol || !tradeChartInstance) return;
+
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/stocks/${symbol}/history?period=${range}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error('Chart data fetch failed');
+
+    const json = await res.json();
+    const prices = json.prices;
+
+    if (!prices || prices.length === 0) {
+      console.warn('No data for chart');
+      return;
+    }
+
+    const seriesData = prices.map(p => {
+      return [new Date(p.date).getTime(), p.close];
+    });
+
+    tradeChartInstance.updateOptions({
+      series: [{ name: symbol, data: seriesData }]
+    });
+
+  } catch (e) {
+    console.error('Render Trade Chart Error:', e);
+  }
+}
+
+function setTradeChartRange(range) {
+  currentTradeRange = range;
+
+  // UI Update
+  document.querySelectorAll('.chart-controls .t-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.chart-controls .t-btn[data-range="${range}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Refresh Data
+  const symbol = document.getElementById('trade-page-symbol').value || document.getElementById('page-symbol-display').textContent;
+  if (symbol && symbol !== '---') {
+    loadTradeChart(symbol, range);
+  }
+}
+
+/* ---------- TABS LOGIC ---------- */
+
+function switchTradeTab(tabName) {
+  // 1. Tabs UI
+  document.querySelectorAll('.data-tables-section .tab-btn').forEach(b => b.classList.remove('active'));
+
+  const btns = document.querySelectorAll('.data-tables-section .tab-btn');
+  if (btns.length >= 2) {
+    if (tabName === 'positions') btns[0].classList.add('active');
+    else btns[1].classList.add('active');
+  }
+
+  // 2. Content UI
+  document.querySelectorAll('.data-tables-section .tab-content').forEach(c => c.classList.remove('active'));
+  const content = document.getElementById(`tab-content-${tabName}`);
+  if (content) content.classList.add('active');
+
+  // 3. Load Data
+  if (tabName === 'positions') loadTradePositions();
+  else loadTradeHistory();
+}
+

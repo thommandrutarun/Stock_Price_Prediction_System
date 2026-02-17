@@ -32,10 +32,7 @@
 
       <!-- USER NAV -->
       <div id="nav-user" style="display:flex; gap:20px; align-items:center;">
-        <div id="wallet-display" class="wallet-badge" style="display:none;">
-          <span>💰</span>
-          <span id="wallet-balance">$100,000.00</span>
-        </div>
+
 
         <span id="user-name-display" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
         <a href="index.html" class="ds-nav-link">Home</a>
@@ -121,17 +118,14 @@
                   </span>
                 </div>
 
-                <div class="dashboard-controls-row"
-                  style="padding: 0 1.5rem 1rem; display: flex; gap: 10px; align-items: center;">
-                  <select id="predict-interval" class="ds-select"
-                    style="background: rgba(15, 23, 42, 0.6); color: #fff; border: 1px solid rgba(148, 163, 184, 0.2); padding: 6px 10px; border-radius: 6px;">
-                    <option value="1d">1 Day</option>
-                    <option value="1m">1 Minute</option>
-                    <option value="5m">5 Minutes</option>
-                    <option value="15m">15 Minutes</option>
-                  </select>
-                  <button onclick="predict()" class="ds-btn ds-btn-primary"
-                    style="padding: 6px 12px; font-size: 0.9rem;">
+                <div class="dashboard-controls-row prediction-controls">
+                  <div id="predict-interval-group" class="interval-group">
+                    <button class="interval-btn active" data-value="1d">1 Day</button>
+                    <button class="interval-btn" data-value="1m">1 Min</button>
+                    <button class="interval-btn" data-value="5m">5 Min</button>
+                    <button class="interval-btn" data-value="15m">15 Min</button>
+                  </div>
+                  <button onclick="predict()" class="ds-btn ds-btn-primary ds-btn-prediction">
                     Generate
                   </button>
                 </div>
