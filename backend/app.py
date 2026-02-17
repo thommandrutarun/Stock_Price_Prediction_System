@@ -18,7 +18,7 @@ from lstm_model import predict_lstm
 
 import os
 from dotenv import load_dotenv
-s
+
 load_dotenv()  # Load .env file
 
 # -------- CONFIG --------
