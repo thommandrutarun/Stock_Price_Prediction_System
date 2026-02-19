@@ -1234,4 +1234,5 @@ def reset_balance():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Turning off reloader to prevent TensorFlow threading issues
+    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
