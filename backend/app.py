@@ -38,12 +38,21 @@ CORS(
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
-app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "fallback-secret-dev-only")
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+if not app.config["JWT_SECRET_KEY"]:
+    # Fallback to a random key if not set, but notify that it's ideally from .env
+    app.config["JWT_SECRET_KEY"] = os.urandom(24).hex()
+
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", os.urandom(24).hex())
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
+# app.config["SESSION_COOKIE_SECURE"] = True # Enable if deploying with HTTPS
 
 app.config["DB_HOST"] = os.getenv("DB_HOST", "localhost")
 app.config["DB_USER"] = os.getenv("DB_USER", "root")
 app.config["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "")
 app.config["DB_NAME"] = os.getenv("DB_NAME", "stock_prediction")
+app.config["SUPER_ADMIN_EMAIL"] = os.getenv("SUPER_ADMIN_EMAIL", "40tarun02@gmail.com")
 
 
 def get_db():
@@ -235,10 +244,10 @@ def delete_user(user_id):
         conn.close()
         return jsonify({"message": "User not found"}), 404
         
-    if user['email'] == '40tarun02@gmail.com':
+    if user['email'] == app.config["SUPER_ADMIN_EMAIL"]:
         cur.close()
         conn.close()
-        return jsonify({"message": "Cannot delete Super Admin account"}), 403
+        return jsonify({"message": "Action not allowed on Super Admin account"}), 403
 
     try:
         cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
@@ -256,7 +265,8 @@ def delete_user(user_id):
         if conn.is_connected():
             conn.rollback()
             conn.close()
-        return jsonify({"message": str(e)}), 500
+        print(f"Error in delete_user: {e}")
+        return jsonify({"message": "Failed to delete user"}), 500
 
 
 @app.route("/api/admin/promote", methods=["POST"])
@@ -298,7 +308,8 @@ def promote_admin():
         log_admin_action(admin_email, "PROMOTE_ADMIN", f"ID: {target_id}, Email: {target['email']}")
         return jsonify({"message": "User promoted to Admin"}), 200
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        print(f"Error in promote_admin: {e}")
+        return jsonify({"message": "Failed to promote user"}), 500
 
 
 @app.route("/api/admin/revoke", methods=["POST"])
@@ -327,10 +338,10 @@ def revoke_admin():
         return jsonify({"message": "User not found"}), 404
     
     # PROTECT SUPER ADMIN
-    if target["email"] == '40tarun02@gmail.com':
+    if target["email"] == app.config["SUPER_ADMIN_EMAIL"]:
         cur.close()
         conn.close()
-        return jsonify({"message": "Cannot revoke Super Admin"}), 403
+        return jsonify({"message": "Action not allowed on Super Admin account"}), 403
 
     try:
         cur.execute("UPDATE users SET role = 'user' WHERE id = %s", (target_id,))
@@ -341,7 +352,8 @@ def revoke_admin():
         log_admin_action(admin_email, "REVOKE_ADMIN", f"ID: {target_id}, Email: {target['email']}")
         return jsonify({"message": "Admin privileges revoked"}), 200
     except Exception as e:
-        return jsonify({"message": str(e)}), 500
+        print(f"Error in revoke_admin: {e}")
+        return jsonify({"message": "Failed to revoke admin"}), 500
 
 
 @app.route("/api/admin/logs")
@@ -356,10 +368,10 @@ def get_admin_logs():
     cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
     admin = cur.fetchone()
     
-    if not admin or admin["email"] != '40tarun02@gmail.com':
+    if not admin or admin["email"] != app.config["SUPER_ADMIN_EMAIL"]:
         cur.close()
         conn.close()
-        return jsonify({"message": "Access Denied: Super Admin only"}), 403
+        return jsonify({"message": "Access Denied"}), 403
 
     cur.execute("SELECT * FROM admin_logs ORDER BY timestamp DESC LIMIT 100")
     logs = cur.fetchall()
@@ -774,7 +786,8 @@ def user_portfolio():
             return jsonify({"message": "Deleted successfully"}), 200
         except Exception as e:
             conn.rollback()
-            return jsonify({"message": str(e)}), 500
+            print(f"Error in deleting position: {e}")
+            return jsonify({"message": "Failed to delete position"}), 500
         finally:
              if conn.is_connected():
                 cur.close()
@@ -805,7 +818,8 @@ def user_portfolio():
             return jsonify({"message": "Added successfully"}), 201
         except Exception as e:
             conn.rollback()
-            return jsonify({"message": str(e)}), 500
+            print(f"Error in adding position: {e}")
+            return jsonify({"message": "Failed to add position"}), 500
         finally:
             cur.close()
             conn.close()
@@ -1141,7 +1155,7 @@ def get_user_transactions():
         
     except Exception as e:
         print(f"Error fetching transactions: {e}")
-        return jsonify({"transactions": [], "message": str(e)}), 500
+        return jsonify({"transactions": [], "message": "Failed to load transactions"}), 500
     finally:
         cur.close()
         conn.close()
@@ -1227,6 +1241,7 @@ def reset_balance():
         return jsonify({"message": "Wallet balance reset to $100,000.00", "new_balance": 100000.0}), 200
     except Exception as e:
         conn.rollback()
+        print(f"Balance reset error: {e}")
         return jsonify({"message": "Failed to reset balance"}), 500
     finally:
         cur.close()
@@ -1234,5 +1249,6 @@ def reset_balance():
 
 
 if __name__ == "__main__":
-    # Turning off reloader to prevent TensorFlow threading issues
-    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+    # In production, debug should be False. 
+    # use_reloader=False prevents TensorFlow threading issues.
+    app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
