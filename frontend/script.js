@@ -45,7 +45,70 @@ document.addEventListener("DOMContentLoaded", () => {
   if (toggleBtn) {
     toggleBtn.addEventListener("click", toggleMobileMenu);
   }
+
+  // Load Ticker Data
+  loadTickerData();
+  // Refresh ticker every 60 seconds
+  setInterval(loadTickerData, 60000);
 });
+
+/* ---------- TICKER LOGIC ---------- */
+async function loadTickerData() {
+  const tickerContainer = document.querySelector(".ticker");
+  if (!tickerContainer) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/market/ticker`);
+    if (!res.ok) throw new Error("Failed to fetch ticker");
+
+    const data = await res.json();
+    if (!data || data.length === 0) return;
+
+    // Build HTML
+    let html = "";
+
+    data.forEach(item => {
+      // Clean format: LABEL ₹ VALUE (▲/▼ PCT%) |
+      let valDisplay = item.value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      let colorClass = "";
+      let changeDisplay = "";
+
+      // Only show percentage for Indices (SENSEX/NIFTY) as per image reference
+      const isIndex = item.label.includes("SENSEX") || item.label.includes("NIFTY");
+
+      if (isIndex && item.pct !== 0) {
+        if (item.change > 0) {
+          colorClass = "up";
+          changeDisplay = ` <span class="change-pct">(▲ ${item.pct.toFixed(2)}%)</span>`;
+        } else if (item.change < 0) {
+          colorClass = "down";
+          changeDisplay = ` <span class="change-pct">(▼ ${Math.abs(item.pct).toFixed(2)}%)</span>`;
+        }
+      } else if (item.change !== 0) {
+        // For others, just determine color class based on change
+        if (item.change > 0) colorClass = "up";
+        else if (item.change < 0) colorClass = "down";
+      }
+
+      html += `
+        <div class="ticker-item">
+          <span class="ticker-label">${item.label}</span> 
+          <span class="ticker-value ${colorClass}">
+             ${item.currency} ${valDisplay}${changeDisplay}
+          </span>
+          <span class="ticker-sep">|</span>
+        </div>
+      `;
+    });
+
+    // Set HTML to marquee
+    tickerContainer.innerHTML = html;
+
+  } catch (e) {
+    console.error("Ticker Error:", e);
+  }
+}
 
 /* ---------- NAVBAR & AUTH STATE ---------- */
 function setSymbol(symbol) {

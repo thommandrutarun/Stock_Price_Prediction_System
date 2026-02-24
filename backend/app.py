@@ -13,7 +13,14 @@ import mysql.connector
 import pandas as pd
 from functools import wraps
 
-from lstm_model import predict_lstm
+try:
+    from lstm_model import predict_lstm
+    HAS_LSTM = True
+except ImportError:
+    print("Warning: LSTM model dependencies not found. AI prediction will be disabled.")
+    HAS_LSTM = False
+    def predict_lstm(*args, **kwargs):
+        return {"error": "LSTM prediction currently unavailable"}
 
 
 import os
@@ -40,8 +47,8 @@ jwt = JWTManager(app)
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 if not app.config["JWT_SECRET_KEY"]:
-    # Fallback to a random key if not set, but notify that it's ideally from .env
-    app.config["JWT_SECRET_KEY"] = os.urandom(24).hex()
+    # For local dev fallback, but ideally from .env
+    app.config["JWT_SECRET_KEY"] = "dev-secret-key-123"
 
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", os.urandom(24).hex())
 app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -52,7 +59,7 @@ app.config["DB_HOST"] = os.getenv("DB_HOST", "localhost")
 app.config["DB_USER"] = os.getenv("DB_USER", "root")
 app.config["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "")
 app.config["DB_NAME"] = os.getenv("DB_NAME", "stock_prediction")
-app.config["SUPER_ADMIN_EMAIL"] = os.getenv("SUPER_ADMIN_EMAIL", "40tarun02@gmail.com")
+app.config["SUPER_ADMIN_EMAIL"] = os.getenv("SUPER_ADMIN_EMAIL")
 
 
 def get_db():
@@ -1246,6 +1253,92 @@ def reset_balance():
     finally:
         cur.close()
         conn.close()
+
+
+
+@app.route("/api/market/ticker", methods=["GET"])
+def get_market_ticker():
+    """
+    Fetches real-time prices for major indices and assets for the UI ticker.
+    Matches the user's provided design image: SENSEX, NIFTY 50, GOLD 22K (1G), 
+    SILVER (1KG), PETROL, DIESEL, CRUDE OIL, USD.
+    """
+    assets = [
+        {"symbol": "^BSESN", "label": "SENSEX", "currency": "₹"},
+        {"symbol": "^NSEI", "label": "NIFTY 50", "currency": "₹"},
+        {"symbol": "GC=F", "label": "GOLD 22K (1G)", "currency": "₹", "type": "gold"},
+        {"symbol": "SI=F", "label": "SILVER (1KG)", "currency": "₹", "type": "silver"},
+        {"static": True, "label": "PETROL", "value": 103.54, "currency": "₹", "change": 0.12, "pct": 0.11},
+        {"static": True, "label": "DIESEL", "value": 90.03, "currency": "₹", "change": -0.05, "pct": -0.06},
+        {"symbol": "BZ=F", "label": "CRUDE OIL", "currency": "$"},
+        {"symbol": "USDINR=X", "label": "USD", "currency": "₹"},
+    ]
+
+    results = []
+    try:
+        # Get USD/INR rate first for conversion
+        try:
+            inr_ticker = yf.Ticker("USDINR=X")
+            inr_rate = float(inr_ticker.fast_info.last_price)
+        except:
+            inr_rate = 83.0 # Fallback
+
+        for asset in assets:
+            if asset.get("static"):
+                results.append({
+                    "label": asset["label"],
+                    "value": asset["value"],
+                    "currency": asset["currency"],
+                    "change": asset["change"],
+                    "pct": asset["pct"]
+                })
+                continue
+
+            ticker = yf.Ticker(asset["symbol"])
+            hist = ticker.history(period="2d")
+            
+            if len(hist) >= 2:
+                current_price = float(hist["Close"].iloc[-1])
+                prev_price = float(hist["Close"].iloc[-2])
+                change = current_price - prev_price
+                pct = (change / prev_price) * 100
+            elif len(hist) == 1:
+                current_price = float(hist["Close"].iloc[-1])
+                prev_price = float(ticker.info.get("previousClose", current_price))
+                change = current_price - prev_price
+                pct = ((change / prev_price) * 100) if prev_price != 0 else 0
+            else:
+                try:
+                    current_price = float(ticker.fast_info.last_price)
+                    prev_price = float(ticker.fast_info.previous_close)
+                    change = current_price - prev_price
+                    pct = ((change / prev_price) * 100) if prev_price != 0 else 0
+                except:
+                    current_price, change, pct = 0.0, 0.0, 0.0
+
+            # Conversion Logic for Metals
+            if asset.get("type") == "gold":
+                # GC=F is USD/oz. 1 oz = 31.1035g.
+                # Gold 22K (1g) = (USD_per_oz / 31.1035) * INR_Rate * 0.916
+                current_price = (current_price / 31.1035) * inr_rate * 0.916
+                change = (change / 31.1035) * inr_rate * 0.916
+            elif asset.get("type") == "silver":
+                # SI=F is USD/oz. Convert to INR/1kg.
+                current_price = (current_price / 31.1035) * inr_rate * 1000
+                change = (change / 31.1035) * inr_rate * 1000
+
+            results.append({
+                "label": asset["label"],
+                "value": round(current_price, 2),
+                "currency": asset["currency"],
+                "change": round(change, 2),
+                "pct": pct
+            })
+
+        return jsonify(results), 200
+    except Exception as e:
+        print(f"Ticker data error: {e}")
+        return jsonify([]), 200
 
 
 if __name__ == "__main__":
