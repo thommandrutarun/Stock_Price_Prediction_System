@@ -144,7 +144,9 @@ Built with **Flask**. Key features:
 *   **API Routes**: RESTful endpoints (e.g., `/api/auth/login`, `/api/stocks/<symbol>/predict`).
 *   **Authentication**: Implemented using `flask_jwt_extended` for secure Token-based access.
 *   **Database Integration**: Uses `mysql.connector` with connection pooling.
-*   **CORS Support**: Enabled via `flask_cors` to allow cross-origin requests from the frontend.
+*   **CORS Support**: Enabled via `flask_cors` for cross-origin frontend requests.
+*   **Admin Audit Logging**: Automated tracking of administrative actions (promotions, deletions) via `admin_logs`.
+*   **Currency Conversion Engine**: Integrated logic to handle mixed currency trading (USD wallet vs INR stocks) using real-time exchange rates.
 
 ### 7.4 Machine Learning Module (`lstm_model.py`)
 *   **Algorithm**: **Long Short-Term Memory (LSTM)** RNN.
@@ -155,12 +157,14 @@ Built with **Flask**. Key features:
     *   The model learns from the past 60 days to predict the next day.
     *   Uses **Adam Optimizer** and **Mean Squared Error (MSE)** loss.
     *   Dynamic retraining ensures predictions are based on the latest available market data.
+*   **Multi-Interval Support**: Adapted to support 1m, 5m, 15m, and 1d intervals by dynamically adjusting look-back sequences and data validation rules.
 
 ### 7.5 Database Schema
-*   **`users`**: Stores User credentials and Role (Admin/User).
-*   **`user_stocks`**: Stores Portfolio positions (Symbol, Qty, Avg Price).
-*   **`admin_logs`**: Audit trail of admin actions.
-*   **`messages`**: Contact form submissions.
+*   **`users`**: Stores User credentials, Wallet Balance, and Role (Admin/User).
+*   **`user_stocks`**: Stores Portfolio positions (Symbol, Qty, Avg Price, Latest Price).
+*   **`transactions`**: History of every Buy/Sell action including quantity and price in native currency.
+*   **`admin_logs`**: Audit trail of admin actions (Admin Email, Action, Target ID).
+*   **`messages`**: Contact form submissions (Name, Email, Message, Context).
 
 ---
 
@@ -224,6 +228,14 @@ sequenceDiagram
     Frontend->>User: Render Trend Graph
 ```
 
+### 7.3 Market Ticker Logic
+*   **Data Source**: Yahoo Finance (`yfinance`) for Indices (^BSESN, ^NSEI) and Commodities (GC=F, SI=F).
+*   **Formula - Gold 22K (1G)**:
+    $$Value = \frac{GC=F \text{ (USD/oz)}}{31.1035} \times \text{INR Rate} \times 0.916$$
+*   **Formula - Silver (1KG)**:
+    $$Value = \frac{SI=F \text{ (USD/oz)}}{31.1035} \times \text{INR Rate} \times 1000$$
+*   **Static Assets**: Fuel prices (Petrol/Diesel) are currently served as static values with simulated daily variations.
+
 ---
 
 ---
@@ -242,6 +254,7 @@ sequenceDiagram
 ### 10.3 Integration Problems
 *   **Async Data Loading**: Charts would try to render before data arrived, causing blank screens. Fixed by using `async/await` and loading spinners to manage state.
 *   **Auth Loop**: Accessing protected pages without a token caused infinite redirects. Fixed the navigation guard logic in `script.js`.
+*   **Threading Exceptions**: Fixed a critical `RuntimeError` during `app.run` by setting `use_reloader=False`, preventing TensorFlow and Flask from conflicting during multi-threaded operation.
 
 ---
 
@@ -249,6 +262,7 @@ sequenceDiagram
 *   **Unit Testing**: Verified individual functions (e.g., specific API endpoints returning correct JSON).
 *   **Integration Testing**: Tested the flow from Frontend -> Backend -> Database (e.g., User Registration flow).
 *   **System Testing**: validated the entire application end-to-end, including ML prediction accuracy against known historical data.
+*   **Admin Security Testing**: Verified that Super Admin accounts are protected from deletion and role revocation via hardcoded backend constraints.
 *   **Cross-Browser Testing**: Ensured compatibility with Chrome, Firefox, and Edge.
 
 ---
