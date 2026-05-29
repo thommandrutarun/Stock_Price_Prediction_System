@@ -1,0 +1,139 @@
+.home-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6rem;
+  padding-top: 2rem;
+}
+
+/* Hero structural styles */
+.ds-hero-react {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.ds-hero-title-react {
+  font-size: 3.5rem;
+  line-height: 1.15;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ds-hero-subtitle-react {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 650px;
+  line-height: 1.6;
+}
+
+.ds-cta-buttons-react {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-lg {
+  padding: 0.9rem 2.2rem;
+  font-size: 1.05rem;
+  border-radius: 12px;
+}
+
+/* Features Grid */
+.ds-features-react {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.ds-feature-card-react {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ds-feature-icon-react {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ic-blue {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.ic-purple {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.ic-pink {
+  background: rgba(244, 114, 182, 0.1);
+  color: #f472b6;
+  border: 1px solid rgba(244, 114, 182, 0.2);
+}
+
+.ic-green {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.ds-feature-card-react h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.ds-feature-card-react p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* CTA Section card */
+.ds-cta-react {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 4rem 2rem;
+  margin-bottom: 2rem;
+}
+
+.ds-cta-react h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+.ds-cta-react p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  max-width: 500px;
+}
+
+.cta-group-react {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .ds-hero-title-react {
+    font-size: 2.5rem;
+  }
+  
+  .home-container {
+    gap: 4rem;
+  }
+}

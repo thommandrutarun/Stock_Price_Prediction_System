@@ -1,0 +1,241 @@
+.portfolio-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2rem;
+}
+
+.portfolio-top-header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.portfolio-top-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.portfolio-loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  gap: 15px;
+  color: var(--text-secondary);
+}
+
+/* Success and Error alerts */
+.portfolio-success-banner {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.portfolio-error-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+/* Portfolio Metrics Cards Grid */
+.portfolio-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.metric-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.metric-icon {
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.val-icon {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+}
+
+.inv-icon {
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--accent-purple);
+}
+
+.wal-icon-metric {
+  background: rgba(244, 114, 182, 0.1);
+  color: var(--accent-pink);
+}
+
+.wallet-card-metric {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(244, 114, 182, 0.02) 100%);
+}
+
+.wallet-funds-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.reset-wallet-btn-metric {
+  padding: 8px;
+  border-radius: 8px;
+  border-color: rgba(244, 114, 182, 0.2);
+  color: var(--accent-pink);
+  transition: var(--transition-smooth);
+}
+
+.reset-wallet-btn-metric:hover {
+  background: rgba(244, 114, 182, 0.1);
+  border-color: var(--accent-pink);
+}
+
+.metric-value {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.pl-profit {
+  color: var(--success);
+}
+
+.pl-loss {
+  color: var(--error);
+}
+
+/* Positions Table Card styles */
+.portfolio-positions-card {
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.positions-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-pos-toggle-btn {
+  padding: 0.5rem 1.2rem;
+  font-size: 0.88rem;
+}
+
+/* Manual Entry Position Forms */
+.add-pos-form {
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.add-pos-form h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 0.5rem;
+}
+
+.add-pos-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.add-pos-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.portfolio-empty-banner {
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  border: 1px dashed var(--border-glass);
+  border-radius: 12px;
+}
+
+/* Standard Positions tables */
+.table-responsive-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.portfolio-positions-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.portfolio-positions-table th,
+.portfolio-positions-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-glass);
+  font-size: 0.9rem;
+}
+
+.portfolio-positions-table th {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  padding-bottom: 1.2rem;
+}
+
+.portfolio-positions-table td {
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.pos-symbol-col {
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  color: #fff;
+}
+
+.portfolio-positions-table tr:hover td {
+  background: rgba(255, 255, 255, 0.01);
+}

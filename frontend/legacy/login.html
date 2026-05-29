@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Stock Price Prediction System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- BACKGROUND VIDEO -->
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="assets/stock_price_prediction_system_for_a_web.mp4" type="video/mp4" />
+  </video>
+
+  <!-- NAVBAR -->
+  <nav class="ds-navbar" style="background: transparent; border-bottom: none; box-shadow: none;">
+    <div class="ds-navbar-left">
+      <a href="index.html" class="ds-logo">
+        <span class="ds-logo-icon">📈</span>
+        <span class="ds-logo-text">Stock Price Prediction System</span>
+      </a>
+    </div>
+
+    <div class="ds-navbar-right">
+      <!-- Simplified nav for auth page -->
+      <a href="index.html" class="ds-nav-link">Home</a>
+      <a href="register.html" class="ds-btn ds-btn-primary">Sign Up</a>
+    </div>
+  </nav>
+
+  <main class="page-main">
+    <div class="auth-container">
+      <div class="dashboard-panel">
+        <h1 class="center" style="font-size:24px; margin-bottom: 24px;">Login</h1>
+
+        <label for="email">Email</label>
+        <div class="input-with-icon" style="margin-bottom:16px;">
+          <input id="email" type="email" placeholder="you@example.com" />
+        </div>
+
+        <label for="password">Password</label>
+        <div class="input-with-icon" style="margin-bottom:24px;">
+          <input id="password" type="password" placeholder="********" />
+        </div>
+
+        <div class="auth-button-row">
+          <button id="login-btn" class="dashboard-btn predict-btn" style="width:100%;">Login</button>
+        </div>
+
+        <p class="text-small center" style="margin-top:20px;">
+          New here? <a href="register.html">Create account</a>
+        </p>
+
+        <div id="msg" class="message"></div>
+      </div>
+    </div>
+
+    <!-- POPUP MODAL -->
+    <div id="popup-overlay" class="popup-overlay" style="display:none;">
+      <div id="popup-box" class="popup-box">
+        <p id="popup-text"></p>
+        <button id="popup-ok" type="button">OK</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="ds-footer" style="padding: 1rem 2rem; border-top:none; background: transparent; text-align: center;">
+    <div style="font-size: 0.85rem; color: #64748b;">
+      © 2026 Stock Price Prediction System. <a href="#" style="color:#64748b; margin-left:10px;">Privacy</a> <a href="#"
+        style="color:#64748b; margin-left:5px;">Terms</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

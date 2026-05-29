@@ -1,0 +1,454 @@
+.dashboard-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2rem;
+}
+
+.dashboard-top-header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.dashboard-top-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.dashboard-grid-layout {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* Main panel controls and toolbars */
+.terminal-main-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  background: var(--bg-card);
+}
+
+.terminal-controls-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.screener-input-group {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.symbol-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-symbol-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+}
+
+.symbol-input {
+  padding-left: 2.5rem;
+}
+
+.load-history-btn {
+  padding: 0.72rem 2rem;
+}
+
+.terminal-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-top: 1px solid var(--border-glass);
+  padding-top: 1.25rem;
+}
+
+/* Timeframe Selection buttons */
+.timeframe-buttons {
+  display: flex;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+  overflow-x: auto;
+}
+
+.timeframe-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.35rem 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.timeframe-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.timeframe-btn.active {
+  color: #fff;
+  background: var(--primary);
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+/* Candlesticks view toggle buttons */
+.chart-view-toggles {
+  display: flex;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.4rem 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.toggle-btn:hover {
+  color: #fff;
+}
+
+.toggle-btn.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Dynamic chart screens */
+.terminal-chart-screen {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.chart-screen-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+
+/* AI Predictor Module */
+.terminal-ai-module-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.25) 0%, rgba(168, 85, 247, 0.03) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ai-module-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-module-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-medal-icon {
+  color: var(--accent-purple);
+  filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.4));
+}
+
+.ai-module-title h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.ai-module-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.ai-controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  background: rgba(15, 23, 42, 0.25);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-glass);
+}
+
+.ai-interval-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.selector-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.interval-btn-group {
+  display: flex;
+  background: rgba(11, 15, 25, 0.6);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+}
+
+.int-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.35rem 0.8rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.int-btn:hover {
+  color: #fff;
+}
+
+.int-btn.active {
+  color: #fff;
+  background: var(--accent-purple);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}
+
+.run-ai-btn {
+  background: linear-gradient(135deg, var(--accent-purple) 0%, #7e22ce 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25);
+  padding: 0.65rem 1.8rem;
+}
+
+.run-ai-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+}
+
+.ai-prediction-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.ai-predictions-display {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.forecast-results-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.forecast-outcomes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+}
+
+.forecast-outcome-card {
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(168, 85, 247, 0.08);
+  text-align: center;
+}
+
+.forecast-outcome-card:hover {
+  border-color: rgba(168, 85, 247, 0.25);
+  transform: translateY(-3px);
+}
+
+.outcome-step {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.68rem;
+  color: var(--accent-purple);
+  letter-spacing: 0.05em;
+  background: rgba(168, 85, 247, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.outcome-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.outcome-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #fff;
+}
+
+.terminal-log-banner {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Sidebar Watchlist */
+.terminal-sidebar {
+  position: sticky;
+  top: 96px;
+}
+
+.watchlist-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: var(--bg-card);
+}
+
+.sidebar-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.watchlist-add-form {
+  display: flex;
+  gap: 8px;
+}
+
+.watchlist-add-input {
+  font-size: 0.82rem;
+  padding: 0.5rem 0.8rem;
+}
+
+.add-watchlist-submit-btn {
+  padding: 0 0.8rem;
+}
+
+.watchlist-items-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.watchlist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.watchlist-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border-hover);
+  transform: translateX(3px);
+}
+
+.watchlist-item.active {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--primary);
+}
+
+.watchlist-sym-txt {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #fff;
+}
+
+.watchlist-item-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: var(--transition-smooth);
+}
+
+.watchlist-item-delete-btn:hover {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .terminal-sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .screener-input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .load-history-btn {
+    width: 100%;
+  }
+}

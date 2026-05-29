@@ -1,0 +1,345 @@
+.ds-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 5%;
+  height: 76px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+  transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.ds-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  flex: 1;
+}
+
+.ds-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.ds-logo-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.logo-pulse-icon {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+.ds-logo-text {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: var(--text-h);
+  transition: color 0.3s;
+}
+
+/* Global search bar style */
+.ds-search-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  max-width: 320px;
+  width: 100%;
+}
+
+.search-icon-nav {
+  position: absolute;
+  left: 14px;
+  color: var(--text);
+  pointer-events: none;
+}
+
+.ds-search-input {
+  width: 100%;
+  padding: 0.55rem 1rem 0.55rem 2.6rem;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-h);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.ds-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg);
+  box-shadow: 0 0 12px var(--accent-bg);
+}
+
+/* Desktop right nav links */
+.ds-navbar-right-desktop {
+  display: flex;
+  align-items: center;
+}
+
+.nav-guest-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-nav {
+  padding: 0.55rem 1.2rem;
+  font-size: 0.88rem;
+  border-radius: 8px;
+}
+
+.nav-user-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user-greeting-nav {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+  font-family: var(--sans);
+  margin-right: 0.5rem;
+}
+
+.greeting-name {
+  color: var(--text-h);
+  font-weight: 700;
+  transition: color 0.3s;
+}
+
+.ds-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.2rem;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.ds-nav-link:hover {
+  color: var(--text-h);
+}
+
+.ds-nav-link.active {
+  color: var(--accent);
+}
+
+.ds-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--accent-border);
+}
+
+.admin-nav-link {
+  color: #ec4899;
+}
+
+.admin-nav-link.active {
+  color: #ec4899 !important;
+}
+
+.admin-nav-link.active::after {
+  background: #ec4899 !important;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.4) !important;
+}
+
+.nav-logout-btn {
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
+/* Theme Toggle Button styles */
+.theme-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s, color 0.3s;
+  margin-left: 1.5rem;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.theme-toggle-btn-mob {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.theme-toggle-btn-mob:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* Mobile toggler */
+.ds-navbar-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+/* Mobile navigation drawer */
+.ds-navbar-mobile-drawer {
+  display: none;
+}
+
+/* Responsive breakdowns */
+@media (max-width: 1024px) {
+  .ds-search-wrapper,
+  .ds-navbar-right-desktop {
+    display: none;
+  }
+  
+  .ds-navbar-toggle {
+    display: block;
+    z-index: 110;
+  }
+  
+  .ds-navbar-mobile-drawer {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background: var(--panel-bg);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid var(--border);
+    padding: 90px 1.8rem 2rem;
+    z-index: 105;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+  }
+  
+  .ds-navbar-mobile-drawer.open {
+    transform: translateX(-100%);
+    display: flex;
+  }
+  
+  .nav-mobile-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
+  }
+  
+  .user-mobile-profile {
+    padding: 1rem;
+    background: var(--code-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+  }
+  
+  .user-greet-mob {
+    font-size: 0.75rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+  
+  .user-name-mob {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-h);
+  }
+  
+  .user-role-mob {
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  
+  .ds-nav-link-mob {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.6rem 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s;
+  }
+  
+  .ds-nav-link-mob:hover,
+  .ds-nav-link-mob.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+  
+  .admin-mob {
+    color: #ec4899;
+  }
+  
+  .logout-mob-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .guest-mob-wrapper {
+    margin-top: 2rem;
+  }
+  
+  .w-full {
+    width: 100%;
+  }
+}

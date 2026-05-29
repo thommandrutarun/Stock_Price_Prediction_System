@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: stock_prediction
+      MYSQL_ROOT_PASSWORD: Tarun@2004
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7.0-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SQLALCHEMY_DATABASE_URI=mysql+mysqlconnector://root:Tarun@2004@db/stock_prediction
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET_KEY=prod-jwt-secret-key-12345
+      - SECRET_KEY=prod-flask-secret-key-12345
+    depends_on:
+      - db
+      - redis
+
+  celery_worker:
+    build: ./backend
+    command: celery -A backend.app.tasks.celery_app worker --loglevel=info
+    restart: always
+    environment:
+      - SQLALCHEMY_DATABASE_URI=mysql+mysqlconnector://root:Tarun@2004@db/stock_prediction
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

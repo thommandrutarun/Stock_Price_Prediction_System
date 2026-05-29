@@ -1,0 +1,1347 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+)
+import datetime as dt
+import yfinance as yf
+import mysql.connector
+import pandas as pd
+from functools import wraps
+
+try:
+    from lstm_model import predict_lstm
+    HAS_LSTM = True
+except ImportError:
+    print("Warning: LSTM model dependencies not found. AI prediction will be disabled.")
+    HAS_LSTM = False
+    def predict_lstm(*args, **kwargs):
+        return {"error": "LSTM prediction currently unavailable"}
+
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Load .env file
+
+# -------- CONFIG --------
+
+app = Flask(__name__)
+
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": ["http://127.0.0.1:5500", "http://localhost:5500"],
+            "supports_credentials": True,
+        }
+    },
+)
+
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
+
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+if not app.config["JWT_SECRET_KEY"]:
+    # For local dev fallback, but ideally from .env
+    app.config["JWT_SECRET_KEY"] = "dev-secret-key-123"
+
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", os.urandom(24).hex())
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = 'Lax'
+# app.config["SESSION_COOKIE_SECURE"] = True # Enable if deploying with HTTPS
+
+app.config["DB_HOST"] = os.getenv("DB_HOST", "localhost")
+app.config["DB_USER"] = os.getenv("DB_USER", "root")
+app.config["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "")
+app.config["DB_NAME"] = os.getenv("DB_NAME", "stock_prediction")
+app.config["SUPER_ADMIN_EMAIL"] = os.getenv("SUPER_ADMIN_EMAIL")
+
+
+def get_db():
+    return mysql.connector.connect(
+        host=app.config["DB_HOST"],
+        user=app.config["DB_USER"],
+        password=app.config["DB_PASSWORD"],
+        database=app.config["DB_NAME"],
+    )
+
+
+# -------- ADMIN HELPER --------
+
+def admin_required(fn):
+    @wraps(fn)
+    @jwt_required()
+    def wrapper(*args, **kwargs):
+        user_id = int(get_jwt_identity())
+        conn = get_db()
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT role FROM users WHERE id = %s", (user_id,))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if not row or row["role"] != "admin":
+            return jsonify({"message": "Admin access required"}), 403
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
+def log_admin_action(admin_email, action, target):
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO admin_logs (admin_email, action, target) VALUES (%s, %s, %s)",
+            (admin_email, action, target)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Failed to log admin action: {e}")
+
+
+# -------- AUTH ROUTES --------
+
+@app.route("/api/auth/register", methods=["POST"])
+def register():
+    data = request.get_json() or {}
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
+    phone = data.get("phone")
+    dob = data.get("dob")   # "YYYY-MM-DD"
+    profession = data.get("profession")
+
+    if not name or not email or not password:
+        return jsonify({"message": "All fields are required"}), 400
+
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+
+    # Check if user already exists
+    # Check if user already exists (email or phone)
+    cur.execute("SELECT email, phone FROM users WHERE email = %s OR phone = %s", (email, phone))
+    existing_user = cur.fetchone()
+
+    if existing_user:
+        cur.close()
+        conn.close()
+        
+        # Determine which field matched
+        if existing_user["email"] == email and existing_user["phone"] == phone:
+             return jsonify({"message": f"User already exists with email {email} and phone {phone}"}), 400
+        elif existing_user["email"] == email:
+             return jsonify({"message": f"User already exists with email {email}"}), 400
+        elif existing_user["phone"] == phone:
+             return jsonify({"message": f"User already exists with phone {phone}"}), 400
+        else:
+             return jsonify({"message": "User already exists"}), 400
+
+    pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+
+    # Always create normal user (role = 'user')
+    cur.execute(
+        """
+        INSERT INTO users (name, email, password, phone, dob, profession, role, wallet_balance)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (name, email, pw_hash, phone, dob, profession, "user", 100000.0),
+    )
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"message": "Registered successfully"}), 201
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    data = request.get_json() or {}
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"message": "Email and password are required"}), 400
+
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute(
+        "SELECT id, name, email, password, role, wallet_balance FROM users WHERE email = %s",
+        (email,),
+    )
+
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not user or not bcrypt.check_password_hash(user["password"], password):
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    user_id = user["id"]
+    token = create_access_token(identity=str(user_id))
+
+    return (
+        jsonify(
+            {
+                "access_token": token,
+                "user": {
+                    "email": user["email"],
+                    "name": user["name"],
+                    "role": user["role"],
+                    "wallet_balance": float(user.get("wallet_balance") or 0)
+                },
+            }
+        ),
+        200,
+    )
+
+
+# -------- ADMIN ENDPOINTS --------
+
+@app.route("/api/admin/users")
+@admin_required
+def list_users():
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute(
+        "SELECT id, name, email, phone, dob, profession, role "
+        "FROM users ORDER BY id"
+    )
+    users = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    # helper for json serialization
+    safe_users = []
+    for u in users:
+        # Convert date to string
+        if isinstance(u.get("dob"), (dt.date, dt.datetime)):
+             u["dob"] = str(u["dob"])
+        safe_users.append(u)
+
+    return jsonify({"users": safe_users})
+
+
+@app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+@admin_required
+def delete_user(user_id):
+    current_admin_id = int(get_jwt_identity())
+    
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Get Admin Email for logging
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    admin_email = admin["email"] if admin else "unknown"
+
+    # Check if user exists
+    cur.execute("SELECT email, role FROM users WHERE id = %s", (user_id,))
+    user = cur.fetchone()
+    
+    if not user:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "User not found"}), 404
+        
+    if user['email'] == app.config["SUPER_ADMIN_EMAIL"]:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Action not allowed on Super Admin account"}), 403
+
+    try:
+        cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+        
+        # LOG ACTION
+        cur.close()  # close dict cursor to use helper if needed, or just insert here. 
+        # Actually helper manages connection, so close first.
+        conn.close()
+        
+        log_admin_action(admin_email, "DELETE_USER", f"ID: {user_id}, Email: {user['email']}")
+        
+        return jsonify({"message": "User deleted successfully"}), 200
+    except Exception as e:
+        if conn.is_connected():
+            conn.rollback()
+            conn.close()
+        print(f"Error in delete_user: {e}")
+        return jsonify({"message": "Failed to delete user"}), 500
+
+
+@app.route("/api/admin/promote", methods=["POST"])
+@admin_required
+def promote_admin():
+    data = request.get_json() or {}
+    target_id = data.get("user_id")
+    
+    current_admin_id = int(get_jwt_identity())
+    
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Get current admin info
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    admin_email = admin["email"]
+    
+    # Get target user
+    cur.execute("SELECT email, role FROM users WHERE id = %s", (target_id,))
+    target = cur.fetchone()
+    
+    if not target:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "User not found"}), 404
+        
+    if target["role"] == "admin":
+        cur.close()
+        conn.close()
+        return jsonify({"message": "User is already admin"}), 400
+
+    try:
+        cur.execute("UPDATE users SET role = 'admin' WHERE id = %s", (target_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        log_admin_action(admin_email, "PROMOTE_ADMIN", f"ID: {target_id}, Email: {target['email']}")
+        return jsonify({"message": "User promoted to Admin"}), 200
+    except Exception as e:
+        print(f"Error in promote_admin: {e}")
+        return jsonify({"message": "Failed to promote user"}), 500
+
+
+@app.route("/api/admin/revoke", methods=["POST"])
+@admin_required
+def revoke_admin():
+    data = request.get_json() or {}
+    target_id = data.get("user_id")
+    
+    current_admin_id = int(get_jwt_identity())
+    
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Get current admin info
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    admin_email = admin["email"]
+    
+    # Get target user
+    cur.execute("SELECT email, role FROM users WHERE id = %s", (target_id,))
+    target = cur.fetchone()
+    
+    if not target:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "User not found"}), 404
+    
+    # PROTECT SUPER ADMIN
+    if target["email"] == app.config["SUPER_ADMIN_EMAIL"]:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Action not allowed on Super Admin account"}), 403
+
+    try:
+        cur.execute("UPDATE users SET role = 'user' WHERE id = %s", (target_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        log_admin_action(admin_email, "REVOKE_ADMIN", f"ID: {target_id}, Email: {target['email']}")
+        return jsonify({"message": "Admin privileges revoked"}), 200
+    except Exception as e:
+        print(f"Error in revoke_admin: {e}")
+        return jsonify({"message": "Failed to revoke admin"}), 500
+
+
+@app.route("/api/admin/logs")
+@admin_required
+def get_admin_logs():
+    current_admin_id = int(get_jwt_identity())
+    
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    # Verify Super Admin
+    cur.execute("SELECT email FROM users WHERE id = %s", (current_admin_id,))
+    admin = cur.fetchone()
+    
+    if not admin or admin["email"] != app.config["SUPER_ADMIN_EMAIL"]:
+        cur.close()
+        conn.close()
+        return jsonify({"message": "Access Denied"}), 403
+
+    cur.execute("SELECT * FROM admin_logs ORDER BY timestamp DESC LIMIT 100")
+    logs = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    
+    # Format timestamps
+    safe_logs = []
+    for l in logs:
+        if isinstance(l.get("timestamp"), (dt.date, dt.datetime)):
+            l["timestamp"] = l["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+        safe_logs.append(l)
+
+    return jsonify({"logs": safe_logs})
+
+
+# -------- CONTACT & MESSAGES --------
+
+@app.route("/api/contact", methods=["POST"])
+def contact_us():
+    data = request.get_json() or {}
+    name = data.get("name")
+    email = data.get("email")
+    subject = data.get("subject")
+    message = data.get("message")
+
+    if not name or not email or not message:
+        return jsonify({"message": "Name, email, and message are required"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            """
+            INSERT INTO messages (name, email, subject, message)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (name, email, subject, message)
+        )
+        conn.commit()
+        return jsonify({"message": "Message sent successfully"}), 201
+    except Exception as e:
+        print(f"Error saving message: {e}")
+        return jsonify({"message": "Failed to send message"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route("/api/admin/messages")
+@admin_required
+def list_messages():
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM messages ORDER BY timestamp DESC")
+    messages = cur.fetchall()
+    cur.close()
+    conn.close()
+    
+    # Format timestamps
+    safe_msgs = []
+    for m in messages:
+        if isinstance(m.get("timestamp"), (dt.date, dt.datetime)):
+            m["timestamp"] = m["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+        safe_msgs.append(m)
+        
+    return jsonify({"messages": safe_msgs})
+
+
+
+# -------- yfinance HELPER --------
+
+def get_history(symbol: str, period: str):
+    symbol = symbol.upper().strip()
+    
+    # Map frontend period to yfinance period + interval
+    # 1d -> 1d period, 5m interval
+    # 1w -> 5d period, 15m interval? Or 1mo period? 
+    # yfinance '1w' period doesn't exist? It does. '5d', '1mo', etc.
+    # valid periods: 1d,5d,1mo,3mo,6mo,1y,2y,5y,10y,ytd,max
+    
+    # We map user "1W" -> "5d" (trading week) or "1mo"? "5d" is usually standard for 1 week view.
+    # User "3Y" -> "5y"? yfinance doesn't have 3y. We can use "5y" and slice? Or "5y" is fine.
+    
+    period_config = {
+        "1m":  {"p": "5d",  "i": "1m"},
+        "5m":  {"p": "1mo", "i": "5m"},
+        "15m": {"p": "1mo", "i": "15m"},
+        "1d":  {"p": "1d",  "i": "5m"},
+        "1w":  {"p": "5d",  "i": "15m"},
+        "1mo": {"p": "1mo", "i": "1h"},  # 1h for 1mo is good detail
+        "3mo": {"p": "3mo", "i": "1d"},
+        "6mo": {"p": "6mo", "i": "1d"},
+        "1y":  {"p": "1y",  "i": "1d"},
+        "2y":  {"p": "2y",  "i": "1d"},
+        "3y":  {"p": "3y",  "i": "1wk"}, # 3y not supported natively, fetch 5y
+        "5y":  {"p": "5y",  "i": "1wk"},
+        "max": {"p": "max", "i": "1wk"}, # or 1mo
+    }
+    
+    config = period_config.get(period, {"p": "1mo", "i": "1d"})
+    
+    # For 'all' we map to 'max'
+    if period == "all":
+        config = period_config["max"]
+        
+    data = yf.download(
+        symbol, 
+        period=config["p"], 
+        interval=config["i"], 
+        progress=False
+    )
+    
+    # Flatten MultiIndex if present
+    # yfinance < 0.2 returns (Open, High, ..)
+    # yfinance >= 0.2 returns (Price, Ticker) -> we want Price level
+    if isinstance(data.columns, pd.MultiIndex):
+        # We assume level 0 is the price type (Open, Close, etc) and level 1 is Ticker
+        # Check if 'Close' is in level 0
+        if "Close" in data.columns.get_level_values(0):
+             data.columns = data.columns.get_level_values(0)
+        else:
+             # Maybe swapped?
+             data.columns = data.columns.droplevel(1)
+
+    if data.empty:
+        raise ValueError(f"No price data found for {symbol}. Market might be closed or symbol invalid.")
+
+    # Standardize columns
+    df = data.reset_index()
+    
+    # 3y filter logic
+    if period == "3y":
+        cutoff = dt.datetime.now() - dt.timedelta(days=3*365)
+        date_col = "Date" if "Date" in df.columns else "Datetime"
+        if date_col in df.columns:
+            df[date_col] = pd.to_datetime(df[date_col]).dt.tz_localize(None)
+            df = df[df[date_col] >= cutoff]
+
+    print(f"DEBUG: get_history({symbol}, {period}) -> shape {df.shape}")
+
+    # Normalize column names to Title Case for checking
+    # Some versions return 'open', some 'Open'
+    # we want to ensure we have 'Date'/'Datetime' and 'Open','High','Low','Close'
+    
+    # Create map of lower->actual
+    col_map = {c.lower(): c for c in df.columns}
+    
+    # Find Date column
+    date_col = col_map.get("date") or col_map.get("datetime")
+    
+    if not date_col:
+        # Fallback, use index if it is a DatetimeIndex and wasn't reset properly?
+        # But we did reset_index().
+        pass
+
+    final_cols = {}
+    if date_col:
+        final_cols["date"] = date_col
+    
+    for needed in ["open", "high", "low", "close"]:
+        if needed in col_map:
+            final_cols[needed] = col_map[needed]
+        elif "close" in col_map:
+             # Fallback: if 'open' missing (unlikely for daily, but maybe), use close
+             final_cols[needed] = col_map["close"]
+
+    # Construct new DF
+    new_df = pd.DataFrame()
+    for new_name, old_name in final_cols.items():
+        new_df[new_name] = df[old_name]
+
+    return new_df
+
+
+
+
+# -------- STOCK HISTORY --------
+
+@app.route("/api/stocks/<symbol>/history")
+@jwt_required()
+def stock_history(symbol):
+    period = request.args.get("period", "1mo").lower()
+    try:
+        hist = get_history(symbol, period)
+    except ValueError as e:
+        # Instead of 404 w/ error, return 200 with empty list to avoid console errors
+        return jsonify({"prices": [], "message": str(e)}), 200
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"Error fetching history for {symbol}: {e}")
+        return (
+            jsonify(
+                {
+                    "prices": [],
+                    "message": f"Stock data provider error: {str(e)}",
+                }
+            ),
+            502,
+        )
+
+    # Convert to struct
+    # hist has lower case columns: date, open, high, low, close
+    # Intraday dates might include time
+    
+    # Helper to format date
+    def fmt_date(d):
+        if isinstance(d, pd.Timestamp):
+            # If intraday (has non-zero time), keep time
+            if d.time() != dt.time(0, 0):
+                return d.strftime("%Y-%m-%d %H:%M")
+            return d.strftime("%Y-%m-%d")
+        return str(d)
+
+    data = []
+    for _, row in hist.iterrows():
+        entry = {
+            "date": fmt_date(row["date"]),
+            "open": float(row["open"]),
+            "high": float(row["high"]),
+            "low": float(row["low"]),
+            "close": float(row["close"]),
+        }
+        data.append(entry)
+
+    return jsonify({"prices": data}), 200
+
+
+@app.route("/api/stocks/<symbol>/quote")
+@jwt_required()
+def stock_quote(symbol):
+    try:
+        # Fetch just the latest price or a small history
+        # period='1d', interval='1m' is usually good for "current" price
+        ticker = yf.Ticker(symbol)
+        
+        # FastTrack: use fast_info if available (newer yfinance)
+        # However, fast_info sometimes fails on NS stocks. 
+        # Safer to use history(period="1d") and take last close.
+        
+        hist = ticker.history(period="1d")
+        if hist.empty:
+            # Try 5d if 1d is empty (weekend/holiday)
+            hist = ticker.history(period="5d")
+        
+        if hist.empty:
+            return jsonify({"price": 0.0, "change": 0.0, "symbol": symbol}), 200
+
+        current_price = hist["Close"].iloc[-1]
+        
+        # Calculate change if possible
+        prev_close = hist["Open"].iloc[0] # or Close of prev day if we had it
+        if len(hist) > 1:
+            prev_close = hist["Close"].iloc[-2]
+             
+        change = current_price - prev_close
+        percent = (change / prev_close) * 100 if prev_close != 0 else 0
+
+        return jsonify({
+            "symbol": symbol,
+            "price": float(current_price),
+            "change": float(change),
+            "percent": float(percent)
+        }), 200
+
+    except Exception as e:
+        print(f"Error fetching quote for {symbol}: {e}")
+        return jsonify({"message": "Error fetching quote", "error": str(e)}), 500
+
+
+# -------- AI PREDICTIONS (LSTM) --------
+
+@app.route("/api/stocks/<symbol>/predict")
+@jwt_required()
+def predict(symbol):
+    steps = int(request.args.get("days", 5)) # "days" here really means "steps"
+    interval = request.args.get("interval", "1d")
+
+    # Determine validation limits based on interval
+    if interval == "1m":
+         period_key = "1m"
+         # fail if < 60 lookback + 10 buffer
+         min_data_points = 75 
+    elif interval == "5m":
+         period_key = "5m"
+         min_data_points = 75
+    elif interval == "15m":
+         period_key = "15m"
+         min_data_points = 75
+    else:
+         period_key = "2y" # default for 1d
+         min_data_points = 75
+
+    try:
+        # Fetch appropriate history
+        hist = get_history(symbol, period_key)
+    except Exception as e:
+        print(f"Prediction Error (fetch): {e}")
+        return jsonify({"predictions": [], "message": "Could not fetch history"}), 502
+
+    if hist.empty:
+         return jsonify({"predictions": [], "message": "No data found"}), 404
+
+    # Get closing prices
+    closes = hist["close"].astype(float).tolist()
+    
+    # Check if we have enough data (60 lookback + 10 min training)
+    # We need at least look_back + 10
+    if len(closes) < min_data_points:
+        return jsonify({"message": f"Not enough historical data for {symbol} (need {min_data_points} points, got {len(closes)})", "predictions": []}), 400
+
+    # Ensure steps is reasonable limit
+    if steps > 60: steps = 60 # Allow more steps for intraday (1 hour)
+
+    try:
+        # Use LSTM to predict sequence
+        # This returns a list of N floats
+        predicted_prices = predict_lstm(closes, days=steps)
+    except Exception as e:
+        print(f"LSTM Error: {e}")
+        return jsonify({"message": f"AI Model Error: {str(e)}", "predictions": []}), 500
+
+    # Construct response with dates/times
+    # Get last date from hist
+    last_date_val = hist.iloc[-1]["date"]
+    
+    # Ensure it's a datetime object
+    if not isinstance(last_date_val, (dt.date, dt.datetime)):
+        last_date_val = pd.to_datetime(last_date_val)
+
+    # If pandas timestamp, convert to pydatetime
+    if isinstance(last_date_val, pd.Timestamp):
+        last_date_val = last_date_val.to_pydatetime()
+
+    predictions = []
+    # User requested "based on the present day"
+    # Instead of continuing from the last historical date (which might be Friday),
+    # we anchor the *labels* to the current moment so they appear as "future" predictions relative to now.
+    current_date = dt.datetime.now()
+
+    for i, price in enumerate(predicted_prices):
+        if interval == "1m":
+             current_date += dt.timedelta(minutes=1)
+             date_str = current_date.strftime("%Y-%m-%d %H:%M")
+        elif interval == "5m":
+             current_date += dt.timedelta(minutes=5)
+             date_str = current_date.strftime("%Y-%m-%d %H:%M")
+        elif interval == "15m":
+             current_date += dt.timedelta(minutes=15)
+             date_str = current_date.strftime("%Y-%m-%d %H:%M")
+        else:
+             current_date += dt.timedelta(days=1)
+             # Skip weekends for daily predictions
+             while current_date.weekday() >= 5: # 5=Saturday, 6=Sunday
+                 current_date += dt.timedelta(days=1)
+                 
+             date_str = current_date.strftime("%Y-%m-%d")
+
+        predictions.append({
+            "date": date_str,
+            "predicted_close": price
+        })
+
+    return jsonify({"predictions": predictions}), 200
+
+
+# -------- REPORTS SUMMARY --------
+
+@app.route("/api/reports/summary")
+@jwt_required()
+def reports_summary():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM users")
+    total_users = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+
+    data = {
+        "total_users": total_users,
+        "popular_symbols": ["AAPL", "TSLA", "MSFT", "GOOGL"],
+    }
+    return jsonify(data)
+
+
+# -------- USER PORTFOLIO REPORT --------
+
+# -------- USER PORTFOLIO REPORT --------
+
+@app.route("/api/reports/portfolio", methods=["GET", "POST", "DELETE"])
+@jwt_required()
+def user_portfolio():
+    user_id = int(get_jwt_identity())
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+
+    if request.method == "DELETE":
+        data = request.get_json() or {}
+        symbol = data.get("symbol")
+        if not symbol:
+            cur.close()
+            conn.close()
+            return jsonify({"message": "Symbol required"}), 400
+        
+        try:
+            cur.execute("DELETE FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol.upper()))
+            conn.commit()
+            if cur.rowcount == 0:
+                 return jsonify({"message": "Position not found"}), 404
+            return jsonify({"message": "Deleted successfully"}), 200
+        except Exception as e:
+            conn.rollback()
+            print(f"Error in deleting position: {e}")
+            return jsonify({"message": "Failed to delete position"}), 500
+        finally:
+             if conn.is_connected():
+                cur.close()
+                conn.close()
+
+    if request.method == "POST":
+        data = request.get_json() or {}
+        symbol = data.get("symbol")
+        quantity = data.get("quantity")
+        avg_price = data.get("avg_price")
+        p_date = data.get("purchase_date") # YYYY-MM-DD
+
+        if not symbol or not quantity or not avg_price:
+            return jsonify({"message": "Symbol, quantity, and avg_price required"}), 400
+
+        # Optional: Fetch latest price content
+        latest_price = avg_price
+        
+        try:
+            cur.execute(
+                """
+                INSERT INTO user_stocks (user_id, symbol, quantity, avg_price, latest_price, purchase_date)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (user_id, symbol.upper(), quantity, avg_price, latest_price, p_date)
+            )
+            conn.commit()
+            return jsonify({"message": "Added successfully"}), 201
+        except Exception as e:
+            conn.rollback()
+            print(f"Error in adding position: {e}")
+            return jsonify({"message": "Failed to add position"}), 500
+        finally:
+            cur.close()
+            conn.close()
+
+    # GET
+    # 1. Fetch all user symbols
+    cur.execute("SELECT id, symbol FROM user_stocks WHERE user_id = %s", (user_id,))
+    stocks = cur.fetchall()
+
+    if stocks:
+        # 2. Get unique symbols to minimize API calls
+        unique_symbols = list(set(s["symbol"] for s in stocks))
+        
+        # 3. Fetch current prices
+        # We can use yf.download for bulk, or Ticker for individuals.
+        # Bulk is faster.
+        try:
+            # period='1d' is enough to get latest close/current
+            # yfinance returns a DataFrame with columns MultiIndex (Price, Ticker) or just Price if 1 ticker
+            # We need to handle this carefully.
+            
+            # Using Ticker.info or history for each might be safer but slower. 
+            # Let's simple loop for now as it's more robust for various formats or just use download properly.
+            
+            current_prices = {}
+            # Batch download is tricky with yfinance recently (column formatting changed).
+            # Let's do a simple loop for reliability first, or try-catch batch.
+            
+            # Optimization: 
+            # If unique_symbols is large, batch is better.
+            # let's try batch download
+            import yfinance as yf # ensure imported
+            
+            batch_data = yf.download(unique_symbols, period="1d", progress=False)
+            
+            # Parse batch data
+            for sym in unique_symbols:
+                price = 0.0
+                try:
+                    # If simplified (1 ticker), columns are just Open, Close...
+                    if len(unique_symbols) == 1:
+                         # Access last row 'Close'
+                         price = float(batch_data["Close"].iloc[-1])
+                    else:
+                         # MultiIndex: (Price, Ticker) -> ('Close', 'AAPL')
+                         # Check if 'Close' is level 0 or level 1
+                         if isinstance(batch_data.columns, pd.MultiIndex):
+                             try:
+                                 price = float(batch_data["Close"][sym].iloc[-1])
+                             except:
+                                 # Fallback if structure is different
+                                 pass
+                except Exception:
+                    pass
+                
+                # Validation
+                if price > 0:
+                    current_prices[sym] = price
+
+            # 4. Update DB
+            for sym, price in current_prices.items():
+                cur.execute(
+                    "UPDATE user_stocks SET latest_price = %s WHERE user_id = %s AND symbol = %s",
+                    (price, user_id, sym)
+                )
+            conn.commit()
+
+        except Exception as e:
+            print(f"Error updating portfolio prices: {e}")
+            # Continue to show old prices if update fails
+
+    # 5. Retrieve Updated Data
+    cur.execute(
+        """
+        SELECT
+            id,
+            symbol,
+            quantity,
+            avg_price,
+            latest_price,
+            purchase_date,
+            latest_price * quantity AS current_value,
+            (latest_price - avg_price) * quantity AS profit_loss, 
+            latest_price - avg_price AS change_abs_unit,
+            (latest_price - avg_price) / avg_price * 100 AS change_pct
+        FROM user_stocks
+        WHERE user_id = %s
+        ORDER BY change_pct DESC
+        """,
+        (user_id,),
+    )
+    rows = cur.fetchall()
+    total_value = sum(r["current_value"] for r in rows) if rows else 0
+    total_invested = sum(r["quantity"] * r["avg_price"] for r in rows) if rows else 0
+    
+    # Fetch user wallet
+    cur.execute("SELECT wallet_balance FROM users WHERE id = %s", (user_id,))
+    user_row = cur.fetchone()
+    # Handle case where user_row might be None (though unlikely with token)
+    wallet_balance = float(user_row["wallet_balance"] or 0) if user_row else 0.0
+
+    cur.close()
+    conn.close()
+    return jsonify(
+        {
+            "total_value": float(total_value),
+            "total_invested": float(total_invested),
+            "wallet_balance": wallet_balance,
+            "positions": rows,
+        }
+    )
+
+
+# -------- TRADING ENGINE (GAMIFICATION) --------
+
+
+@app.route("/api/trade/buy", methods=["POST"])
+@jwt_required()
+def trade_buy():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    symbol = data.get("symbol")
+    quantity = data.get("quantity")
+
+    if not symbol or not quantity or int(quantity) <= 0:
+        return jsonify({"message": "Invalid symbol or quantity"}), 400
+    
+    quantity = int(quantity)
+    symbol = symbol.upper().strip()
+
+    # 1. Get Live Price
+    try:
+        df = get_history(symbol, "1d")
+        if df.empty:
+             return jsonify({"message": "Could not fetch live price"}), 400
+        current_price = float(df.iloc[-1]["close"])
+    except Exception as e:
+        return jsonify({"message": f"Error fetching price: {str(e)}"}), 500
+
+    # 2. Currency Conversion
+    # Default wallet is USD. If stock is INR, convert cost to USD.
+    is_inr = symbol.endswith(".NS") or symbol.endswith(".BO")
+    exchange_rate = 84.0 if is_inr else 1.0 # 1 USD = 84 INR
+    
+    # Cost in Stock Currency
+    total_cost_native = current_price * quantity
+    
+    # Cost in Wallet Currency (USD)
+    total_cost_usd = total_cost_native / exchange_rate
+
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+
+    try:
+        # 3. Check Balance
+        cur.execute("SELECT wallet_balance FROM users WHERE id = %s", (user_id,))
+        user = cur.fetchone()
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+            
+        balance = float(user["wallet_balance"] or 0)
+        
+        if balance < total_cost_usd:
+            return jsonify({"message": f"Insufficient funds. Cost: ${total_cost_usd:.2f}, Balance: ${balance:.2f}"}), 400
+
+        # 4. Execute Trade
+        # Deduct Balance (USD)
+        new_balance = balance - total_cost_usd
+        cur.execute("UPDATE users SET wallet_balance = %s WHERE id = %s", (new_balance, user_id))
+
+        # Add Stock to Portfolio
+        cur.execute("SELECT id, quantity, avg_price FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol))
+        existing = cur.fetchone()
+
+        if existing:
+            new_qty = existing["quantity"] + quantity
+            # Update Avg Price (Weighted Average in Native Currency)
+            old_total_val = existing["quantity"] * float(existing["avg_price"])
+            new_total_val = old_total_val + total_cost_native
+            new_avg = new_total_val / new_qty
+            
+            cur.execute(
+                "UPDATE user_stocks SET quantity = %s, avg_price = %s, latest_price = %s WHERE id = %s",
+                (new_qty, new_avg, current_price, existing["id"])
+            )
+        else:
+            cur.execute(
+                "INSERT INTO user_stocks (user_id, symbol, quantity, avg_price, latest_price, purchase_date) VALUES (%s, %s, %s, %s, %s, %s)",
+                (user_id, symbol, quantity, current_price, current_price, dt.date.today())
+            )
+
+        # Log Transaction
+        # Store Price/Total in Native Currency (or maybe USD? Let's store Native and add a 'currency' column later if needed.
+        # For now, let's store Native so user sees history in ₹)
+        cur.execute(
+            """
+            INSERT INTO transactions (user_id, symbol, type, quantity, price, total_amount)
+            VALUES (%s, %s, 'BUY', %s, %s, %s)
+            """,
+            (user_id, symbol, quantity, current_price, total_cost_native)
+        )
+
+        conn.commit()
+        return jsonify({
+            "message": f"Bought {quantity} {symbol} @ {current_price:.2f}",
+            "new_balance": new_balance
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Trade Error: {e}")
+        return jsonify({"message": "Trade failed"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+
+@app.route("/api/trade/sell", methods=["POST"])
+@jwt_required()
+def trade_sell():
+    user_id = int(get_jwt_identity())
+    data = request.get_json() or {}
+    symbol = data.get("symbol")
+    quantity = data.get("quantity")
+
+    if not symbol or not quantity or int(quantity) <= 0:
+        return jsonify({"message": "Invalid symbol or quantity"}), 400
+    
+    quantity = int(quantity)
+    symbol = symbol.upper().strip()
+
+    # 1. Get Live Price
+    try:
+        df = get_history(symbol, "1d")
+        if df.empty:
+             return jsonify({"message": "Could not fetch live price"}), 400
+        current_price = float(df.iloc[-1]["close"])
+    except Exception as e:
+        return jsonify({"message": f"Error fetching price: {str(e)}"}), 500
+
+    # 2. Currency Conversion
+    is_inr = symbol.endswith(".NS") or symbol.endswith(".BO")
+    exchange_rate = 84.0 if is_inr else 1.0 # 1 USD = 84 INR
+    
+    total_sale_value_native = current_price * quantity
+    total_sale_value_usd = total_sale_value_native / exchange_rate
+
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+
+    try:
+        # 3. Check Holdings
+        cur.execute("SELECT id, quantity, avg_price FROM user_stocks WHERE user_id = %s AND symbol = %s", (user_id, symbol))
+        existing = cur.fetchone()
+        
+        if not existing or existing["quantity"] < quantity:
+            return jsonify({"message": "Insufficient shares to sell"}), 400
+
+        # 4. Execute Trade
+        # Update Holdings
+        new_qty = existing["quantity"] - quantity
+        if new_qty == 0:
+            cur.execute("DELETE FROM user_stocks WHERE id = %s", (existing["id"],))
+        else:
+            cur.execute(
+                "UPDATE user_stocks SET quantity = %s, latest_price = %s WHERE id = %s",
+                (new_qty, current_price, existing["id"])
+            )
+
+        # Add Balance (USD)
+        cur.execute("UPDATE users SET wallet_balance = wallet_balance + %s WHERE id = %s", (total_sale_value_usd, user_id))
+
+        # Log Transaction
+        cur.execute(
+            """
+            INSERT INTO transactions (user_id, symbol, type, quantity, price, total_amount)
+            VALUES (%s, %s, 'SELL', %s, %s, %s)
+            """,
+            (user_id, symbol, quantity, current_price, total_sale_value_native)
+        )
+
+        # Fetch new balance for return
+        cur.execute("SELECT wallet_balance FROM users WHERE id = %s", (user_id,))
+        new_bal = cur.fetchone()["wallet_balance"]
+
+        conn.commit()
+        return jsonify({
+            "message": f"Sold {quantity} {symbol} @ {current_price:.2f}",
+            "new_balance": float(new_bal)
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Trade Error: {e}")
+        return jsonify({"message": "Trade failed"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+
+
+
+@app.route("/api/reports/transactions", methods=["GET"])
+@jwt_required()
+def get_user_transactions():
+    user_id = int(get_jwt_identity())
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    try:
+        # Fetch transactions
+        # Assuming table has: id, user_id, symbol, type, quantity, price, total_amount, timestamp
+        cur.execute("""
+            SELECT id, symbol, type, quantity, price, total_amount, timestamp 
+            FROM transactions 
+            WHERE user_id = %s 
+            ORDER BY timestamp DESC 
+            LIMIT 50
+        """, (user_id,))
+        
+        txs = cur.fetchall()
+        
+        # Format timestamp
+        safe_txs = []
+        for t in txs:
+            if isinstance(t.get("timestamp"), (dt.date, dt.datetime)):
+                t["timestamp"] = t["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+            safe_txs.append(t)
+            
+        return jsonify({"transactions": safe_txs}), 200
+        
+    except Exception as e:
+        print(f"Error fetching transactions: {e}")
+        return jsonify({"transactions": [], "message": "Failed to load transactions"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+# -------- ADMIN SYSTEM REPORT --------
+@app.route("/api/admin/system-stats", methods=["GET"])
+@admin_required
+def get_system_stats():
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    
+    try:
+        # 1. Total Users
+        cur.execute("SELECT COUNT(*) as count FROM users")
+        total_users = cur.fetchone()["count"]
+        
+        # 2. New Users Today (Assuming id is somewhat chronological or created_at exists, 
+        # but since we don't have created_at, we might skip "Today" or just return total for now.
+        # Let's check schema... users table has id, name, email, password, role. No created_at.
+        # We will just return Total for now.)
+        new_users_today = 0 
+        
+        # 3. Total Stocks Tracked (watchlists)
+        # We don't have a watchlist table yet in this context? 
+        # Ah, we have 'user_stocks' which is the portfolio. Let's count total rows there.
+        cur.execute("SELECT COUNT(*) as count FROM user_stocks")
+        total_stocks_tracked = cur.fetchone()["count"]
+        
+        # 4. Most Popular Stock
+        cur.execute("""
+            SELECT symbol, COUNT(*) as freq 
+            FROM user_stocks 
+            GROUP BY symbol 
+            ORDER BY freq DESC 
+            LIMIT 1
+        """)
+        pop_stock_row = cur.fetchone()
+        most_popular_stock = pop_stock_row["symbol"] if pop_stock_row else "N/A"
+        
+        # 5. Message Stats
+        # We need a messages table. Did we create it in a previous task? 
+        # The user mentioned "User Messages" page exists, so table must exist.
+        # Let's check context... yes, 'messages' table exists.
+        cur.execute("SELECT COUNT(*) as count FROM messages")
+        total_messages = cur.fetchone()["count"]
+        
+        # Unread messages? Table schema might not have 'is_read'.
+        # Let's assume just total for now.
+        
+        return jsonify({
+            "total_users": total_users,
+            "new_users_today": new_users_today, # Placeholder
+            "total_stocks_tracked": total_stocks_tracked,
+            "most_popular_stock": most_popular_stock,
+            "total_messages": total_messages
+        })
+        
+    except Exception as e:
+        print(f"Error fetching system stats: {e}")
+        return jsonify({"error": "Failed to fetch stats"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route("/")
+def home():
+    return "Stock Price Prediction Backend Running"
+
+
+
+@app.route("/api/wallet/reset", methods=["POST"])
+@jwt_required()
+def reset_balance():
+    user_id = int(get_jwt_identity())
+    conn = get_db()
+    cur = conn.cursor()
+    
+    try:
+        # Reset to 100,000
+        cur.execute("UPDATE users SET wallet_balance = 100000.0 WHERE id = %s", (user_id,))
+        conn.commit()
+        return jsonify({"message": "Wallet balance reset to $100,000.00", "new_balance": 100000.0}), 200
+    except Exception as e:
+        conn.rollback()
+        print(f"Balance reset error: {e}")
+        return jsonify({"message": "Failed to reset balance"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+
+@app.route("/api/market/ticker", methods=["GET"])
+def get_market_ticker():
+    """
+    Fetches real-time prices for major indices and assets for the UI ticker.
+    Matches the user's provided design image: SENSEX, NIFTY 50, GOLD 22K (1G), 
+    SILVER (1KG), PETROL, DIESEL, CRUDE OIL, USD.
+    """
+    assets = [
+        {"symbol": "^BSESN", "label": "SENSEX", "currency": "₹"},
+        {"symbol": "^NSEI", "label": "NIFTY 50", "currency": "₹"},
+        {"symbol": "GC=F", "label": "GOLD 22K (1G)", "currency": "₹", "type": "gold"},
+        {"symbol": "SI=F", "label": "SILVER (1KG)", "currency": "₹", "type": "silver"},
+        {"static": True, "label": "PETROL", "value": 103.54, "currency": "₹", "change": 0.12, "pct": 0.11},
+        {"static": True, "label": "DIESEL", "value": 90.03, "currency": "₹", "change": -0.05, "pct": -0.06},
+        {"symbol": "BZ=F", "label": "CRUDE OIL", "currency": "$"},
+        {"symbol": "USDINR=X", "label": "USD", "currency": "₹"},
+    ]
+
+    results = []
+    try:
+        # Get USD/INR rate first for conversion
+        try:
+            inr_ticker = yf.Ticker("USDINR=X")
+            inr_rate = float(inr_ticker.fast_info.last_price)
+        except:
+            inr_rate = 83.0 # Fallback
+
+        for asset in assets:
+            if asset.get("static"):
+                results.append({
+                    "label": asset["label"],
+                    "value": asset["value"],
+                    "currency": asset["currency"],
+                    "change": asset["change"],
+                    "pct": asset["pct"]
+                })
+                continue
+
+            ticker = yf.Ticker(asset["symbol"])
+            hist = ticker.history(period="2d")
+            
+            if len(hist) >= 2:
+                current_price = float(hist["Close"].iloc[-1])
+                prev_price = float(hist["Close"].iloc[-2])
+                change = current_price - prev_price
+                pct = (change / prev_price) * 100
+            elif len(hist) == 1:
+                current_price = float(hist["Close"].iloc[-1])
+                prev_price = float(ticker.info.get("previousClose", current_price))
+                change = current_price - prev_price
+                pct = ((change / prev_price) * 100) if prev_price != 0 else 0
+            else:
+                try:
+                    current_price = float(ticker.fast_info.last_price)
+                    prev_price = float(ticker.fast_info.previous_close)
+                    change = current_price - prev_price
+                    pct = ((change / prev_price) * 100) if prev_price != 0 else 0
+                except:
+                    current_price, change, pct = 0.0, 0.0, 0.0
+
+            # Conversion Logic for Metals
+            if asset.get("type") == "gold":
+                # GC=F is USD/oz. 1 oz = 31.1035g.
+                # Gold 22K (1g) = (USD_per_oz / 31.1035) * INR_Rate * 0.916
+                current_price = (current_price / 31.1035) * inr_rate * 0.916
+                change = (change / 31.1035) * inr_rate * 0.916
+            elif asset.get("type") == "silver":
+                # SI=F is USD/oz. Convert to INR/1kg.
+                current_price = (current_price / 31.1035) * inr_rate * 1000
+                change = (change / 31.1035) * inr_rate * 1000
+
+            results.append({
+                "label": asset["label"],
+                "value": round(current_price, 2),
+                "currency": asset["currency"],
+                "change": round(change, 2),
+                "pct": pct
+            })
+
+        return jsonify(results), 200
+    except Exception as e:
+        print(f"Ticker data error: {e}")
+        return jsonify([]), 200
+
+
+if __name__ == "__main__":
+    # In production, debug should be False. 
+    # use_reloader=False prevents TensorFlow threading issues.
+    app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)

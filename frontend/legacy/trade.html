@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock Price Prediction System – Trade</title>
+    <link rel="stylesheet" href="style.css" />
+
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body class="dashboard-body">
+    <!-- NAVBAR -->
+    <header class="ds-navbar">
+        <div class="ds-navbar-left">
+            <a href="index.html" class="ds-logo">
+                <span class="ds-logo-icon">📈</span>
+                <span class="ds-logo-text">Stock Price Prediction System</span>
+            </a>
+        </div>
+        <div class="ds-navbar-right">
+            <!-- GUEST NAV -->
+            <div id="nav-guest" style="display:none; gap:20px; align-items:center;">
+                <a href="login.html" class="ds-btn ds-btn-outline">Log in</a>
+                <a href="register.html" class="ds-btn ds-btn-primary">Sign up</a>
+            </div>
+
+            <!-- USER NAV -->
+            <div id="nav-user" style="display:flex; gap:20px; align-items:center;">
+                <div id="wallet-display" class="wallet-badge">
+                    <span>💰</span>
+                    <span id="wallet-balance">$0.00</span>
+                    <button onclick="resetBalance()"
+                        style="background:transparent; border:1px solid #ffffff40; color:#aaa; border-radius:4px; margin-left:8px; cursor:pointer; font-size:0.7em; padding:2px 6px;"
+                        title="Reset Demo Balance">↺</button>
+                </div>
+                <span id="user-name-display" style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
+                <a href="index.html" class="ds-nav-link">Home</a>
+                <a href="dashboard.html" class="ds-nav-link">Dashboard</a>
+                <a href="trade.html" class="ds-nav-link active">Trade</a>
+                <a href="portfolio.html" class="ds-nav-link">Portfolio</a>
+                <button id="logout-btn-nav" class="ds-btn ds-btn-outline">Log out</button>
+            </div>
+        </div>
+
+        <!-- MOBILE TOGGLE & MENU -->
+        <button class="ds-navbar-toggle" aria-label="Toggle Menu">☰</button>
+        <div class="ds-navbar-mobile">
+            <div id="nav-guest-mobile" style="display:flex; flex-direction:column; gap:10px;">
+                <a href="login.html" class="ds-btn ds-btn-outline" style="text-align:center;">Log in</a>
+                <a href="register.html" class="ds-btn ds-btn-primary" style="text-align:center;">Sign up</a>
+            </div>
+
+            <div id="nav-user-mobile" style="display:none; flex-direction:column; gap:10px;">
+                <div style="padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px;">
+                    <span id="user-name-display-mobile"
+                        style="color: #fff; font-weight: 600; font-size: 0.9rem;"></span>
+                </div>
+                <a href="index.html" class="ds-nav-link">Home</a>
+                <a href="admin.html" id="nav-admin-link-mobile" class="ds-nav-link"
+                    style="display:none; color:#f472b6;">Admin Console</a>
+                <a href="dashboard.html" id="nav-dashboard-link-mobile" class="ds-nav-link">Dashboard</a>
+                <a href="trade.html" id="nav-trade-link-mobile" class="ds-nav-link">Trade</a>
+                <a href="portfolio.html" id="nav-portfolio-link-mobile" class="ds-nav-link">Portfolio</a>
+                <button id="logout-btn-nav-mobile" class="ds-btn ds-btn-outline"
+                    style="width:100%; margin-top:10px;">Log out</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="ds-main">
+        <div class="trade-container">
+            <div class="trade-panel">
+                <!-- Top Bar -->
+                <div class="trade-header-section">
+                    <h2 class="trade-header-title">Order Entry</h2>
+                    <div class="trade-symbol-input-group">
+                        <input type="text" id="trade-page-symbol" class="trade-symbol-input" placeholder="SYMBOL"
+                            style="text-transform: uppercase;">
+                        <button id="fetch-price-btn" class="btn-fetch">LOAD</button>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <!-- Initial State: Centered 'Search' Message -->
+                <!-- Professional Trade Dashboard Grid -->
+                <!-- Grid: Left (Chart & Tabs), Right (Order Entry) -->
+                <div id="trade-interface" style="display:none; height: 100%;">
+                    <div class="trade-pro-grid">
+
+                        <!-- LEFT COLUMN: Chart & Data -->
+                        <div class="trade-main-col">
+                            <!-- 1. Chart Section -->
+                            <div class="trade-card chart-section">
+                                <div class="card-header">
+                                    <h3 id="chart-title">Price Chart</h3>
+                                    <div class="chart-controls">
+                                        <button class="t-btn active" data-range="1d"
+                                            onclick="setTradeChartRange('1d')">1D</button>
+                                        <button class="t-btn" data-range="1w"
+                                            onclick="setTradeChartRange('1w')">1W</button>
+                                        <button class="t-btn" data-range="1mo"
+                                            onclick="setTradeChartRange('1mo')">1M</button>
+                                    </div>
+                                </div>
+                                <div id="trade-chart-container" style="height: 350px; width: 100%;"></div>
+                            </div>
+
+                            <!-- 2. Bottom Tabs: Positions & History -->
+                            <div class="trade-card data-tables-section">
+                                <div class="tabs-header">
+                                    <button class="tab-btn active" onclick="switchTradeTab('positions')">My
+                                        Positions</button>
+                                    <button class="tab-btn" onclick="switchTradeTab('history')">Order History</button>
+                                </div>
+
+                                <div id="tab-content-positions" class="tab-content active">
+                                    <div class="table-responsive">
+                                        <table class="ds-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Symbol</th>
+                                                    <th>Qty</th>
+                                                    <th>Avg Price</th>
+                                                    <th>Current</th>
+                                                    <th>P/L</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="trade-positions-body">
+                                                <!-- Populated by JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div id="tab-content-history" class="tab-content">
+                                    <div class="table-responsive">
+                                        <table class="ds-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Symbol</th>
+                                                    <th>Type</th>
+                                                    <th>Qty</th>
+                                                    <th>Price</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="trade-history-body">
+                                                <!-- Populated by JS -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COLUMN: Order Entry -->
+                        <div class="trade-side-col">
+                            <div class="trade-card order-card">
+                                <div class="market-snapshot">
+                                    <div id="page-symbol-display" class="market-symbol-display">---</div>
+                                    <div id="page-price-display" class="market-price-display">$0.00</div>
+                                </div>
+
+                                <div class="trade-type-tabs">
+                                    <button id="page-tab-buy" class="type-tab active-buy"
+                                        onclick="setPageTradeMode('buy')">Buy</button>
+                                    <button id="page-tab-sell" class="type-tab"
+                                        onclick="setPageTradeMode('sell')">Sell</button>
+                                </div>
+
+                                <div class="order-form">
+                                    <div class="order-field">
+                                        <label>Quantity</label>
+                                        <input type="number" id="page-quantity" class="order-input" min="1" value="1"
+                                            oninput="updatePageTradeTotal()">
+                                    </div>
+
+                                    <div class="order-summary">
+                                        <div class="summary-row">
+                                            <span>Cash Available</span>
+                                            <span class="summary-val" id="page-cash">$0.00</span>
+                                        </div>
+                                        <div class="summary-row">
+                                            <span>Owned</span>
+                                            <span class="summary-val" id="page-owned">0</span>
+                                        </div>
+                                        <div class="summary-row summary-total">
+                                            <span>Total Est.</span>
+                                            <span class="summary-val" id="page-total">$0.00</span>
+                                        </div>
+                                    </div>
+
+                                    <button id="page-submit-btn" class="submit-order-btn btn-buy"
+                                        onclick="executePageTrade()">Place Order</button>
+                                    <p id="page-trade-msg"
+                                        style="text-align:center; min-height:20px; font-size:0.85rem; margin-top:10px;">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="trade-empty-state" style="padding:4rem; text-align:center; color:#64748b;">
+                    <h3>Enter a symbol to start trading</h3>
+                    <p>Real-time market data is required to place orders.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="ds-footer">
+        <div class="ds-footer-inner">
+            <div class="ds-footer-left">
+                <span class="ds-footer-logo">Stock Price Prediction System</span>
+                <span>© 2026. All rights reserved.</span>
+            </div>
+            <div class="ds-footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

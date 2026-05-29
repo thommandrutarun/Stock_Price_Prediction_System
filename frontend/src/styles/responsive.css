@@ -1,0 +1,27 @@
+/* Core Responsive Breakpoints CSS overrides */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    padding: 1.5rem 3% 3rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  h1 {
+    font-size: 2.2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  .dashboard-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.88rem;
+  }
+}

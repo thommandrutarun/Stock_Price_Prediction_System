@@ -1,22 +1,51 @@
-
-# Environment Variables
+# Environment Variables (Secrets)
 .env
 .env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Python
+# Node.js
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python Compilation & Cache
 __pycache__/
 *.py[cod]
 *$py.class
+*.ipynb_checkpoints
 
-# Virtual Environment
+# Virtual Environments
 venv/
 env/
 .venv/
+ENV/
+bin/
+lib/
+include/
 
-# IDEs
+# AI Saved Models (cached networks)
+backend/app/ai/saved_models/*.keras
+backend/app/ai/saved_models/*.h5
+
+# Local Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE Configurations
 .vscode/
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# OS
+# OS Files
 .DS_Store
 Thumbs.db

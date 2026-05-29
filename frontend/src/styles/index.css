@@ -1,0 +1,4 @@
+/* Modular CSS Imports entrypoint */
+@import './global.css';
+@import './dashboard.css';
+@import './responsive.css';

@@ -1,0 +1,50 @@
+# docker-compose.yml - Local development environment services stack orchestration
+version: '3.8'
+
+services:
+  database:
+    image: mysql:8.0
+    container_name: stock-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-stock_prediction}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-insecure_db_pass_please_change}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ../../database/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ../../database/seed.sql:/docker-entrypoint-initdb.d/2-seed.sql
+
+  backend:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile.backend
+    container_name: stock-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=database
+      - DB_USER=root
+      - DB_PASSWORD=${DB_PASSWORD:-insecure_db_pass_please_change}
+      - DB_NAME=${DB_NAME:-stock_prediction}
+      - SECRET_KEY=${SECRET_KEY:-insecure_secret_key_please_change}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-insecure_jwt_key_please_change}
+      - SUPER_ADMIN_EMAIL=${SUPER_ADMIN_EMAIL:-admin@example.com}
+    depends_on:
+      - database
+
+  frontend:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile.frontend
+    container_name: stock-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

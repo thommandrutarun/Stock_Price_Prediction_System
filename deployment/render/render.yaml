@@ -1,0 +1,44 @@
+# render.yaml - Render Cloud platform blueprint specification
+services:
+  - type: web
+    name: stock-backend-api
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/run.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+  - type: web
+    name: stock-frontend-spa
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    publishPath: frontend/dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: max-age=31536000
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
