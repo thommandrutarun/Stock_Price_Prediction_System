@@ -48,19 +48,11 @@ def get_cached_model(symbol, interval, input_shape, X, y):
                 print(f"DEBUG [Disk HIT]: Loading cached pre-trained AI model from disk for {symbol} ({interval})")
                 model = tf.keras.models.load_model(model_path)
             except Exception as e:
-                print(f"Warning: Failed to load saved model for {symbol} ({interval}): {e}. Rebuilding...")
-
-        # 3. Train on-the-fly (Fallback)
+                print(f"Warning: Failed to load saved model for {symbol} ({interval}): {e}.")
+        
+        # 3. Prevent on-the-fly training in HTTP thread
         if not model:
-            print(f"DEBUG [MISS]: No cached model found for {symbol} ({interval}). Training new network...")
-            model = build_model((input_shape[1], 1))
-            model.fit(X, y, epochs=5, batch_size=32, verbose=0)
-            
-            try:
-                model.save(model_path)
-                print(f"DEBUG: Successfully saved trained AI model to {model_path}")
-            except Exception as e:
-                print(f"Warning: Failed to save trained model: {e}")
+            raise FileNotFoundError(f"Model file not found on disk for {symbol} ({interval})")
 
         # 4. Cache in memory with LRU eviction
         _MODEL_CACHE[model_key] = model

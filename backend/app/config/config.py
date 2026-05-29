@@ -17,7 +17,13 @@ class Config:
     
     # JWT Settings
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-    JWT_ACCESS_TOKEN_EXPIRES = False 
+    JWT_TOKEN_LOCATION = ['cookies']
+    JWT_ACCESS_COOKIE_PATH = '/'
+    JWT_REFRESH_COOKIE_PATH = '/api/auth/refresh'
+    JWT_COOKIE_CSRF_PROTECT = False
+    JWT_ACCESS_TOKEN_EXPIRES = 1800  # 30 minutes
+    JWT_REFRESH_TOKEN_EXPIRES = 2592000  # 30 days
+    JWT_COOKIE_SECURE = False 
 
     # Database Settings
     DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -75,6 +81,7 @@ class ProductionConfig(Config):
     
     # Strict security session settings in production
     SESSION_COOKIE_SECURE = True
+    JWT_COOKIE_SECURE = True
     
     def __init__(self):
         # Strict validation checks for mandatory variables

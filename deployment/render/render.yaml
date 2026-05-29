@@ -4,7 +4,7 @@ services:
     name: stock-backend-api
     env: python
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: python backend/run.py
+    startCommand: gunicorn --workers 2 --threads 4 --bind 0.0.0.0:10000 "backend.app:create_app()"
     envVars:
       - key: FLASK_ENV
         value: production
@@ -19,9 +19,9 @@ services:
       - key: DB_NAME
         sync: false
       - key: SECRET_KEY
-        generateValue: true
+        sync: true
       - key: JWT_SECRET_KEY
-        generateValue: true
+        sync: true
       - key: SUPER_ADMIN_EMAIL
         sync: false
       - key: CORS_ALLOWED_ORIGINS

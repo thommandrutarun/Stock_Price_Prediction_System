@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS user_stocks (
     purchase_date DATE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_user_stocks_user_symbol ON user_stocks(user_id, symbol);
 
 -- 3. Virtual Transactions History Table
 CREATE TABLE IF NOT EXISTS transactions (
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+CREATE INDEX idx_transactions_user_symbol ON transactions(user_id, symbol);
 
 -- 4. Audit Log Table for Admin activities
 CREATE TABLE IF NOT EXISTS admin_logs (

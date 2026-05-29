@@ -1,6 +1,14 @@
 from flask import Blueprint, request, jsonify
 from backend.app.services.auth_service import AuthService
 from backend.app import limiter
+from flask_jwt_extended import (
+    set_access_cookies, 
+    set_refresh_cookies, 
+    unset_jwt_cookies, 
+    jwt_required, 
+    get_jwt_identity, 
+    create_access_token
+)
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -34,17 +42,23 @@ def register():
 def login():
     from backend.app.services.monitoring_service import MonitoringService
     from backend.app.services.analytics_service import AnalyticsService
+    from backend.app.models.user_model import UserModel
     data = request.get_json() or {}
     email = data.get("email")
     password = data.get("password")
 
     try:
         res = AuthService.login_user(email, password)
+        
         # Log successful login
-        user_id = res.get("user", {}).get("id")
-        if user_id:
-            AnalyticsService.log_activity(user_id, "login", f"User logged in: {email}")
-        return jsonify(res), 200
+        user = UserModel.get_by_email(email)
+        if user:
+            AnalyticsService.log_activity(user["id"], "login", f"User logged in: {email}")
+            
+        resp = jsonify({"user": res["user"]})
+        set_access_cookies(resp, res["access_token"])
+        set_refresh_cookies(resp, res["refresh_token"])
+        return resp, 200
     except ValueError as e:
         msg = str(e)
         MonitoringService.log_metric(
@@ -61,3 +75,18 @@ def login():
             endpoint="POST /api/auth/login"
         )
         return jsonify({"message": msg}), 500
+
+@auth_bp.route("/logout", methods=["POST"])
+def logout():
+    resp = jsonify({"message": "Logged out successfully"})
+    unset_jwt_cookies(resp)
+    return resp, 200
+
+@auth_bp.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    access_token = create_access_token(identity=identity)
+    resp = jsonify({"message": "Session refreshed successfully"})
+    set_access_cookies(resp, access_token)
+    return resp, 200

@@ -21,10 +21,12 @@ migrate = Migrate()
 raw_limits = os.getenv("RATELIMIT_DEFAULT", "200 per day;50 per hour")
 default_limits = [limit.strip() for limit in raw_limits.split(";") if limit.strip()]
 
-# Global API Limiter instance
+# Global API Limiter instance with shared Redis storage
+redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=default_limits
+    default_limits=default_limits,
+    storage_uri=redis_url
 )
 
 def create_app(config_name=None):
@@ -83,6 +85,7 @@ def create_app(config_name=None):
     from backend.app.routes.market_routes import market_bp
     from backend.app.routes.contact_routes import contact_bp
     from backend.app.routes.wallet_routes import wallet_bp
+    from backend.app.routes.health_routes import health_bp
 
     # Register blueprints with exact legacy matching prefixes
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -94,6 +97,7 @@ def create_app(config_name=None):
     app.register_blueprint(market_bp, url_prefix="/api/market")
     app.register_blueprint(contact_bp, url_prefix="/api/contact")
     app.register_blueprint(wallet_bp, url_prefix="/api/wallet")
+    app.register_blueprint(health_bp, url_prefix="/api")
 
     # Global Error handling registrar
     register_error_handlers(app)

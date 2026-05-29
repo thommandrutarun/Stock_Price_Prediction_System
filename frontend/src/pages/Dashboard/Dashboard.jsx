@@ -19,6 +19,7 @@ const Dashboard = () => {
   
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [loadingPredict, setLoadingPredict] = useState(false);
+  const [isTraining, setIsTraining] = useState(false);
   const [message, setMessage] = useState('');
 
   // Sync search parameter from Global Nav Search
@@ -69,21 +70,51 @@ const Dashboard = () => {
 
   const generatePredictions = async () => {
     setLoadingPredict(true);
+    setIsTraining(false);
     setMessage('');
     setPredictions([]);
-    try {
-      const res = await api.get(`/stocks/${symbol}/predict`, {
-        params: { days: 5, interval }
-      });
-      setPredictions(res.data.predictions || []);
-      if (res.data.message) {
-        setMessage(res.data.message);
+
+    const executePredictionQuery = async () => {
+      try {
+        const res = await api.get(`/stocks/${symbol}/predict`, {
+          params: { days: 5, interval }
+        });
+
+        if (res.status === 202 || res.data.status === 'training') {
+          setIsTraining(true);
+          setLoadingPredict(true);
+          setMessage(res.data.message || 'AI Network compilation in progress. Retrying...');
+          return false; // Keep polling
+        } else {
+          setPredictions(res.data.predictions || []);
+          setIsTraining(false);
+          setLoadingPredict(false);
+          if (res.data.message) {
+            setMessage(res.data.message);
+          } else {
+            setMessage('');
+          }
+          return true; // Stop polling
+        }
+      } catch (err) {
+        setMessage(err.message || 'AI prediction generation failed');
+        setPredictions([]);
+        setLoadingPredict(false);
+        setIsTraining(false);
+        return true; // Stop polling
       }
-    } catch (err) {
-      setMessage(err.message || 'AI prediction generation failed');
-      setPredictions([]);
-    } finally {
-      setLoadingPredict(false);
+    };
+
+    // First attempt immediately
+    const completed = await executePredictionQuery();
+    if (!completed) {
+      // Set up a polling interval every 4 seconds to retrieve model compilation outcome
+      const pollTimer = setInterval(async () => {
+        const done = await executePredictionQuery();
+        if (done) {
+          clearInterval(pollTimer);
+        }
+      }, 4000);
     }
   };
 

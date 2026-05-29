@@ -2,6 +2,7 @@ import datetime as dt
 import pandas as pd
 import yfinance as yf
 from backend.app.utils.cache import cache
+from backend.app.services.market_data_provider import MarketDataProvider
 
 class StockService:
     @staticmethod
@@ -14,6 +15,16 @@ class StockService:
         if cached_data is not None:
             print(f"DEBUG [Cache HIT]: Stock history loaded from cache for {symbol} ({period})")
             return cached_data
+
+        # 2. Attempt premium providers fetch (Twelve Data / Polygon.io)
+        try:
+            prov_data = MarketDataProvider.get_history(symbol, period)
+            if prov_data is not None and not prov_data.empty:
+                # Store in cache (5 minutes TTL)
+                cache.set(cache_key, prov_data, ttl=300)
+                return prov_data
+        except Exception as e:
+            print(f"StockService Warning: Premium data provider failed for {symbol}: {e}. Falling back...")
 
         # Period configuration mapping
         period_config = {
@@ -98,6 +109,16 @@ class StockService:
         if cached_quote is not None:
             print(f"DEBUG [Cache HIT]: Stock quote loaded from cache for {symbol}")
             return cached_quote
+
+        # 2. Attempt premium providers fetch (Twelve Data / Polygon.io)
+        try:
+            prov_quote = MarketDataProvider.get_quote(symbol)
+            if prov_quote is not None:
+                # Store quote in cache (10 seconds TTL)
+                cache.set(cache_key, prov_quote, ttl=10)
+                return prov_quote
+        except Exception as e:
+            print(f"StockService Warning: Premium quote provider failed for {symbol}: {e}. Falling back...")
 
         ticker = yf.Ticker(symbol)
         

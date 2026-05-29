@@ -5,12 +5,11 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (token && storedUser) {
+    if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
@@ -18,17 +17,14 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setIsLoading(false);
-  }, [token]);
+  }, []);
 
   const login = async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { access_token, user: userData } = response.data;
+      const { user: userData } = response.data;
       
-      localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(userData));
-      
-      setToken(access_token);
       setUser(userData);
       return userData;
     } catch (error) {
@@ -51,11 +47,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (e) {
+      console.error('Logout request failed:', e);
+    } finally {
+      localStorage.removeItem('user');
+      setUser(null);
+    }
   };
 
   const resetWallet = async () => {
@@ -82,8 +82,8 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        token,
-        isAuthenticated: !!token,
+        token: null, // Backward compatibility fallback
+        isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         isLoading,
         login,
