@@ -90,3 +90,53 @@ def refresh():
     resp = jsonify({"message": "Session refreshed successfully"})
     set_access_cookies(resp, access_token)
     return resp, 200
+
+@auth_bp.route("/forgot-password", methods=["POST"])
+@limiter.limit("5 per minute")
+def forgot_password():
+    from backend.app.models.user_model import User
+    from backend.app.services.analytics_service import AnalyticsService
+    from backend.app.database.db import db
+    from backend.app.utils.validators import validate_password
+
+    data = request.get_json() or {}
+    email = data.get("email")
+    phone = data.get("phone")
+    dob = data.get("dob")  # "YYYY-MM-DD"
+    new_password = data.get("new_password")
+
+    if not email or not phone or not dob or not new_password:
+        return jsonify({"message": "All fields are required"}), 400
+
+    if not validate_password(new_password):
+        return jsonify({
+            "message": "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
+        }), 400
+
+    try:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({"message": "User verification failed"}), 400
+
+        # Verify phone number matches
+        if user.phone != phone:
+            return jsonify({"message": "User verification failed"}), 400
+
+        # Verify date of birth matches
+        user_dob_str = str(user.dob) if user.dob else ""
+        if user_dob_str != dob:
+            return jsonify({"message": "User verification failed"}), 400
+
+        # Hash new password
+        from flask_bcrypt import generate_password_hash
+        pw_hash = generate_password_hash(new_password).decode("utf-8")
+        user.password = pw_hash
+        db.session.commit()
+
+        # Log password reset activity
+        AnalyticsService.log_activity(user.id, "password_reset", f"Password reset successful for email: {email}")
+        return jsonify({"message": "Password reset successful"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"Server error: {str(e)}"}), 500

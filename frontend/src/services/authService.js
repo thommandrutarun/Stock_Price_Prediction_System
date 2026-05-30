@@ -11,6 +11,11 @@ export const authService = {
     return res.data;
   },
 
+  async forgotPassword(email, phone, dob, newPassword) {
+    const res = await api.post('/auth/forgot-password', { email, phone, dob, new_password: newPassword });
+    return res.data;
+  },
+
   async resetWallet() {
     const res = await api.post('/wallet/reset');
     return res.data;

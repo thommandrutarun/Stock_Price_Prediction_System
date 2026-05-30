@@ -87,9 +87,14 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="auth-footer-links">
-          <span>New to the platform? </span>
-          <Link to="/register">Create a free account</Link>
+        <div className="auth-footer-links" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}>
+          <div>
+            <span>New to the platform? </span>
+            <Link to="/register">Create a free account</Link>
+          </div>
+          <div style={{ marginTop: '0.25rem' }}>
+            <Link to="/forgot-password" style={{ fontSize: '0.85rem', opacity: '0.8' }}>Forgot password?</Link>
+          </div>
         </div>
       </div>
     </div>

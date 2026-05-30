@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 from dotenv import load_dotenv
 
 # Ensure environment variables are loaded
@@ -56,7 +57,8 @@ class DevelopmentConfig(Config):
     
     @property
     def SQLALCHEMY_DATABASE_URI(self):
-        pwd_part = f":{self.DB_PASSWORD}" if self.DB_PASSWORD else ""
+        quoted_pwd = urllib.parse.quote_plus(self.DB_PASSWORD) if self.DB_PASSWORD else ""
+        pwd_part = f":{quoted_pwd}" if quoted_pwd else ""
         return os.getenv("DATABASE_URL") or f"mysql+mysqlconnector://{self.DB_USER}{pwd_part}@{self.DB_HOST}/{self.DB_NAME}"
 
 class StagingConfig(Config):
@@ -72,7 +74,8 @@ class StagingConfig(Config):
     
     @property
     def SQLALCHEMY_DATABASE_URI(self):
-        pwd_part = f":{self.DB_PASSWORD}" if self.DB_PASSWORD else ""
+        quoted_pwd = urllib.parse.quote_plus(self.DB_PASSWORD) if self.DB_PASSWORD else ""
+        pwd_part = f":{quoted_pwd}" if quoted_pwd else ""
         return os.getenv("DATABASE_URL") or f"mysql+mysqlconnector://{self.DB_USER}{pwd_part}@{self.DB_HOST}/{self.DB_NAME}"
 
 class ProductionConfig(Config):
