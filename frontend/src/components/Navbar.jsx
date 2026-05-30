@@ -83,15 +83,19 @@ const Navbar = () => {
                 <ShieldAlert size={16} /> Admin Panel
               </NavLink>
             )}
-            <NavLink to="/dashboard" className={({ isActive }) => `ds-nav-link ${isActive ? 'active' : ''}`}>
-              <LayoutDashboard size={16} /> Dashboard
-            </NavLink>
-            <NavLink to="/trade" className={({ isActive }) => `ds-nav-link ${isActive ? 'active' : ''}`}>
-              <Wallet size={16} /> Trade
-            </NavLink>
-            <NavLink to="/portfolio" className={({ isActive }) => `ds-nav-link ${isActive ? 'active' : ''}`}>
-              <UserCheck size={16} /> Portfolio
-            </NavLink>
+            {!isAdmin && (
+              <>
+                <NavLink to="/dashboard" className={({ isActive }) => `ds-nav-link ${isActive ? 'active' : ''}`}>
+                  <LayoutDashboard size={16} /> Dashboard
+                </NavLink>
+                <NavLink to="/trade" className={({ isActive }) => `ds-nav-link ${isActive ? 'active' : ''}`}>
+                  <Wallet size={16} /> Trade
+                </NavLink>
+                <NavLink to="/portfolio" className={({ isActive }) => `ds-nav-link ${isActive ? 'active' : ''}`}>
+                  <UserCheck size={16} /> Portfolio
+                </NavLink>
+              </>
+            )}
             <button onClick={handleLogoutClick} className="btn btn-outline nav-logout-btn">
               <LogOut size={14} /> Log out
             </button>
@@ -132,15 +136,19 @@ const Navbar = () => {
                 <ShieldAlert size={18} /> Admin Panel
               </NavLink>
             )}
-            <NavLink to="/dashboard" className="ds-nav-link-mob" onClick={toggleMobileMenu}>
-              <LayoutDashboard size={18} /> Dashboard
-            </NavLink>
-            <NavLink to="/trade" className="ds-nav-link-mob" onClick={toggleMobileMenu}>
-              <Wallet size={18} /> Trade
-            </NavLink>
-            <NavLink to="/portfolio" className="ds-nav-link-mob" onClick={toggleMobileMenu}>
-              <UserCheck size={18} /> Portfolio
-            </NavLink>
+            {!isAdmin && (
+              <>
+                <NavLink to="/dashboard" className="ds-nav-link-mob" onClick={toggleMobileMenu}>
+                  <LayoutDashboard size={18} /> Dashboard
+                </NavLink>
+                <NavLink to="/trade" className="ds-nav-link-mob" onClick={toggleMobileMenu}>
+                  <Wallet size={18} /> Trade
+                </NavLink>
+                <NavLink to="/portfolio" className="ds-nav-link-mob" onClick={toggleMobileMenu}>
+                  <UserCheck size={18} /> Portfolio
+                </NavLink>
+              </>
+            )}
             
             <button onClick={toggleTheme} className="theme-toggle-btn-mob" aria-label="Toggle Theme">
               {theme === 'dark' ? <><Sun size={16} /> Light Mode</> : <><Moon size={16} /> Dark Mode</>}

@@ -6,7 +6,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.app import create_app
 from backend.app.database.db import db
-from backend.app.models.user_model import UserModel
+from backend.app.models.user_model import UserModel, User
+from backend.app.models.stock_model import StockModel, UserStock
+from backend.app.models.transaction_model import TransactionModel, Transaction
+from backend.app.models.message_model import MessageModel, Message
+from backend.app.models.admin_model import AdminLogModel, AdminLog
+from backend.app.models.metric_model import SystemMetric
+from backend.app.models.activity_model import UserActivity
+from backend.app.models.watchlist_model import Watchlist
 from flask_bcrypt import generate_password_hash
 
 app = create_app()

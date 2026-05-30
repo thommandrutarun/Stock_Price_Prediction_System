@@ -162,19 +162,19 @@ const Admin = () => {
           <div className="admin-stats-tab">
             <h3 className="tab-title">System Metrics</h3>
             <div className="admin-stats-grid">
-              <div className="stat-card glass-panel">
+              <div className="stat-card glass-panel stat-users">
                 <span className="stat-label">Total Registered Accounts</span>
                 <span className="stat-num">{stats.total_users} Users</span>
               </div>
-              <div className="stat-card glass-panel">
+              <div className="stat-card glass-panel stat-dau">
                 <span className="stat-label">Watchlisted Tickers</span>
                 <span className="stat-num">{stats.total_stocks_tracked} Positions</span>
               </div>
-              <div className="stat-card glass-panel">
+              <div className="stat-card glass-panel stat-ai">
                 <span className="stat-label">Most Popular Ticker</span>
-                <span className="stat-num">{stats.most_popular_stock}</span>
+                <span className="stat-num">{stats.most_popular_stock || 'N/A'}</span>
               </div>
-              <div className="stat-card glass-panel">
+              <div className="stat-card glass-panel stat-db">
                 <span className="stat-label">Inbound Contact Tickets</span>
                 <span className="stat-num">{stats.total_messages} Messages</span>
               </div>
@@ -348,7 +348,7 @@ const Admin = () => {
               </div>
             </div>
 
-            <div className="monitoring-sections-grid">
+            <div className="monitoring-sections-grid" style={{ marginTop: '2rem' }}>
               <div className="monitoring-sec glass-panel">
                 <h4 className="sec-title">Core API Performance (Average Latency)</h4>
                 {telemetry.performance.length === 0 ? (
@@ -423,7 +423,7 @@ const Admin = () => {
               </div>
             </div>
 
-            <div className="monitoring-sections-grid">
+            <div className="monitoring-sections-grid" style={{ marginTop: '2rem' }}>
               {/* Popular Symbols */}
               <div className="monitoring-sec glass-panel">
                 <h4 className="sec-title">Most Popular Stock Symbols (Checked / Viewed)</h4>
@@ -505,7 +505,7 @@ const Admin = () => {
               {analytics.activity_logs.length === 0 ? (
                 <p className="empty-sec-txt">No user activity recorded yet.</p>
               ) : (
-                <div className="monitoring-logs-list" style={{ maxHeight: '500px' }}>
+                <div className="monitoring-logs-list" style={{ maxHeight: '400px' }}>
                   {analytics.activity_logs.map((log) => (
                     <div className={`log-entry-item log-type-${log.action}`} key={log.id}>
                       <div className="log-entry-header">
