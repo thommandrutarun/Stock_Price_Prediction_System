@@ -100,11 +100,11 @@ h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -182,10 +182,10 @@ h1, h2, h3, h4 {
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-input, rgba(15, 23, 42, 0.6));
   border: 1px solid var(--border-glass);
   border-radius: 8px;
-  color: #fff;
+  color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 0.95rem;
   transition: var(--transition-smooth);
@@ -211,3 +211,48 @@ h1, h2, h3, h4 {
 .pulse-active {
   animation: pulseGlow 2s infinite ease-in-out;
 }
+
+/* Sleek Harmony Light Theme Override */
+html.light {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.72);
+  --bg-input: rgba(255, 255, 255, 0.95);
+  --border-glass: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(15, 23, 42, 0.16);
+  
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-glow: rgba(37, 99, 235, 0.15);
+  
+  --accent-purple: #9333ea;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  
+  --shadow-premium: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.05);
+}
+
+html.light .bg-video {
+  opacity: 0.05;
+  filter: saturate(1.0) brightness(1.2);
+}
+
+/* Fix light mode chart loaders, sidebars and outcome texts */
+html.light h1, 
+html.light h2, 
+html.light h3, 
+html.light h4, 
+html.light .watchlist-sym-txt, 
+html.light .outcome-price,
+html.light .form-input,
+html.light .btn-outline {
+  color: var(--text-primary);
+}
+
+html.light .form-input::placeholder {
+  color: var(--text-muted);
+}
+
