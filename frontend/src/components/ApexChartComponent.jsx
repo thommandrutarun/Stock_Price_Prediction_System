@@ -3,8 +3,15 @@ import Chart from 'react-apexcharts';
 const ApexChartComponent = ({ prices, chartType, symbol }) => {
   if (!prices || prices.length === 0) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--text-secondary)' }}>
-        No price data loaded. Click Load to visualize historical charts.
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '380px', color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>
+        <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#fff', fontWeight: '500' }}>
+          {symbol ? `No Price Data for ${symbol}` : 'No Stock Selected'}
+        </p>
+        <p style={{ fontSize: '0.95rem', color: '#94a3b8', maxWidth: '400px', lineHeight: '1.5' }}>
+          {symbol 
+            ? 'We could not fetch historical price data. Please verify the stock symbol and try again.' 
+            : 'Enter a stock symbol above (e.g., TCS.NS, AAPL) or select one from your watchlist to load the real-time chart.'}
+        </p>
       </div>
     );
   }

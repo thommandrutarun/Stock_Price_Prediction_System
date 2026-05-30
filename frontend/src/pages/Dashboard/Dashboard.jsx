@@ -7,7 +7,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const [searchParams] = useSearchParams();
-  const [symbol, setSymbol] = useState('TCS.NS');
+  const [symbol, setSymbol] = useState('');
   const [period, setPeriod] = useState('1mo');
   const [chartType, setChartType] = useState('candlestick');
   const [interval, setIntervalVal] = useState('1d');
@@ -29,7 +29,9 @@ const Dashboard = () => {
       setSymbol(symQuery.toUpperCase());
       loadHistoryData(symQuery.toUpperCase(), period);
     } else {
-      loadHistoryData(symbol, period);
+      if (symbol) {
+        loadHistoryData(symbol, period);
+      }
     }
   }, [searchParams]);
 
@@ -38,22 +40,36 @@ const Dashboard = () => {
     const stored = localStorage.getItem('watchlist');
     if (stored) {
       try {
-        setWatchlist(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        const oldDefault = ['TCS.NS', 'AAPL', 'TSLA', 'RELIANCE.NS'];
+        const isOldDefault = Array.isArray(parsed) && 
+          parsed.length === oldDefault.length && 
+          parsed.every((val, index) => val === oldDefault[index]);
+
+        if (isOldDefault) {
+          localStorage.setItem('watchlist', JSON.stringify([]));
+          setWatchlist([]);
+        } else {
+          setWatchlist(parsed);
+        }
       } catch (e) {
-        setWatchlist(['TCS.NS', 'AAPL', 'TSLA', 'RELIANCE.NS']);
+        setWatchlist([]);
       }
     } else {
-      const defaultWatch = ['TCS.NS', 'AAPL', 'TSLA', 'RELIANCE.NS'];
+      const defaultWatch = [];
       localStorage.setItem('watchlist', JSON.stringify(defaultWatch));
       setWatchlist(defaultWatch);
     }
   }, []);
 
   const loadHistoryData = async (sym = symbol, per = period) => {
+    if (!sym || !sym.trim()) {
+      return;
+    }
     setLoadingHistory(true);
     setMessage('');
     try {
-      const res = await api.get(`/stocks/${sym}/history`, {
+      const res = await api.get(`/stocks/${sym.trim()}/history`, {
         params: { period: per }
       });
       setPrices(res.data.prices || []);

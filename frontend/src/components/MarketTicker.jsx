@@ -9,9 +9,14 @@ const MarketTicker = () => {
     const fetchTicker = async () => {
       try {
         const res = await api.get('/market/ticker');
-        setTickerData(res.data || []);
+        if (res.data && Array.isArray(res.data)) {
+          setTickerData(res.data);
+        } else {
+          setTickerData([]);
+        }
       } catch (err) {
         console.error('Failed to load market ticker:', err);
+        setTickerData([]);
       }
     };
 

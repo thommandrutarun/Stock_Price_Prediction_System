@@ -10,12 +10,18 @@ r_client = redis.Redis.from_url(redis_url)
 class MarketDataProvider:
     @staticmethod
     def _is_rate_limited(provider_name):
-        return r_client.exists(f"rate_limit:{provider_name}")
+        try:
+            return r_client.exists(f"rate_limit:{provider_name}")
+        except Exception:
+            return False
 
     @staticmethod
     def _set_rate_limited(provider_name, seconds=60):
         print(f"MarketDataProvider: [RATE LIMIT BLOCK] Provider {provider_name} has hit rate limits. Blocking for {seconds} seconds.")
-        r_client.set(f"rate_limit:{provider_name}", "1", ex=seconds)
+        try:
+            r_client.set(f"rate_limit:{provider_name}", "1", ex=seconds)
+        except Exception:
+            pass
 
     @staticmethod
     def get_history(symbol, period):
