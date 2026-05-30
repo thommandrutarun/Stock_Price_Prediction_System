@@ -22,7 +22,8 @@ raw_limits = os.getenv("RATELIMIT_DEFAULT", "200 per day;50 per hour")
 default_limits = [limit.strip() for limit in raw_limits.split(";") if limit.strip()]
 
 # Global API Limiter instance with shared Redis storage
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+# Fallback to in-memory storage in local environments if REDIS_URL is not set
+redis_url = os.getenv("REDIS_URL", "memory://")
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=default_limits,
