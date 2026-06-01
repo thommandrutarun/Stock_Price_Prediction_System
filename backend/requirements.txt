@@ -5,7 +5,7 @@ flask-jwt-extended==4.7.1
 mysql-connector-python==9.6.0
 yfinance==1.1.0
 pandas==3.0.0
-numpy==2.4.2
+numpy==2.0.2
 scikit-learn==1.8.0
 python-dotenv==1.2.1
 tensorflow==2.18.0
