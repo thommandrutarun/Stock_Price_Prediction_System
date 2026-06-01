@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://your-backend-service.onrender.com/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://stock-price-backend-pyrp.onrender.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
