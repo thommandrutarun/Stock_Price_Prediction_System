@@ -58,8 +58,22 @@ def create_app(config_name=None):
     limiter.init_app(app)
 
     # Configure dynamic CORS based on environment configuration
+    import re
     raw_origins = app.config.get("CORS_ALLOWED_ORIGINS", "")
-    allowed_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+    allowed_origins = []
+    for origin in raw_origins.split(","):
+        origin = origin.strip()
+        if not origin:
+            continue
+        # Enable regex matching for dynamic Vercel domains (e.g. starting with r: or containing .*)
+        if origin.startswith("r:") or ".*" in origin:
+            pattern = origin[2:] if origin.startswith("r:") else origin
+            try:
+                allowed_origins.append(re.compile(pattern))
+            except re.error:
+                allowed_origins.append(origin)
+        else:
+            allowed_origins.append(origin)
     
     CORS(
         app,
