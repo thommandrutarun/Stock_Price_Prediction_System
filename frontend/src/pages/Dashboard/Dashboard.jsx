@@ -185,6 +185,7 @@ const Dashboard = () => {
                   <Search size={16} className="search-symbol-icon" />
                   <input
                     id="stock-symbol-input"
+                    name="symbol"
                     type="text"
                     className="form-input symbol-input"
                     placeholder="e.g. TCS.NS or AAPL"
@@ -346,6 +347,8 @@ const Dashboard = () => {
             
             <form onSubmit={handleAddToWatchlist} className="watchlist-add-form">
               <input
+                id="watchlist-add-input"
+                name="watchlistSymbol"
                 type="text"
                 className="form-input watchlist-add-input"
                 placeholder="Symbol (e.g. INFY.NS)"

@@ -43,7 +43,7 @@ html {
   }
 
   .content-wrapper {
-    padding: 1rem 12px 2.5rem;
+    padding: 1rem 12px 100px !important; /* Clears the 60px bottom navigation bar */
   }
 
   /* Typography Scale */
@@ -175,6 +175,10 @@ html {
     margin-bottom: 0 !important;
   }
 
+  .screener-input-group .flex-1 {
+    min-width: 0 !important; /* Allow flex child to shrink below contents */
+  }
+
   .symbol-input {
     height: 48px !important;
   }
@@ -182,6 +186,7 @@ html {
   .load-history-btn {
     height: 48px !important;
     width: 110px !important;
+    flex-shrink: 0 !important; /* Prevent text clipping or shrinkage */
     margin-top: 0 !important;
     padding: 0 12px !important;
     font-size: 0.85rem !important;

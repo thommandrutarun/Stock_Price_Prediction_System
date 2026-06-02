@@ -142,6 +142,8 @@ const Trade = () => {
               <div className="symbol-search-input-wrap">
                 <Search size={16} className="search-symbol-icon" />
                 <input
+                  id="trade-symbol-input"
+                  name="symbol"
                   type="text"
                   className="form-input symbol-input"
                   placeholder="Enter Stock Symbol (e.g. RELIANCE.NS)"
@@ -215,6 +217,7 @@ const Trade = () => {
                 <label className="form-label" htmlFor="trade-qty-input">Shares Quantity</label>
                 <input
                   id="trade-qty-input"
+                  name="quantity"
                   type="number"
                   min="1"
                   className="form-input"
