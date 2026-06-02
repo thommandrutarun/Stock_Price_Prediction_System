@@ -116,7 +116,10 @@ html {
     font-size: clamp(10px, 3.4vw, 15px) !important;
     font-weight: 600 !important;
     white-space: nowrap !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: inline-block !important;
+    max-width: calc(100vw - 110px) !important; /* Prevents overlap with logo icon and hamburger button */
   }
 
   .ds-navbar-toggle {
@@ -216,7 +219,15 @@ html {
   }
 
   .screener-input-group label {
-    display: none !important; /* Hide labels to bring inputs directly in line */
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
   }
 
   .screener-input-group .form-group {
