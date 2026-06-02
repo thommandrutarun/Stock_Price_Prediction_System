@@ -21,6 +21,7 @@ const Trade = () => {
   
   const [message, setMessage] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [txLogExpanded, setTxLogExpanded] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
 
   // Initial load
   useEffect(() => {
@@ -285,51 +286,60 @@ const Trade = () => {
 
         {/* RECENT TRANSACTIONS TABLE */}
         <section className="trade-history-panel glass-panel">
-          <div className="history-panel-header">
-            <FileText size={20} className="history-icon" />
-            <h3>Transaction Log</h3>
+          <div className="history-panel-header" onClick={() => setTxLogExpanded(!txLogExpanded)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <FileText size={20} className="history-icon" />
+              <h3 style={{ margin: 0 }}>Transaction Log</h3>
+            </div>
+            <span className="accordion-toggle-indicator" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+              {txLogExpanded ? 'Collapse ▲' : 'Expand ▼'}
+            </span>
           </div>
 
-          {loadingTx ? (
-            <div className="tx-loader-panel">
-              <Loader2 size={24} className="animate-spin text-primary" />
-              <p>Syncing log reports...</p>
-            </div>
-          ) : transactions.length === 0 ? (
-            <div className="tx-empty-panel">
-              <p>No transaction history recorded yet on this account.</p>
-            </div>
-          ) : (
-            <div className="tx-list-responsive-container">
-              <table className="tx-list-table">
-                <thead>
-                  <tr>
-                    <th>Symbol</th>
-                    <th>Type</th>
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((tx) => {
-                    const isBuy = tx.type === 'BUY';
-                    const txIndian = tx.symbol.endsWith('.NS') || tx.symbol.endsWith('.BO');
-                    const txCurr = txIndian ? '₹' : '$';
-                    return (
-                      <tr key={tx.id}>
-                        <td className="tx-sym-bold">{tx.symbol}</td>
-                        <td className={isBuy ? 'tx-badge-buy' : 'tx-badge-sell'}>
-                          <span className="type-badge-indicator">{tx.type}</span>
-                        </td>
-                        <td>{tx.quantity}</td>
-                        <td>{txCurr}{parseFloat(tx.price).toFixed(2)}</td>
-                        <td className="tx-date-txt">{tx.timestamp.split(' ')[0]}</td>
+          {txLogExpanded && (
+            <div className="tx-log-collapsible-body" style={{ width: '100%', marginTop: '1.25rem' }}>
+              {loadingTx ? (
+                <div className="tx-loader-panel">
+                  <Loader2 size={24} className="animate-spin text-primary" />
+                  <p>Syncing log reports...</p>
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="tx-empty-panel">
+                  <p>No transaction history recorded yet on this account.</p>
+                </div>
+              ) : (
+                <div className="tx-list-responsive-container">
+                  <table className="tx-list-table">
+                    <thead>
+                      <tr>
+                        <th>Symbol</th>
+                        <th>Type</th>
+                        <th>Qty</th>
+                        <th>Rate</th>
+                        <th>Date</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {transactions.map((tx) => {
+                        const isBuy = tx.type === 'BUY';
+                        const txIndian = tx.symbol.endsWith('.NS') || tx.symbol.endsWith('.BO');
+                        const txCurr = txIndian ? '₹' : '$';
+                        return (
+                          <tr key={tx.id}>
+                            <td className="tx-sym-bold">{tx.symbol}</td>
+                            <td className={isBuy ? 'tx-badge-buy' : 'tx-badge-sell'}>
+                              <span className="type-badge-indicator">{tx.type}</span>
+                            </td>
+                            <td>{tx.quantity}</td>
+                            <td>{txCurr}{parseFloat(tx.price).toFixed(2)}</td>
+                            <td className="tx-date-txt">{tx.timestamp.split(' ')[0]}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
         </section>

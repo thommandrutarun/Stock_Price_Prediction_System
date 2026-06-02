@@ -12,6 +12,9 @@ const Dashboard = () => {
   const [chartType, setChartType] = useState('candlestick');
   const [interval, setIntervalVal] = useState('1d');
   
+  const [aiExpanded, setAiExpanded] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+  const [watchlistExpanded, setWatchlistExpanded] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
+  
   const [prices, setPrices] = useState([]);
   const [predictions, setPredictions] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
@@ -271,113 +274,137 @@ const Dashboard = () => {
 
           {/* AI PREDICTION MODULE */}
           <div className="terminal-ai-module-card glass-panel">
-            <div className="ai-module-header">
-              <div className="ai-module-title">
-                <Award size={20} className="ai-medal-icon" />
-                <h3>DeepStock Predictor AI</h3>
+            <div className="ai-module-header" onClick={() => setAiExpanded(!aiExpanded)} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div className="ai-module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Award size={20} className="ai-medal-icon" />
+                  <h3>DeepStock Predictor AI</h3>
+                </div>
+                <span className="accordion-toggle-indicator" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                  {aiExpanded ? 'Collapse ▲' : 'Expand ▼'}
+                </span>
               </div>
               <p className="ai-module-subtitle">
                 Deploy cached LSTM Neural Networks to forecast the next 5 intervals based on technical indicators.
               </p>
             </div>
 
-            <div className="ai-controls-bar">
-              <div className="ai-interval-selector">
-                <span className="selector-title">Prediction Interval:</span>
-                <div className="interval-btn-group">
-                  {['1d', '1m', '5m', '15m'].map((intVal) => (
-                    <button
-                      key={intVal}
-                      className={`int-btn ${interval === intVal ? 'active' : ''}`}
-                      onClick={() => setIntervalVal(intVal)}
-                    >
-                      {intVal === '1d' ? '1 Day' : intVal === '1m' ? '1 Min' : intVal === '5m' ? '5 Min' : '15 Min'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={generatePredictions}
-                className="btn btn-primary run-ai-btn"
-                disabled={loadingPredict || prices.length === 0}
-              >
-                {loadingPredict ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" /> Compiling Tensor Network...
-                  </>
-                ) : (
-                  <>
-                    Generate Forecast <Play size={14} />
-                  </>
-                )}
-              </button>
-            </div>
-
-            {loadingPredict && (
-              <div className="ai-prediction-loading">
-                <Loader2 size={24} className="animate-spin text-accent-purple" />
-                <p>Initializing TensorFlow. Executing feed-forward prediction sequences...</p>
-              </div>
-            )}
-
-            {!loadingPredict && predictions.length > 0 && (
-              <div className="ai-predictions-display">
-                <h4 className="forecast-results-title">AI Projected Outcomes</h4>
-                <div className="forecast-outcomes-grid">
-                  {predictions.map((p, idx) => (
-                    <div className="forecast-outcome-card glass-panel" key={idx}>
-                      <span className="outcome-step">STEP {idx + 1}</span>
-                      <span className="outcome-date">{p.date}</span>
-                      <span className="outcome-price">${p.predicted_close.toFixed(2)}</span>
+            {aiExpanded && (
+              <div className="ai-module-collapsible-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', marginTop: '1.25rem' }}>
+                <div className="ai-controls-bar">
+                  <div className="ai-interval-selector">
+                    <span className="selector-title">Prediction Interval:</span>
+                    <div className="interval-btn-group">
+                      {['1d', '1m', '5m', '15m'].map((intVal) => (
+                        <button
+                          key={intVal}
+                          className={`int-btn ${interval === intVal ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation(); // prevent accordion toggle on click
+                            setIntervalVal(intVal);
+                          }}
+                        >
+                          {intVal === '1d' ? '1 Day' : intVal === '1m' ? '1 Min' : intVal === '5m' ? '5 Min' : '15 Min'}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent accordion toggle
+                      generatePredictions();
+                    }}
+                    className="btn btn-primary run-ai-btn"
+                    disabled={loadingPredict || prices.length === 0}
+                  >
+                    {loadingPredict ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" /> Compiling Tensor Network...
+                      </>
+                    ) : (
+                      <>
+                        Generate Forecast <Play size={14} />
+                      </>
+                    )}
+                  </button>
                 </div>
+
+                {loadingPredict && (
+                  <div className="ai-prediction-loading">
+                    <Loader2 size={24} className="animate-spin text-accent-purple" />
+                    <p>Initializing TensorFlow. Executing feed-forward prediction sequences...</p>
+                  </div>
+                )}
+
+                {!loadingPredict && predictions.length > 0 && (
+                  <div className="ai-predictions-display">
+                    <h4 className="forecast-results-title">AI Projected Outcomes</h4>
+                    <div className="forecast-outcomes-grid">
+                      {predictions.map((p, idx) => (
+                        <div className="forecast-outcome-card glass-panel" key={idx}>
+                          <span className="outcome-step">STEP {idx + 1}</span>
+                          <span className="outcome-date">{p.date}</span>
+                          <span className="outcome-price">${p.predicted_close.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {message && <div className="terminal-log-banner">{message}</div>}
               </div>
             )}
-            
-            {message && <div className="terminal-log-banner">{message}</div>}
           </div>
         </section>
 
         {/* SIDEBAR WATCHLIST */}
         <aside className="terminal-sidebar">
           <div className="watchlist-card glass-panel">
-            <h3 className="sidebar-section-title">My Watchlist</h3>
+            <div className="watchlist-header" onClick={() => setWatchlistExpanded(!watchlistExpanded)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <h3 className="sidebar-section-title" style={{ margin: 0 }}>My Watchlist</h3>
+              <span className="accordion-toggle-indicator" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+                {watchlistExpanded ? 'Collapse ▲' : 'Expand ▼'}
+              </span>
+            </div>
             
-            <form onSubmit={handleAddToWatchlist} className="watchlist-add-form">
-              <input
-                id="watchlist-add-input"
-                name="watchlistSymbol"
-                type="text"
-                className="form-input watchlist-add-input"
-                placeholder="Symbol (e.g. INFY.NS)"
-                value={watchlistInput}
-                onChange={(e) => setWatchlistInput(e.target.value)}
-              />
-              <button type="submit" className="btn btn-primary add-watchlist-submit-btn">
-                <Plus size={16} />
-              </button>
-            </form>
-
-            <ul className="watchlist-items-list">
-              {watchlist.map((sym) => (
-                <li
-                  key={sym}
-                  className={`watchlist-item ${symbol === sym ? 'active' : ''}`}
-                  onClick={() => handleWatchlistItemClick(sym)}
-                >
-                  <span className="watchlist-sym-txt">{sym}</span>
-                  <button
-                    onClick={(e) => handleRemoveFromWatchlist(sym, e)}
-                    className="watchlist-item-delete-btn"
-                    aria-label="Delete symbol"
-                  >
-                    <Trash2 size={14} />
+            {watchlistExpanded && (
+              <div className="watchlist-collapsible-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%', marginTop: '1rem' }}>
+                <form onSubmit={handleAddToWatchlist} className="watchlist-add-form">
+                  <input
+                    id="watchlist-add-input"
+                    name="watchlistSymbol"
+                    type="text"
+                    className="form-input watchlist-add-input"
+                    placeholder="Symbol (e.g. INFY.NS)"
+                    value={watchlistInput}
+                    onChange={(e) => setWatchlistInput(e.target.value)}
+                  />
+                  <button type="submit" className="btn btn-primary add-watchlist-submit-btn">
+                    <Plus size={16} />
                   </button>
-                </li>
-              ))}
-            </ul>
+                </form>
+
+                <ul className="watchlist-items-list">
+                  {watchlist.map((sym) => (
+                    <li
+                      key={sym}
+                      className={`watchlist-item ${symbol === sym ? 'active' : ''}`}
+                      onClick={() => handleWatchlistItemClick(sym)}
+                    >
+                      <span className="watchlist-sym-txt">{sym}</span>
+                      <button
+                        onClick={(e) => handleRemoveFromWatchlist(sym, e)}
+                        className="watchlist-item-delete-btn"
+                        aria-label="Delete symbol"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </aside>
       </div>
