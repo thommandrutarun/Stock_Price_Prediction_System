@@ -42,7 +42,7 @@ const MarketTicker = () => {
           {scrollItems.map((item, idx) => {
             const isUp = item.change >= 0;
             return (
-              <span className="ticker-item-react" key={idx}>
+              <span className={`ticker-item-react ${item.label === 'PETROL' || item.label === 'DIESEL' ? 'ticker-item-low-priority' : ''}`} key={idx}>
                 <span className="ticker-label-react">{item.label}</span>
                 <span className="ticker-value-react">
                   {item.currency}{parseFloat(item.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

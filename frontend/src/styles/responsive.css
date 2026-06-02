@@ -1,27 +1,374 @@
-/* Core Responsive Breakpoints CSS overrides */
-@media (max-width: 1200px) {
+/* -------------------------------------------------------------
+   MOBILE RESPONSIVE SYSTEM (0px - 767px / 768px - 1023px / 1024px+)
+   ------------------------------------------------------------- */
+
+/* Global base adjustments for fluid scaling */
+html {
+  font-size: 16px;
+}
+
+/* Base tablet overrides and media queries */
+@media (max-width: 1023px) {
+  html {
+    font-size: 15px;
+  }
+
   .content-wrapper {
-    padding: 1.5rem 3% 3rem;
+    padding: 1.5rem 16px 3rem;
   }
-}
 
-@media (max-width: 1024px) {
-  h1 {
-    font-size: 2.2rem;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-  }
-  
-  .dashboard-grid-layout {
+  /* Dashboard & Trade Grid scaling */
+  .dashboard-grid-layout,
+  .trade-grid-layout {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .terminal-sidebar {
+    position: static;
+    width: 100%;
+  }
+
+  /* Portfolio Metrics columns */
+  .portfolio-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
 
-@media (max-width: 768px) {
-  .btn {
-    padding: 0.6rem 1.25rem;
-    font-size: 0.88rem;
+/* Mobile viewport adjustments */
+@media (max-width: 767px) {
+  html {
+    font-size: 14px;
+  }
+
+  .content-wrapper {
+    padding: 1rem 12px 2.5rem;
+  }
+
+  /* Typography Scale */
+  h1, .dashboard-top-header h1, .trade-top-header h1, .portfolio-top-header h1 {
+    font-size: 1.75rem !important; /* 28px - 32px */
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  h2, .ds-cta-react h2 {
+    font-size: 1.5rem !important; /* 24px */
+    line-height: 1.3;
+  }
+
+  h3, .terminal-panel-title, .watchlist-card h3, .positions-card-header h3 {
+    font-size: 1.25rem !important; /* 20px */
+  }
+
+  body, p, .form-input, .btn {
+    font-size: 0.88rem !important; /* 14px */
+    line-height: 1.5;
+  }
+
+  .ticker-item-react, .outcome-date, .watchlist-sym-txt {
+    font-size: 0.75rem !important; /* 12px */
+  }
+
+  /* Spacing System */
+  .home-container, .dashboard-page-container, .trade-page-container, .portfolio-page-container {
+    gap: 1.5rem !important;
+  }
+
+  .glass-panel {
+    padding: 1.25rem !important;
+    border-radius: 12px !important;
+  }
+
+  /* Navbar / Mobile Header compacting */
+  .ds-navbar {
+    height: 56px !important;
+    padding: 0 12px !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+  }
+
+  .ds-logo-icon {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+  }
+
+  .ds-logo-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .ds-logo-text {
+    font-size: 0.95rem !important;
+  }
+
+  .ds-navbar-toggle {
+    margin-right: 4px;
+    padding: 10px !important;
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ds-navbar-mobile-drawer {
+    width: 100% !important; /* Full width for iPhone SE/320px */
+    padding: 76px 1.5rem 2rem !important;
+  }
+
+  /* Market Ticker Compact overrides */
+  .ticker-wrap-react {
+    height: 38px !important;
+  }
+
+  .ticker-heading-react {
+    padding: 0 0.8rem !important;
+    font-size: 0.65rem !important;
+  }
+
+  .ticker-scroller-react {
+    gap: 1.5rem !important;
+    padding-left: 0.75rem !important;
+  }
+
+  .ticker-item-low-priority {
+    display: none !important; /* Hide secondary elements on mobile */
+  }
+
+  /* Hero Section */
+  .ds-hero-react {
+    padding: 1.5rem 0 !important;
+    gap: 1rem !important;
+  }
+
+  .ds-hero-title-react {
+    font-size: 2rem !important; /* 32px maximum */
+  }
+
+  .ds-hero-subtitle-react {
+    font-size: 1rem !important; /* 16px maximum */
+    line-height: 1.5;
+  }
+
+  .ds-cta-buttons-react {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px !important;
+  }
+
+  .ds-cta-buttons-react .btn {
+    width: 100% !important;
+    text-align: center;
+  }
+
+  /* Stock Search Card / Screener Input Group */
+  .screener-input-group {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .symbol-input {
+    height: 48px !important;
+  }
+
+  .load-history-btn {
+    height: 48px !important;
+    width: 100% !important;
+    margin-top: 4px;
+  }
+
+  /* Interactive Selectors & Toolbars */
+  .terminal-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding-top: 1rem !important;
+  }
+
+  /* Timeframe selectors as scrollable chip lists */
+  .timeframe-buttons {
+    display: flex !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 4px !important;
+    width: 100% !important;
+  }
+
+  .timeframe-btn {
+    flex: 0 0 auto !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.8rem !important;
+    min-height: 38px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* View Mode Selectors as 100% segmented controls */
+  .chart-view-toggles {
+    display: flex !important;
+    width: 100% !important;
+  }
+
+  .toggle-btn {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 0.6rem 0.5rem !important;
+    font-size: 0.8rem !important;
+    min-height: 38px !important;
+  }
+
+  /* Chart Height Restraints */
+  .terminal-chart-screen {
+    min-height: 300px !important;
+    height: 320px !important;
+    padding: 8px !important;
+  }
+
+  .apex-chart-wrap {
+    min-height: 300px !important;
+    height: 300px !important;
+  }
+
+  /* Interactive module selectors */
+  .ai-controls-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 0.85rem !important;
+  }
+
+  .ai-interval-selector {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .interval-btn-group {
+    display: flex !important;
+    width: 100% !important;
+  }
+
+  .int-btn {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 0.5rem 0.25rem !important;
+    min-height: 38px !important;
+  }
+
+  .run-ai-btn {
+    width: 100% !important;
+    height: 48px !important;
+  }
+
+  /* Portfolio metrics to 1 column grid */
+  .portfolio-metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Add position form layout stacking */
+  .add-pos-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .add-pos-form-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .add-pos-form-actions .btn {
+    width: 100% !important;
+    height: 44px;
+  }
+
+  /* Watchlist input and add elements */
+  .watchlist-add-form {
+    width: 100% !important;
+  }
+
+  .watchlist-add-input {
+    height: 44px !important;
+    flex: 1 !important;
+  }
+
+  .add-watchlist-submit-btn {
+    height: 44px !important;
+    width: 48px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Simulated order terminal spacing */
+  .quote-search-wrapper {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .quote-search-wrapper .btn {
+    height: 48px !important;
+    width: 100% !important;
+  }
+
+  .trade-mode-toggle-group {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .mode-toggle-btn {
+    height: 44px !important;
+  }
+
+  /* Touch optimizations (min 44px targets for buttons/inputs) */
+  .btn, .form-input, .theme-toggle-btn, .theme-toggle-btn-mob, .watchlist-item {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .theme-toggle-btn {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* Prevent table breakouts with responsive table wrappers */
+  .table-responsive-container, .tx-list-responsive-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 8px !important;
+  }
+
+  .portfolio-positions-table, .tx-list-table {
+    min-width: 600px !important; /* Keep details clean, user scrolls horizontally only inside the table wrapper */
+  }
+
+  /* Forecast items cards */
+  .forecast-outcomes-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .auth-card {
+    padding: 1.5rem 1.15rem !important;
+  }
+}
+
+/* Extra small devices (iPhone SE width / 320px etc) */
+@media (max-width: 350px) {
+  h1, .dashboard-top-header h1, .trade-top-header h1, .portfolio-top-header h1 {
+    font-size: 1.5rem !important; /* 24px */
+  }
+
+  .ds-logo-text {
+    display: none !important; /* Just show the icon to avoid narrow squishing */
   }
 }

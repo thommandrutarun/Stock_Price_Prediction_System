@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
-import ApexChartComponent from '../../components/ApexChartComponent';
+const ApexChartComponent = lazy(() => import('../../components/ApexChartComponent'));
 import { Search, Loader2, Play, Plus, Trash2, Award } from 'lucide-react';
 import './Dashboard.css';
 
@@ -204,15 +204,28 @@ const Dashboard = () => {
 
             <div className="terminal-toolbar">
               <div className="timeframe-buttons">
-                {['1d', '1w', '1mo', '3mo', '6mo', '1y', '3y', '5y', 'all'].map((per) => (
-                  <button
-                    key={per}
-                    className={`timeframe-btn ${period === per ? 'active' : ''}`}
-                    onClick={() => handlePeriodChange(per)}
-                  >
-                    {per.toUpperCase()}
-                  </button>
-                ))}
+                {['1d', '1w', '1mo', '3mo', '6mo', '1y', '3y', '5y', 'all'].map((per) => {
+                  const labelMap = {
+                    '1d': '1D',
+                    '1w': '1W',
+                    '1mo': '1M',
+                    '3mo': '3M',
+                    '6mo': '6M',
+                    '1y': '1Y',
+                    '3y': '3Y',
+                    '5y': '5Y',
+                    'all': 'ALL'
+                  };
+                  return (
+                    <button
+                      key={per}
+                      className={`timeframe-btn ${period === per ? 'active' : ''}`}
+                      onClick={() => handlePeriodChange(per)}
+                    >
+                      {labelMap[per]}
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="chart-view-toggles">
@@ -240,11 +253,18 @@ const Dashboard = () => {
                 <p>Downloading real-time feed and compiling historical index...</p>
               </div>
             ) : (
-              <ApexChartComponent
-                prices={prices}
-                chartType={chartType}
-                symbol={symbol}
-              />
+              <Suspense fallback={
+                <div className="chart-screen-loader">
+                  <Loader2 size={36} className="animate-spin text-primary" />
+                  <p>Downloading real-time feed and compiling historical index...</p>
+                </div>
+              }>
+                <ApexChartComponent
+                  prices={prices}
+                  chartType={chartType}
+                  symbol={symbol}
+                />
+              </Suspense>
             )}
           </div>
 

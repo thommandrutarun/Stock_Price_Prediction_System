@@ -46,7 +46,7 @@ const ApexChartComponent = ({ prices, chartType, symbol }) => {
       background: 'transparent',
       foreColor: '#94a3b8',
       toolbar: {
-        show: true,
+        show: typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
         tools: {
           download: true,
           selection: true,
@@ -120,13 +120,15 @@ const ApexChartComponent = ({ prices, chartType, symbol }) => {
     },
   };
 
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+
   return (
-    <div className="apex-chart-wrap" style={{ width: '100%', height: '100%', minHeight: '380px' }}>
+    <div className="apex-chart-wrap" style={{ width: '100%', height: '100%', minHeight: isMobile ? '300px' : '380px' }}>
       <Chart
         options={options}
         series={series}
         type={chartType}
-        height="380px"
+        height={isMobile ? '300px' : '380px'}
       />
     </div>
   );
