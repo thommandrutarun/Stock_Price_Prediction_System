@@ -3,12 +3,10 @@ import api from '../services/api';
 import './MarketTicker.css';
 
 const DEFAULT_TICKER_DATA = [
-  { label: 'NIFTY 50', value: 23547.75, currency: '₹', change: -358.33, pct: -1.50 },
-  { label: 'GOLD 22K (1G)', value: 12757.82, currency: '₹', change: 171.18, pct: 1.36 },
-  { label: 'SILVER (1KG)', value: 230931.03, currency: '₹', change: -92.37, pct: -0.04 },
-  { label: 'PETROL', value: 103.54, currency: '₹', change: 0.11, pct: 0.11 },
-  { label: 'DIESEL', value: 90.03, currency: '₹', change: -0.05, pct: -0.06 },
-  { label: 'CRUDE OIL', value: 92.05, currency: '$', change: -1.65, pct: -1.77 }
+  { label: 'NIFTY 50', value: 23547.75, currency: '₹', change: 96.15, pct: 0.41 },
+  { label: 'SENSEX', value: 76456.80, currency: '₹', change: -137.60, pct: -0.18 },
+  { label: 'BANKNIFTY', value: 49870.25, currency: '₹', change: 355.20, pct: 0.72 },
+  { label: 'GOLD', value: 72150.00, currency: '₹', change: 180.00, pct: 0.25 }
 ];
 
 const MarketTicker = () => {

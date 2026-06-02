@@ -170,8 +170,8 @@ const Dashboard = () => {
   return (
     <div className="dashboard-page-container">
       <header className="dashboard-top-header">
-        <h1>Stock Intelligence Terminal</h1>
-        <p>Analyze technical charts, historical price timelines, and run optimized AI-powered LSTM forecasts.</p>
+        <h1>DeepStock AI Terminal</h1>
+        <p>AI-powered stock analysis and forecasting</p>
       </header>
 
       <div className="dashboard-grid-layout">

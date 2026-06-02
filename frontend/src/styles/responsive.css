@@ -53,6 +53,19 @@ html {
     line-height: 1.25;
   }
 
+  .dashboard-top-header {
+    margin-bottom: 8px !important;
+  }
+
+  .dashboard-top-header h1 {
+    font-size: 1.5rem !important; /* 24px maximum compact size */
+    margin-bottom: 2px !important;
+  }
+
+  .dashboard-top-header p {
+    font-size: 0.82rem !important;
+  }
+
   h2, .ds-cta-react h2 {
     font-size: 1.5rem !important; /* 24px */
     line-height: 1.3;
