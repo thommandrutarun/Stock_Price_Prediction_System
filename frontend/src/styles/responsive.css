@@ -213,66 +213,74 @@ html {
 
   /* Stock Search Card / Screener Input Group */
   .screener-input-group {
-    flex-direction: row !important;
-    align-items: flex-end !important;
-    gap: 8px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 12px !important;
   }
 
   .screener-input-group label {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 0 6px 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    font-size: 0.9rem !important;
+    color: var(--text-secondary) !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    border: none !important;
   }
 
   .screener-input-group .form-group {
     margin-bottom: 0 !important;
+    width: 100% !important;
   }
 
-  .screener-input-group .flex-1 {
-    min-width: 0 !important; /* Allow flex child to shrink below contents */
+  .screener-input-group .symbol-search-input-wrap {
+    width: 100% !important;
   }
 
   .symbol-input {
+    width: 100% !important;
     height: 48px !important;
+    box-sizing: border-box !important;
   }
 
   .load-history-btn {
+    width: 100% !important;
     height: 48px !important;
-    width: 110px !important;
-    flex-shrink: 0 !important; /* Prevent text clipping or shrinkage */
+    flex-shrink: 0 !important;
     margin-top: 0 !important;
     padding: 0 12px !important;
-    font-size: 0.85rem !important;
+    font-size: 0.88rem !important;
+    box-sizing: border-box !important;
   }
 
   /* Interactive Selectors & Toolbars */
   .terminal-toolbar {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 12px !important;
-    padding-top: 1rem !important;
+    gap: 10px !important;
+    padding-top: 0.5rem !important;
   }
 
   /* Timeframe selectors as scrollable chip lists */
   .timeframe-buttons {
     display: flex !important;
-    gap: 6px !important;
+    gap: 10px !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
-    padding: 4px !important;
+    padding: 6px 4px !important;
     width: 100% !important;
   }
 
   .timeframe-btn {
     flex: 0 0 auto !important;
-    padding: 0.5rem 1rem !important;
+    padding: 0.5rem 1.1rem !important;
     font-size: 0.8rem !important;
     min-height: 38px !important;
     display: inline-flex !important;
@@ -280,18 +288,30 @@ html {
     justify-content: center !important;
   }
 
-  /* View Mode Selectors as 100% segmented controls */
+  /* View Mode Selectors as 44px segmented controls */
   .chart-view-toggles {
     display: flex !important;
     width: 100% !important;
+    height: 44px !important;
+    background: rgba(15, 23, 42, 0.4) !important;
+    padding: 3px !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-glass) !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
   }
 
   .toggle-btn {
     flex: 1 !important;
     text-align: center !important;
-    padding: 0.6rem 0.5rem !important;
+    padding: 0 !important;
     font-size: 0.8rem !important;
-    min-height: 38px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    min-height: 36px !important;
   }
 
   /* Chart Height Restraints */
@@ -304,6 +324,40 @@ html {
   .apex-chart-wrap {
     min-height: 300px !important;
     height: 300px !important;
+  }
+
+  /* Compact Empty State Container - 180px-220px max */
+  .chart-empty-state {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    height: 200px !important;
+    max-height: 220px !important;
+    padding: 1rem !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .chart-empty-state .empty-state-icon {
+    font-size: 1.8rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .chart-empty-state h3 {
+    margin: 0 !important;
+    font-size: 1.1rem !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+  }
+
+  .chart-empty-state p {
+    margin: 0 !important;
+    font-size: 0.82rem !important;
+    color: var(--text-secondary) !important;
+    max-width: 280px !important;
+    line-height: 1.4 !important;
   }
 
   /* Interactive module selectors */
@@ -360,8 +414,23 @@ html {
   }
 
   /* Watchlist input and add elements */
+  .terminal-sidebar {
+    margin-top: 8px !important;
+    padding-top: 0 !important;
+  }
+
+  .watchlist-card {
+    padding: 0.75rem !important;
+  }
+
+  .watchlist-collapsible-body {
+    margin-top: 0.5rem !important;
+    gap: 0.75rem !important;
+  }
+
   .watchlist-add-form {
     width: 100% !important;
+    margin-bottom: 0.4rem !important;
   }
 
   .watchlist-add-input {
@@ -375,6 +444,19 @@ html {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+  }
+
+  .watchlist-items-list {
+    gap: 6px !important;
+  }
+
+  .watchlist-item {
+    padding: 6px 10px !important;
+    min-height: 38px !important;
+  }
+
+  .watchlist-sym-txt {
+    font-size: 0.8rem !important;
   }
 
   /* Simulated order terminal spacing */

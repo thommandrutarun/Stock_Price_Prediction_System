@@ -170,11 +170,96 @@ const Dashboard = () => {
     loadHistoryData(symbol, per);
   };
 
+  const renderAiCard = () => (
+    <div className="terminal-ai-module-card glass-panel">
+      <div className="ai-module-header" onClick={() => setAiExpanded(!aiExpanded)} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div className="ai-module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Award size={20} className="ai-medal-icon" />
+            <h3>DeepStock Predictor AI</h3>
+          </div>
+          <span className="accordion-toggle-indicator" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+            {aiExpanded ? 'Collapse ▲' : 'Expand ▼'}
+          </span>
+        </div>
+        <p className="ai-module-subtitle">
+          Deploy cached LSTM Neural Networks to forecast the next 5 intervals based on technical indicators.
+        </p>
+      </div>
+
+      {aiExpanded && (
+        <div className="ai-module-collapsible-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', marginTop: '1.25rem' }}>
+          <div className="ai-controls-bar">
+            <div className="ai-interval-selector">
+              <span className="selector-title">Prediction Interval:</span>
+              <div className="interval-btn-group">
+                {['1d', '1m', '5m', '15m'].map((intVal) => (
+                  <button
+                    key={intVal}
+                    className={`int-btn ${interval === intVal ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent accordion toggle on click
+                      setIntervalVal(intVal);
+                    }}
+                  >
+                    {intVal === '1d' ? '1 Day' : intVal === '1m' ? '1 Min' : intVal === '5m' ? '5 Min' : '15 Min'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // prevent accordion toggle
+                generatePredictions();
+              }}
+              className="btn btn-primary run-ai-btn"
+              disabled={loadingPredict || prices.length === 0}
+            >
+              {loadingPredict ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Compiling Tensor Network...
+                </>
+              ) : (
+                <>
+                  Generate Forecast <Play size={14} />
+                </>
+              )}
+            </button>
+          </div>
+
+          {loadingPredict && (
+            <div className="ai-prediction-loading">
+              <Loader2 size={24} className="animate-spin text-accent-purple" />
+              <p>Initializing TensorFlow. Executing feed-forward prediction sequences...</p>
+            </div>
+          )}
+
+          {!loadingPredict && predictions.length > 0 && (
+            <div className="ai-predictions-display">
+              <h4 className="forecast-results-title">AI Projected Outcomes</h4>
+              <div className="forecast-outcomes-grid">
+                {predictions.map((p, idx) => (
+                  <div className="forecast-outcome-card glass-panel" key={idx}>
+                    <span className="outcome-step">STEP {idx + 1}</span>
+                    <span className="outcome-date">{p.date}</span>
+                    <span className="outcome-price">${p.predicted_close.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {message && <div className="terminal-log-banner">{message}</div>}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="dashboard-page-container">
       <header className="dashboard-top-header">
-        <h1>DeepStock AI Terminal</h1>
-        <p>AI-powered stock analysis and forecasting</p>
+        <h1>Stock Price Prediction System</h1>
       </header>
 
       <div className="dashboard-grid-layout">
@@ -183,7 +268,7 @@ const Dashboard = () => {
           <div className="terminal-controls-card">
             <div className="screener-input-group">
               <div className="form-group flex-1">
-                <label className="form-label" htmlFor="stock-symbol-input">Stock Symbol</label>
+                <label className="form-label" htmlFor="stock-symbol-input">Search Stock</label>
                 <div className="symbol-search-input-wrap">
                   <Search size={16} className="search-symbol-icon" />
                   <input
@@ -249,113 +334,47 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* DYNAMIC CHART SCREEN */}
-          <div className="terminal-chart-screen glass-panel">
-            {loadingHistory ? (
-              <div className="chart-screen-loader">
-                <Loader2 size={36} className="animate-spin text-primary" />
-                <p>Downloading real-time feed and compiling historical index...</p>
-              </div>
-            ) : (
-              <Suspense fallback={
-                <div className="chart-screen-loader">
-                  <Loader2 size={36} className="animate-spin text-primary" />
-                  <p>Downloading real-time feed and compiling historical index...</p>
-                </div>
-              }>
-                <ApexChartComponent
-                  prices={prices}
-                  chartType={chartType}
-                  symbol={symbol}
-                />
-              </Suspense>
-            )}
-          </div>
-
-          {/* AI PREDICTION MODULE */}
-          <div className="terminal-ai-module-card glass-panel">
-            <div className="ai-module-header" onClick={() => setAiExpanded(!aiExpanded)} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div className="ai-module-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Award size={20} className="ai-medal-icon" />
-                  <h3>DeepStock Predictor AI</h3>
-                </div>
-                <span className="accordion-toggle-indicator" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                  {aiExpanded ? 'Collapse ▲' : 'Expand ▼'}
-                </span>
-              </div>
-              <p className="ai-module-subtitle">
-                Deploy cached LSTM Neural Networks to forecast the next 5 intervals based on technical indicators.
-              </p>
-            </div>
-
-            {aiExpanded && (
-              <div className="ai-module-collapsible-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', marginTop: '1.25rem' }}>
-                <div className="ai-controls-bar">
-                  <div className="ai-interval-selector">
-                    <span className="selector-title">Prediction Interval:</span>
-                    <div className="interval-btn-group">
-                      {['1d', '1m', '5m', '15m'].map((intVal) => (
-                        <button
-                          key={intVal}
-                          className={`int-btn ${interval === intVal ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation(); // prevent accordion toggle on click
-                            setIntervalVal(intVal);
-                          }}
-                        >
-                          {intVal === '1d' ? '1 Day' : intVal === '1m' ? '1 Min' : intVal === '5m' ? '5 Min' : '15 Min'}
-                        </button>
-                      ))}
+          {prices && prices.length > 0 ? (
+            <>
+              {/* DYNAMIC CHART SCREEN */}
+              <div className="terminal-chart-screen glass-panel">
+                {loadingHistory ? (
+                  <div className="chart-screen-loader">
+                    <Loader2 size={36} className="animate-spin text-primary" />
+                    <p>Downloading real-time feed and compiling historical index...</p>
+                  </div>
+                ) : (
+                  <Suspense fallback={
+                    <div className="chart-screen-loader">
+                      <Loader2 size={36} className="animate-spin text-primary" />
+                      <p>Downloading real-time feed and compiling historical index...</p>
                     </div>
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // prevent accordion toggle
-                      generatePredictions();
-                    }}
-                    className="btn btn-primary run-ai-btn"
-                    disabled={loadingPredict || prices.length === 0}
-                  >
-                    {loadingPredict ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" /> Compiling Tensor Network...
-                      </>
-                    ) : (
-                      <>
-                        Generate Forecast <Play size={14} />
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {loadingPredict && (
-                  <div className="ai-prediction-loading">
-                    <Loader2 size={24} className="animate-spin text-accent-purple" />
-                    <p>Initializing TensorFlow. Executing feed-forward prediction sequences...</p>
-                  </div>
+                  }>
+                    <ApexChartComponent
+                      prices={prices}
+                      chartType={chartType}
+                      symbol={symbol}
+                    />
+                  </Suspense>
                 )}
-
-                {!loadingPredict && predictions.length > 0 && (
-                  <div className="ai-predictions-display">
-                    <h4 className="forecast-results-title">AI Projected Outcomes</h4>
-                    <div className="forecast-outcomes-grid">
-                      {predictions.map((p, idx) => (
-                        <div className="forecast-outcome-card glass-panel" key={idx}>
-                          <span className="outcome-step">STEP {idx + 1}</span>
-                          <span className="outcome-date">{p.date}</span>
-                          <span className="outcome-price">${p.predicted_close.toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {message && <div className="terminal-log-banner">{message}</div>}
               </div>
-            )}
-          </div>
+
+              {/* AI PREDICTION MODULE */}
+              {renderAiCard()}
+            </>
+          ) : (
+            <>
+              {/* AI PREDICTION MODULE */}
+              {renderAiCard()}
+
+              {/* COMPACT EMPTY CHART STATE */}
+              <div className="chart-empty-state glass-panel">
+                <span className="empty-state-icon">📈</span>
+                <h3>No Stock Selected</h3>
+                <p>Search a stock above to view live chart data and AI forecasts.</p>
+              </div>
+            </>
+          )}
         </section>
 
         {/* SIDEBAR WATCHLIST */}
