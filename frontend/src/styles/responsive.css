@@ -166,9 +166,13 @@ html {
 
   /* Stock Search Card / Screener Input Group */
   .screener-input-group {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
+    flex-direction: row !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+  }
+
+  .screener-input-group .form-group {
+    margin-bottom: 0 !important;
   }
 
   .symbol-input {
@@ -177,8 +181,10 @@ html {
 
   .load-history-btn {
     height: 48px !important;
-    width: 100% !important;
-    margin-top: 4px;
+    width: 110px !important;
+    margin-top: 0 !important;
+    padding: 0 12px !important;
+    font-size: 0.85rem !important;
   }
 
   /* Interactive Selectors & Toolbars */

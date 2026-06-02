@@ -169,6 +169,28 @@ const Navbar = () => {
           </div>
         )}
       </div>
+
+      {/* Dynamic Bottom Navigation Bar for Mobile Authenticated Users */}
+      {isAuthenticated && (
+        <nav className="ds-bottom-navigation">
+          <NavLink to="/" end className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
+            <Home size={20} />
+            <span>Home</span>
+          </NavLink>
+          <NavLink to="/dashboard" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
+            <LayoutDashboard size={20} />
+            <span>Terminal</span>
+          </NavLink>
+          <NavLink to="/trade" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
+            <Wallet size={20} />
+            <span>Trade</span>
+          </NavLink>
+          <NavLink to="/portfolio" className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}>
+            <UserCheck size={20} />
+            <span>Portfolio</span>
+          </NavLink>
+        </nav>
+      )}
     </header>
   );
 };
