@@ -334,47 +334,61 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* CHART AREA (dynamic chart or beautiful analysis center empty state) */}
           {prices && prices.length > 0 ? (
-            <>
-              {/* DYNAMIC CHART SCREEN */}
-              <div className="terminal-chart-screen glass-panel">
-                {loadingHistory ? (
+            <div className="terminal-chart-screen glass-panel">
+              {loadingHistory ? (
+                <div className="chart-screen-loader">
+                  <Loader2 size={36} className="animate-spin text-primary" />
+                  <p>Downloading real-time feed and compiling historical index...</p>
+                </div>
+              ) : (
+                <Suspense fallback={
                   <div className="chart-screen-loader">
                     <Loader2 size={36} className="animate-spin text-primary" />
                     <p>Downloading real-time feed and compiling historical index...</p>
                   </div>
-                ) : (
-                  <Suspense fallback={
-                    <div className="chart-screen-loader">
-                      <Loader2 size={36} className="animate-spin text-primary" />
-                      <p>Downloading real-time feed and compiling historical index...</p>
-                    </div>
-                  }>
-                    <ApexChartComponent
-                      prices={prices}
-                      chartType={chartType}
-                      symbol={symbol}
-                    />
-                  </Suspense>
-                )}
-              </div>
-
-              {/* AI PREDICTION MODULE */}
-              {renderAiCard()}
-            </>
+                }>
+                  <ApexChartComponent
+                    prices={prices}
+                    chartType={chartType}
+                    symbol={symbol}
+                  />
+                </Suspense>
+              )}
+            </div>
           ) : (
-            <>
-              {/* AI PREDICTION MODULE */}
-              {renderAiCard()}
-
-              {/* COMPACT EMPTY CHART STATE */}
-              <div className="chart-empty-state glass-panel">
-                <span className="empty-state-icon">📈</span>
-                <h3>No Stock Selected</h3>
-                <p>Search a stock above to view live chart data and AI forecasts.</p>
+            <div className="chart-empty-state glass-panel">
+              <div className="empty-state-content">
+                <span className="empty-state-badge">Stock Analysis Center</span>
+                <h4 className="empty-state-title">Search a stock symbol to load:</h4>
+                <ul className="empty-state-features">
+                  <li>📈 Live Chart</li>
+                  <li>🔍 Technical Analysis</li>
+                  <li>🤖 AI Forecast</li>
+                  <li>⚡ Market Signals</li>
+                </ul>
+                <div className="empty-state-quick-actions">
+                  <span className="quick-actions-label">Quick Actions:</span>
+                  <div className="quick-action-buttons">
+                    {['TCS.NS', 'INFY.NS', 'RELIANCE.NS', 'AAPL'].map((sym) => (
+                      <button
+                        key={sym}
+                        type="button"
+                        className="btn btn-outline quick-action-btn"
+                        onClick={() => handleWatchlistItemClick(sym)}
+                      >
+                        {sym.replace('.NS', '')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </>
+            </div>
           )}
+
+          {/* AI PREDICTION MODULE (always follows Chart Area in standard flow) */}
+          {renderAiCard()}
         </section>
 
         {/* SIDEBAR WATCHLIST */}
