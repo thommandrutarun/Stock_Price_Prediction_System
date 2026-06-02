@@ -53,7 +53,7 @@ const Navbar = () => {
           <span className="ds-logo-icon">
             <TrendingUp size={24} className="logo-pulse-icon" />
           </span>
-          <span className="ds-logo-text">DeepStock AI</span>
+          <span className="ds-logo-text">Stock Price Prediction System</span>
         </Link>
         
         <form onSubmit={handleSearchSubmit} className="ds-search-wrapper">

@@ -39,15 +39,17 @@ const MarketTicker = () => {
         <div className="ticker-scroller-react">
           {scrollItems.map((item, idx) => {
             const isUp = item.change >= 0;
+            const cleanLabel = item.label.replace(' 50', '');
             return (
               <span className={`ticker-item-react ${item.label === 'PETROL' || item.label === 'DIESEL' ? 'ticker-item-low-priority' : ''}`} key={idx}>
-                <span className="ticker-label-react">{item.label}</span>
-                <span className="ticker-value-react">
+                <span className="ticker-label-react">{cleanLabel}</span>
+                <span className="ticker-value-react ticker-item-value-mobile-hide">
                   {item.currency}{parseFloat(item.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className={`ticker-change-react ${isUp ? 'ticker-up' : 'ticker-down'}`}>
-                  {isUp ? '▲' : '▼'} {item.pct !== undefined ? `${Math.abs(item.pct).toFixed(2)}%` : `${Math.abs(item.change).toFixed(2)}`}
+                  {isUp ? '▲' : '▼'}{item.pct !== undefined ? `${Math.abs(item.pct).toFixed(2)}%` : `${Math.abs(item.change).toFixed(2)}`}
                 </span>
+                <span className="ticker-separator-react">|</span>
               </span>
             );
           })}

@@ -43,7 +43,7 @@ html {
   }
 
   .content-wrapper {
-    padding: 1rem 12px 100px !important; /* Clears the 60px bottom navigation bar */
+    padding: 0.5rem 10px 100px !important; /* Clears the 60px bottom navigation bar with minimal top gap */
   }
 
   /* Typography Scale */
@@ -76,46 +76,60 @@ html {
   }
 
   /* Spacing System */
-  .home-container, .dashboard-page-container, .trade-page-container, .portfolio-page-container {
+  .home-container {
     gap: 1.5rem !important;
   }
 
+  .dashboard-page-container, .trade-page-container, .portfolio-page-container {
+    gap: 0.4rem !important; /* Compresses top gaps under ticker to place search directly adjacent */
+  }
+
   .glass-panel {
-    padding: 1.25rem !important;
+    padding: 0.85rem !important; /* Condense box spacing to maximize chart folding space */
     border-radius: 12px !important;
   }
 
   /* Navbar / Mobile Header compacting */
   .ds-navbar {
-    height: 56px !important;
-    padding: 0 12px !important;
+    height: 52px !important;
+    padding: 0 10px !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
   }
 
   .ds-logo-icon {
-    width: 28px !important;
-    height: 28px !important;
+    width: 32px !important;
+    height: 32px !important;
     border-radius: 6px !important;
+    flex-shrink: 0 !important;
   }
 
   .ds-logo-icon svg {
-    width: 16px !important;
-    height: 16px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
 
   .ds-logo-text {
-    font-size: 0.95rem !important;
+    font-size: clamp(10px, 3.4vw, 15px) !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
   }
 
   .ds-navbar-toggle {
-    margin-right: 4px;
-    padding: 10px !important;
-    min-height: 44px;
-    min-width: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    width: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
   }
 
   .ds-navbar-mobile-drawer {
@@ -125,21 +139,47 @@ html {
 
   /* Market Ticker Compact overrides */
   .ticker-wrap-react {
-    height: 38px !important;
+    height: 30px !important;
   }
 
   .ticker-heading-react {
-    padding: 0 0.8rem !important;
-    font-size: 0.65rem !important;
+    display: none !important; /* Remove Updates tag completely on mobile */
   }
 
   .ticker-scroller-react {
-    gap: 1.5rem !important;
-    padding-left: 0.75rem !important;
+    gap: 0.75rem !important;
+    padding-left: 0.5rem !important;
+    animation: scrollTicker 30s linear infinite !important; /* GPU accelerated translated loop */
   }
 
   .ticker-item-low-priority {
     display: none !important; /* Hide secondary elements on mobile */
+  }
+
+  .ticker-item-value-mobile-hide {
+    display: none !important; /* Hide index rate to create modern chips */
+  }
+
+  .ticker-item-react {
+    font-size: 12px !important;
+    gap: 4px !important;
+  }
+
+  .ticker-label-react {
+    font-size: 12px !important;
+    color: var(--text-secondary) !important;
+    font-weight: 700 !important;
+  }
+
+  .ticker-change-react {
+    font-size: 12px !important;
+    gap: 2px !important;
+  }
+
+  .ticker-separator-react {
+    color: rgba(255, 255, 255, 0.15) !important;
+    font-weight: 300 !important;
+    margin-left: 0.5rem !important;
   }
 
   /* Hero Section */
@@ -173,6 +213,10 @@ html {
     flex-direction: row !important;
     align-items: flex-end !important;
     gap: 8px !important;
+  }
+
+  .screener-input-group label {
+    display: none !important; /* Hide labels to bring inputs directly in line */
   }
 
   .screener-input-group .form-group {
