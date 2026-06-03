@@ -11,6 +11,37 @@ import {
 } from 'lucide-react';
 import './Dashboard.css';
 
+const symbolNames = {
+  'TCS.NS': 'Tata Consultancy Services',
+  'RELIANCE.NS': 'Reliance Industries',
+  'INFY.NS': 'Infosys Limited',
+  'TCS': 'Tata Consultancy Services',
+  'RELIANCE': 'Reliance Industries',
+  'INFY': 'Infosys Limited',
+  'AAPL': 'Apple Inc.',
+  'MSFT': 'Microsoft Corporation',
+  'GOOGL': 'Alphabet Inc.',
+  'AMZN': 'Amazon.com Inc.',
+  'TSLA': 'Tesla Inc.',
+  'NVDA': 'NVIDIA Corporation',
+  'NVIDIA': 'NVIDIA Corporation',
+  'META': 'Meta Platforms Inc.'
+};
+
+const formatVolume = (vol) => {
+  const num = Number(vol ?? 0);
+  if (num >= 10000000) {
+    return (num / 10000000).toFixed(1) + 'Cr';
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+};
+
 const Dashboard = () => {
   const { user, isAuthenticated, logout, isAdmin } = useAuth();
   const [searchParams] = useSearchParams();
@@ -53,14 +84,11 @@ const Dashboard = () => {
   // Watchlist detailed items (real-time price and change)
   const [watchlistDetails, setWatchlistDetails] = useState({});
   const [tickerData, setTickerData] = useState([
-    { label: 'NIFTY 50', value: 23547.75, pct: 0.41, change: 96.15 },
-    { label: 'SENSEX', value: 76456.80, pct: -0.18, change: -137.60 },
-    { label: 'RELIANCE', value: 2942.50, pct: 1.05, change: 30.50 },
-    { label: 'TCS', value: 3820.10, pct: -0.45, change: -17.20 },
-    { label: 'INFY', value: 1475.25, pct: 1.82, change: 26.40 },
-    { label: 'NVIDIA', value: 1150.80, pct: 3.42, change: 38.10 },
-    { label: 'TESLA', value: 178.50, pct: -2.15, change: -3.90 },
-    { label: 'META', value: 485.30, pct: 0.85, change: 4.10 }
+    { label: 'NIFTY', value: 22547.80, pct: 1.02, change: 228.10, currency: '' },
+    { label: 'SENSEX', value: 74313.69, pct: 0.89, change: 650.20, currency: '' },
+    { label: 'NVIDIA', value: 117.39, pct: 0.93, change: 1.08, currency: '$' },
+    { label: 'TESLA', value: 360.59, pct: -5.42, change: -20.65, currency: '$' },
+    { label: 'META', value: 574.16, pct: -0.82, change: -4.75, currency: '$' }
   ]);
 
   // Portfolio aggregates
@@ -81,7 +109,12 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState([
     { id: 1, text: 'TCS.NS price forecast generated successfully', type: 'success', time: '5m ago' },
     { id: 2, text: 'NIFTY 50 touched daily resistance at 23,600', type: 'info', time: '1h ago' },
-    { id: 3, text: 'Unusual option sweeps volume detected in NVIDIA', type: 'warning', time: '2h ago' }
+    { id: 3, text: 'Unusual option sweeps volume detected in NVIDIA', type: 'warning', time: '2h ago' },
+    { id: 4, text: 'RBI keeps interest rate unchanged at 6.5%', type: 'info', time: '3h ago' },
+    { id: 5, text: 'Reliance Industries volume anomaly detected', type: 'warning', time: '4h ago' },
+    { id: 6, text: 'Tech sector leading market gainers today', type: 'success', time: '5h ago' },
+    { id: 7, text: 'New LSTM forecast models compiled for watchlists', type: 'info', time: '6h ago' },
+    { id: 8, text: 'Simulated balance check: Wallet updated', type: 'success', time: '7h ago' }
   ]);
 
   // Live digital clock & date updater
@@ -384,8 +417,11 @@ const Dashboard = () => {
       <aside className={`terminal-left-sidebar ${sidebarOpen ? 'drawer-open' : ''}`}>
         <div className="sidebar-brand">
           <div className="sidebar-logo">
-            <Cpu size={24} className="neon-icon-glow" />
-            <span>DeepStock AI</span>
+            <TrendingUp size={24} className="neon-icon-glow" style={{ color: '#3b82f6' }} />
+            <div className="logo-brand-text">
+              <span className="logo-main-text">Stock Price</span>
+              <span className="logo-sub-text">Prediction System</span>
+            </div>
           </div>
           <button className="sidebar-close-btn" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar">
             <X size={20} />
@@ -440,24 +476,37 @@ const Dashboard = () => {
 
         {/* AI Assistant Sidebar Card */}
         <div className="sidebar-ai-assistant-card glass-panel">
-          <div className="ai-assistant-avatar-wrap">
-            <span className="ai-badge-pulse">AI Agent</span>
-            <h4>DeepStock Copilot</h4>
+          <div className="ai-assistant-header">
+            <div className="ai-assistant-icon-box">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="neon-icon-glow">
+                <rect x="3" y="11" width="18" height="10" rx="2" />
+                <circle cx="12" cy="5" r="2" />
+                <path d="M12 7v4" />
+                <line x1="8" y1="15" x2="8.01" y2="15" />
+                <line x1="16" y1="15" x2="16.01" y2="15" />
+              </svg>
+            </div>
+            <div className="ai-assistant-titles">
+              <h4>AI Assistant</h4>
+              <p>Your smart trading companion</p>
+            </div>
           </div>
-          <p>Analyzing {symbol} candlestick parameters. Generate a forecast below.</p>
-          <div className="assistant-suggestions">
-            <button onClick={() => { setSymbol('TCS.NS'); loadHistoryData('TCS.NS'); }} className="suggestion-chip">TCS.NS</button>
-            <button onClick={() => { setSymbol('RELIANCE.NS'); loadHistoryData('RELIANCE.NS'); }} className="suggestion-chip">RELIANCE</button>
-          </div>
+          <button className="open-assistant-btn" onClick={() => navigate('/contact')}>
+            <span>Open Assistant</span>
+            <span className="arrow-btn">→</span>
+          </button>
         </div>
 
         {/* Market Status Sidebar Card */}
         <div className="sidebar-market-status-card glass-panel">
+          <div className="status-label">Market Status</div>
           <div className="status-indicator-row">
             <span className={`status-dot ${isMarketOpen() ? 'open' : 'live'}`}></span>
-            <span>{isMarketOpen() ? 'MARKET TRADING' : 'SYSTEM LIVE'}</span>
+            <span className="status-text">{isMarketOpen() ? 'Market Open' : 'System Live'}</span>
           </div>
-          <span className="status-details">IST Time: {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <div className="status-details">
+            {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })} IST
+          </div>
         </div>
       </aside>
 
@@ -466,7 +515,6 @@ const Dashboard = () => {
 
       {/* MAIN CONTAINER FOR HEADER AND CONTENTS */}
       <div className="terminal-main-viewport">
-        
         {/* 2. TOP HEADER */}
         <header className="terminal-top-header">
           <div className="header-left">
@@ -480,7 +528,7 @@ const Dashboard = () => {
                 ref={searchInputRef}
                 type="text"
                 className="header-search-input"
-                placeholder="Search stock symbol... (e.g. AAPL, TCS.NS)"
+                placeholder="Search stock symbols (e.g. TCS, RELIANCE)"
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                 onKeyDown={(e) => {
@@ -489,7 +537,7 @@ const Dashboard = () => {
                   }
                 }}
               />
-              <span className="keyboard-shortcut-hint">Ctrl + K</span>
+              <span className="keyboard-shortcut-hint">Ctrl K</span>
             </div>
             
             <button onClick={() => loadHistoryData(symbol, period)} className="btn btn-primary header-search-btn" disabled={loadingHistory}>
@@ -538,12 +586,12 @@ const Dashboard = () => {
             {/* User Profile Info */}
             {isAuthenticated ? (
               <div className="header-user-profile-badge">
-                <div className="avatar-initials-circle">
-                  {user?.name ? user.name.slice(0, 2).toUpperCase() : 'US'}
+                <div className="avatar-initials-circle" style={{ background: '#10b981', color: '#fff' }}>
+                  {user?.name ? user.name.slice(0, 2).toUpperCase() : 'TH'}
                 </div>
                 <div className="user-details-box">
-                  <span className="user-display-name">{user?.name}</span>
-                  <span className="user-display-role">{user?.role}</span>
+                  <span className="user-display-name">{user?.name || 'thommandra'}</span>
+                  <span className="user-display-role" style={{ color: '#10b981', fontWeight: 'bold' }}>Premium</span>
                 </div>
               </div>
             ) : (
@@ -554,9 +602,9 @@ const Dashboard = () => {
 
         {/* 3. MARKET TICKER BAR */}
         <section className="ticker-scroller-wrap">
-          <div className={`ticker-market-status ${isMarketOpen() ? 'open' : 'closed'}`}>
+          <div className="ticker-market-status open">
             <span className="status-pulse-dot"></span>
-            <span>{isMarketOpen() ? 'OPEN' : 'CLOSED'}</span>
+            <span>• MARKET OPEN</span>
           </div>
           <div className="ticker-marquee-container">
             <div className="ticker-marquee-inner">
@@ -565,7 +613,9 @@ const Dashboard = () => {
                 return (
                   <div key={idx} className="ticker-marquee-item">
                     <span className="ticker-label">{t.label}</span>
-                    <span className="ticker-price">${Number(t?.value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="ticker-price">
+                      {t.currency || ''}{Number(t?.value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
                     <span className={`ticker-pct-change ${isUp ? 'pct-up' : 'pct-down'}`}>
                       {isUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                       {isUp ? '+' : ''}{Number(t?.pct ?? 0).toFixed(2)}%
@@ -576,6 +626,9 @@ const Dashboard = () => {
               })}
             </div>
           </div>
+          <button className="ticker-nav-btn" aria-label="Scroll right">
+            <span>&gt;</span>
+          </button>
         </section>
 
         {/* CORE CONTENTS SCROLLER */}
@@ -584,24 +637,20 @@ const Dashboard = () => {
           {/* 4. WELCOME SECTION */}
           <section className="terminal-welcome-row">
             <div className="welcome-message-panel">
-              <h2>Welcome back, {user?.name || 'Guest'}</h2>
+              <h2>Welcome back, {user?.name || 'thommandra'}! 👋</h2>
               <p>Get real-time market insights and AI-powered stock predictions.</p>
             </div>
             
             <div className="welcome-date-time-cards">
-              <div className="datetime-card glass-panel">
-                <Calendar size={18} className="datetime-icon-purple" />
-                <div className="datetime-card-text">
-                  <span className="datetime-label">Date</span>
-                  <span className="datetime-value">{currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                </div>
-              </div>
-              
-              <div className="datetime-card glass-panel">
-                <Clock size={18} className="datetime-icon-green" />
-                <div className="datetime-card-text">
-                  <span className="datetime-label">Local Time</span>
-                  <span className="datetime-value">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</span>
+              <div className="mockup-datetime-card glass-panel">
+                <Calendar size={20} className="datetime-card-icon" />
+                <div className="datetime-card-content">
+                  <span className="datetime-top-text">
+                    {currentTime.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span className="datetime-bottom-text">
+                    {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} IST
+                  </span>
                 </div>
               </div>
             </div>
@@ -610,59 +659,67 @@ const Dashboard = () => {
           {/* 5. KPI CARDS */}
           <section className="terminal-kpi-grid">
             {/* Card 1: Portfolio Value */}
-            <div className="kpi-metric-card glass-panel">
+            <div className="kpi-metric-card glass-panel kpi-portfolio-card">
               <div className="kpi-card-header">
                 <span className="kpi-label">Portfolio Value</span>
-                <Wallet size={20} className="kpi-icon-blue" />
+                <div className="kpi-icon-wrap kpi-bg-cyan">
+                  <Wallet size={18} />
+                </div>
               </div>
               <div className="kpi-value-row">
                 <span className="kpi-main-value">
-                  ${Number(portfolioSummary?.total_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{Number(portfolioSummary?.total_value || 24377.64).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="kpi-change-tag pl-profit">
-                  <ArrowUpRight size={14} /> +1.24%
+                  <ArrowUpRight size={14} /> +₹419.88 (1.75%)
                 </span>
               </div>
               <div className="kpi-mini-chart-wrap">
-                <svg viewBox="0 0 100 30" className="sparkline-svg svg-blue">
+                <svg viewBox="0 0 100 30" className="sparkline-svg svg-green">
                   <path d="M0,25 Q15,22 30,12 T60,18 T90,5 L100,5" fill="none" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
             </div>
 
             {/* Card 2: Today's P&L */}
-            <div className="kpi-metric-card glass-panel">
+            <div className="kpi-metric-card glass-panel kpi-pl-card">
               <div className="kpi-card-header">
                 <span className="kpi-label">Today's P&L</span>
-                <TrendingUp size={20} className="kpi-icon-green" />
+                <div className="kpi-icon-wrap kpi-bg-purple">
+                  <TrendingUp size={18} />
+                </div>
               </div>
               <div className="kpi-value-row">
-                <span className="kpi-main-value text-green">+$3,420.50</span>
+                <span className="kpi-main-value text-green">
+                  +₹{Number(portfolioSummary?.today_pl || 419.88).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
                 <span className="kpi-change-tag pl-profit">
-                  <ArrowUpRight size={14} /> +2.80%
+                  <ArrowUpRight size={14} /> +1.75%
                 </span>
               </div>
               <div className="kpi-mini-chart-wrap">
-                <svg viewBox="0 0 100 30" className="sparkline-svg svg-green">
+                <svg viewBox="0 0 100 30" className="sparkline-svg svg-purple">
                   <path d="M0,28 L20,20 L40,24 L60,8 L80,12 L100,2" fill="none" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
             </div>
 
             {/* Card 3: Total Predictions */}
-            <div className="kpi-metric-card glass-panel">
+            <div className="kpi-metric-card glass-panel kpi-predicts-card">
               <div className="kpi-card-header">
                 <span className="kpi-label">Total Predictions</span>
-                <Cpu size={20} className="kpi-icon-purple" />
+                <div className="kpi-icon-wrap kpi-bg-blue">
+                  <Cpu size={18} />
+                </div>
               </div>
               <div className="kpi-value-row">
-                <span className="kpi-main-value">142</span>
-                <span className="kpi-change-tag pl-profit accent-purple-badge">
-                  <ShieldCheck size={14} /> 94.2% Acc
+                <span className="kpi-main-value">247</span>
+                <span className="kpi-change-tag pl-profit accent-blue-badge">
+                  <ShieldCheck size={14} /> 87.4% Accuracy
                 </span>
               </div>
               <div className="kpi-mini-chart-wrap">
-                <svg viewBox="0 0 100 30" className="sparkline-svg svg-purple">
+                <svg viewBox="0 0 100 30" className="sparkline-svg svg-blue">
                   <path d="M0,20 Q20,5 40,22 T80,8 L100,10" fill="none" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
@@ -677,44 +734,42 @@ const Dashboard = () => {
               
               {/* 6. STOCK ANALYSIS PANEL */}
               <section className="analysis-controls-widget glass-panel">
-                <div className="analysis-widget-header">
-                  <div className="active-stock-details">
-                    <span className="badge-ticker">{symbol}</span>
-                    <div className="price-callout-box">
-                      <span className="large-price">${Number(currentPrice ?? 0).toFixed(2)}</span>
-                      <span className={`price-diff-pct ${priceDiff >= 0 ? 'pl-profit' : 'pl-loss'}`}>
-                        {priceDiff >= 0 ? '+' : ''}{Number(priceDiff ?? 0).toFixed(2)} ({priceDiff >= 0 ? '+' : ''}{Number(pricePct ?? 0).toFixed(2)}%)
-                      </span>
-                    </div>
+                <div className="analysis-section-header">
+                  <div className="analysis-title-box">
+                    <TrendingUp size={20} className="analysis-icon-purple" />
+                    <h3>Stock Analysis</h3>
                   </div>
-
-                  {/* Indicators selection bar */}
-                  <div className="technical-indicators-selector">
-                    <span className="selector-title">Technical Overlays:</span>
-                    <div className="indicators-button-group">
-                      {[
-                        { label: 'None', val: 'none' },
-                        { label: 'Bollinger Bands', val: 'bollinger' },
-                        { label: 'RSI', val: 'rsi' },
-                        { label: 'MACD', val: 'macd' }
-                      ].map((ind) => (
-                        <button
-                          key={ind.val}
-                          onClick={() => setActiveIndicator(ind.val)}
-                          className={`indicator-select-btn ${activeIndicator === ind.val ? 'active' : ''}`}
-                        >
-                          {ind.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="analysis-subtitle">Analyze any stock with AI predictions</p>
                 </div>
 
-                <div className="analysis-toolbar-actions">
-                  {/* Timeframe selector */}
-                  <div className="toolbar-flex-block">
-                    <span className="toolbar-label">Timeframe</span>
-                    <div className="timeframe-buttons-group">
+                {/* Inline Search Bar */}
+                <div className="analysis-search-row">
+                  <div className="analysis-input-wrap">
+                    <Search size={18} className="analysis-input-icon" />
+                    <input
+                      type="text"
+                      className="analysis-symbol-input"
+                      placeholder="Search stock symbol (e.g., TCS.NS, RELIANCE.NS)"
+                      value={symbol}
+                      onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          loadHistoryData(symbol, period);
+                        }
+                      }}
+                    />
+                  </div>
+                  <button onClick={() => loadHistoryData(symbol, period)} className="analysis-search-btn">
+                    <Search size={16} />
+                    <span>Search</span>
+                  </button>
+                </div>
+
+                {/* Quick Buttons Grid */}
+                <div className="quick-buttons-container">
+                  <div className="quick-buttons-row">
+                    <span className="quick-label-text">Quick Buttons</span>
+                    <div className="quick-buttons-group">
                       {[
                         { key: '1d', label: '1D' },
                         { key: '1w', label: '1W' },
@@ -722,11 +777,11 @@ const Dashboard = () => {
                         { key: '6mo', label: '6M' },
                         { key: '1y', label: '1Y' },
                         { key: '5y', label: '5Y' },
-                        { key: 'all', label: 'ALL' }
+                        { key: 'all', label: 'All' }
                       ].map((item) => (
                         <button
                           key={item.key}
-                          className={`timeframe-select-btn ${period === item.key ? 'active' : ''}`}
+                          className={`quick-timeframe-btn ${period === item.key ? 'active' : ''}`}
                           onClick={() => handlePeriodChange(item.key)}
                         >
                           {item.label}
@@ -735,38 +790,68 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {/* Chart view switcher */}
-                  <div className="toolbar-flex-block">
-                    <span className="toolbar-label">Chart Type</span>
-                    <div className="chart-view-toggle-buttons">
-                      <button 
-                        className={`chart-type-toggle-btn ${chartType === 'candlestick' ? 'active' : ''}`}
-                        onClick={() => setChartType('candlestick')}
-                      >
-                        Candles
-                      </button>
-                      <button 
-                        className={`chart-type-toggle-btn ${chartType === 'line' ? 'active' : ''}`}
-                        onClick={() => setChartType('line')}
-                      >
-                        Line View
-                      </button>
+                  <div className="quick-buttons-row">
+                    <div className="quick-view-group">
+                      <button onClick={() => loadHistoryData(symbol, period)} className="quick-action-btn">Load</button>
+                      <button onClick={() => setChartType('candlestick')} className={`quick-action-btn ${chartType === 'candlestick' && activeIndicator === 'none' ? 'active' : ''}`}>Candles</button>
+                      <button onClick={() => { setChartType('line'); setActiveIndicator('none'); }} className={`quick-action-btn ${chartType === 'line' && activeIndicator === 'none' ? 'active' : ''}`}>Line</button>
+                      <button onClick={() => setActiveIndicator('rsi')} className={`quick-action-btn ${activeIndicator === 'rsi' ? 'active' : ''}`}>RSI</button>
+                      <button onClick={() => setActiveIndicator('macd')} className={`quick-action-btn ${activeIndicator === 'macd' ? 'active' : ''}`}>MACD</button>
+                      <button onClick={() => setActiveIndicator('bollinger')} className={`quick-action-btn ${activeIndicator === 'bollinger' ? 'active' : ''}`}>BB</button>
                     </div>
                   </div>
+                </div>
 
-                  {/* Actions buttons */}
+                {/* Lower Actions & Current Price */}
+                <div className="analysis-bottom-actions">
                   <div className="action-buttons-wrap">
-                    <button onClick={generatePredictions} className="btn btn-primary trigger-predict-btn" disabled={loadingPredict || prices.length === 0}>
-                      {loadingPredict ? <Loader2 size={16} className="animate-spin" /> : 'Predict 5D'}
+                    <button onClick={generatePredictions} className="btn-predict-5d" disabled={loadingPredict || prices.length === 0}>
+                      <Cpu size={16} />
+                      <span>{loadingPredict ? 'Compiling...' : 'Predict 5D'}</span>
                     </button>
-                    <button onClick={() => setAlertModalOpen(true)} className="btn btn-outline">Create Alert</button>
-                    <button onClick={() => setCompareModalOpen(true)} className="btn btn-outline">Compare</button>
+                    <button onClick={() => setAlertModalOpen(true)} className="btn-alert">
+                      <Bell size={16} />
+                      <span>Alert</span>
+                    </button>
+                    <button onClick={() => setCompareModalOpen(true)} className="btn-compare">
+                      <Activity size={16} />
+                      <span>Compare</span>
+                    </button>
+                  </div>
+
+                  <div className="current-price-badge">
+                    <span className="price-badge-label">Current Price:</span>
+                    <span className="price-badge-val">₹{Number(currentPrice ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </section>
 
               {/* 7. CHART SECTION */}
               <section className="terminal-chart-widget glass-panel">
+                <div className="chart-widget-header">
+                  <div className="chart-title-block">
+                    <h3>{symbol} Price History</h3>
+                    <p className="chart-subtitle">{symbolNames[symbol] || symbolNames[symbol.replace('.NS', '')] || 'Historical stock quote details'}</p>
+                  </div>
+                  <div className="chart-header-tools">
+                    <select className="chart-timeframe-dropdown" value={period} onChange={(e) => handlePeriodChange(e.target.value)}>
+                      <option value="1d">1D</option>
+                      <option value="1w">1W</option>
+                      <option value="1mo">1M</option>
+                      <option value="6mo">6M</option>
+                      <option value="1y">1Y</option>
+                      <option value="5y">5Y</option>
+                      <option value="all">All</option>
+                    </select>
+                    
+                    <div className="chart-zoom-tools">
+                      <button className="zoom-btn" title="Zoom In"><Search size={14} /></button>
+                      <button className="zoom-btn" title="Zoom Out"><Search size={14} /></button>
+                      <button className="zoom-btn" title="Pan"><Activity size={14} /></button>
+                      <button className="zoom-btn" title="Reset"><Clock size={14} /></button>
+                    </div>
+                  </div>
+                </div>
                 {prices && prices.length > 0 ? (
                   <div className="chart-screen-viewport">
                     {loadingHistory ? (
@@ -802,19 +887,19 @@ const Dashboard = () => {
                 <div className="chart-ohlc-summary-row">
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Open</span>
-                    <span className="ohlc-val">${Number(openPrice ?? 0).toFixed(2)}</span>
+                    <span className="ohlc-val">₹{Number(openPrice ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">High</span>
-                    <span className="ohlc-val text-green">${Number(highPrice ?? 0).toFixed(2)}</span>
+                    <span className="ohlc-val text-green">₹{Number(highPrice ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Low</span>
-                    <span className="ohlc-val text-red">${Number(lowPrice ?? 0).toFixed(2)}</span>
+                    <span className="ohlc-val text-red">₹{Number(lowPrice ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Close</span>
-                    <span className="ohlc-val">${Number(closePrice ?? 0).toFixed(2)}</span>
+                    <span className="ohlc-val">₹{Number(closePrice ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Change</span>
@@ -824,7 +909,7 @@ const Dashboard = () => {
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Volume</span>
-                    <span className="ohlc-val">{Number(activeVolume ?? 0).toLocaleString()}</span>
+                    <span className="ohlc-val">{formatVolume(activeVolume)}</span>
                   </div>
                 </div>
               </section>
@@ -886,17 +971,18 @@ const Dashboard = () => {
               {/* Widget 1: Watchlist Widget */}
               <section id="watchlist-widget" className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
-                  <h3>My Watchlist</h3>
-                  <form onSubmit={handleAddToWatchlist} className="widget-add-symbol-form">
-                    <input
-                      type="text"
-                      className="widget-add-input"
-                      placeholder="Add... (e.g. INFY.NS)"
-                      value={watchlistInput}
-                      onChange={(e) => setWatchlistInput(e.target.value)}
-                    />
-                    <button type="submit" className="widget-add-btn" aria-label="Add to watchlist">+</button>
-                  </form>
+                  <h3>Watchlist Stocks</h3>
+                  <button onClick={() => {
+                    const sym = prompt('Enter Stock Symbol to Add (e.g. RELIANCE.NS, INFY.NS):');
+                    if (sym) {
+                      const formatted = sym.toUpperCase().trim();
+                      if (formatted && !watchlist.includes(formatted)) {
+                        const updated = [...watchlist, formatted];
+                        setWatchlist(updated);
+                        localStorage.setItem('watchlist', JSON.stringify(updated));
+                      }
+                    }
+                  }} className="widget-header-add-btn">+ Add</button>
                 </div>
 
                 <ul className="watchlist-list-items">
@@ -917,7 +1003,7 @@ const Dashboard = () => {
                         >
                           <div className="watchlist-item-left">
                             <span className="symbol-txt">{sym.replace('.NS', '')}</span>
-                            <span className="company-val">${Number(currentVal).toFixed(2)}</span>
+                            <span className="company-val">₹{Number(currentVal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                           </div>
                           
                           {/* Mini SVG Sparkline */}
@@ -953,48 +1039,38 @@ const Dashboard = () => {
               {/* Widget 2: Market Overview (Sentiment) */}
               <section id="market-overview" className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
-                  <h3>Market Sentiment</h3>
+                  <h3>Market Overview</h3>
+                  <button className="widget-close-btn" aria-label="Close widget">×</button>
                 </div>
-                <div className="sentiment-gauge-box">
-                  <div className="gauge-dial-wrap">
-                    <svg viewBox="0 0 100 50" className="gauge-svg">
-                      <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#2e303a" strokeWidth="8" strokeLinecap="round" />
-                      <path d="M 10 50 A 40 40 0 0 1 78 18" fill="none" stroke="url(#greenGlow)" strokeWidth="8" strokeLinecap="round" />
-                      <defs>
-                        <linearGradient id="greenGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#10b981" />
-                          <stop offset="100%" stopColor="#4edea3" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="gauge-val-overlay">
-                      <span className="gauge-pct-val text-green">78%</span>
-                      <span className="gauge-label-txt">BULLISH</span>
-                    </div>
+                <div className="sentiment-mockup-box">
+                  <div className="sentiment-info">
+                    <span className="sentiment-large-status text-green">Bullish</span>
+                    <p className="sentiment-desc">Market sentiment is positive</p>
                   </div>
-                  <p className="sentiment-desc">Consensus index shows strong accumulation across tech and banking indexes.</p>
+                  <div className="sentiment-bull-svg-box">
+                    <svg viewBox="0 0 100 100" width="60" height="60" className="neon-bull-svg">
+                      <path d="M15 45 L25 40 L35 35 L40 45 L50 40 L60 48 L65 40 L75 42 L80 35 L85 45 L75 60 L60 62 L45 58 L30 60 L20 52 Z" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M15 45 L10 40 Q5 35 15 30 Q25 25 35 35" fill="none" stroke="#10b981" strokeWidth="2.5" />
+                      <path d="M85 45 L90 40 Q95 35 85 30 Q75 25 65 35" fill="none" stroke="#10b981" strokeWidth="2.5" />
+                      <circle cx="38" cy="38" r="2" fill="#10b981" />
+                      <circle cx="62" cy="38" r="2" fill="#10b981" />
+                      <path d="M42 50 Q50 55 58 50" fill="none" stroke="#10b981" strokeWidth="1.5" />
+                    </svg>
+                  </div>
                 </div>
               </section>
 
               {/* Widget 3: Unusual Volume Alerts */}
               <section className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
-                  <h3>Unusual Volume Alerts</h3>
+                  <h3>Unusual Volume</h3>
                 </div>
-                <div className="volume-alerts-container">
-                  <div className="volume-alert-item">
-                    <Volume2 size={16} className="text-green alert-icon-pulse" />
-                    <div className="alert-content">
-                      <p><strong>INFY.NS</strong> volume spiked <strong>2.4x</strong> average</p>
-                      <span>15:42 IST • Market buy sweep</span>
-                    </div>
-                  </div>
-                  <div className="volume-alert-item">
-                    <Volume2 size={16} className="text-purple alert-icon-pulse" />
-                    <div className="alert-content">
-                      <p><strong>RELIANCE.NS</strong> 2,900 CE blocks traded</p>
-                      <span>14:15 IST • High option volumes</span>
-                    </div>
+                <div className="unusual-volume-mockup-box">
+                  <span className="unusual-volume-text">No unusual volume detected</span>
+                  <div className="check-icon-circle">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </div>
                 </div>
               </section>
@@ -1002,15 +1078,13 @@ const Dashboard = () => {
               {/* Widget 4: Sector Heatmap */}
               <section className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
-                  <h3>Sector Performance</h3>
+                  <h3>Sector Heatmap</h3>
                 </div>
                 <div className="sector-heatmap-grid">
                   {[
-                    { name: 'Tech', change: 1.82, class: 'pl-profit' },
-                    { name: 'Banking', change: 1.15, class: 'pl-profit' },
-                    { name: 'Finance', change: -0.42, class: 'pl-loss' },
-                    { name: 'Pharma', change: 0.65, class: 'pl-profit' },
-                    { name: 'Energy', change: -1.20, class: 'pl-loss' }
+                    { name: 'Tech', change: 1.42, class: 'pl-profit' },
+                    { name: 'Finance', change: 0.67, class: 'pl-profit' },
+                    { name: 'Pharma', change: -0.25, class: 'pl-loss' }
                   ].map((s) => (
                     <div key={s.name} className={`sector-block ${s.class}`}>
                       <span className="sector-name">{s.name}</span>
@@ -1023,19 +1097,21 @@ const Dashboard = () => {
               {/* Widget 5: Recent News */}
               <section id="recent-news" className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
-                  <h3>Recent Market News</h3>
+                  <h3>Recent News</h3>
+                  <a href="#recent-news" className="view-all-link">View all</a>
                 </div>
                 <ul className="news-feed-list">
                   {[
-                    { title: 'NVIDIA chip supply bounds scale up as AI training demands surge', source: 'FinTech Wire', time: '12m ago' },
-                    { title: 'TCS announces multi-million dollar cloud deal with global retailer', source: 'Reuters', time: '1h ago' },
-                    { title: 'Federal Reserve hinting at steady rates triggers minor consolidate index', source: 'Bloomberg', time: '3h ago' },
-                    { title: 'Indian index touches historic highs on foreign institutional buying', source: 'ET Markets', time: '5h ago' }
+                    { title: 'TCS Q4 Results Beat Estimates, Revenue Grows 3.1% QoQ', source: 'Moneycontrol', time: '2h ago', color: '#2563eb' },
+                    { title: 'IT Stocks Rally as Market Sentiment Improves', source: 'Economic Times', time: '4h ago', color: '#dc2626' },
+                    { title: 'RBI Holds Rates Steady, Inflation Eases', source: 'LiveMint', time: '6h ago', color: '#d97706' }
                   ].map((n, idx) => (
                     <li key={idx} className="news-feed-item">
                       <h4 className="news-title">{n.title}</h4>
                       <div className="news-meta-row">
+                        <span className="news-source-badge" style={{ backgroundColor: n.color }}>{n.source[0]}</span>
                         <span className="news-source">{n.source}</span>
+                        <span className="news-dot-separator">•</span>
                         <span className="news-timestamp">{n.time}</span>
                       </div>
                     </li>

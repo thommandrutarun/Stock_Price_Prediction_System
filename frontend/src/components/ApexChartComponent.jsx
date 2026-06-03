@@ -113,7 +113,7 @@ const calculateEMA = (data, period) => {
   return ema;
 };
 
-const ApexChartComponent = ({ prices, chartType, symbol, activeIndicator = 'none' }) => {
+const ApexChartComponent = ({ prices, chartType, symbol, activeIndicator = 'none', currencySymbol = '₹' }) => {
   if (!prices || prices.length === 0) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '380px', color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>
@@ -137,7 +137,7 @@ const ApexChartComponent = ({ prices, chartType, symbol, activeIndicator = 'none
   let customYAxis = {
     tooltip: { enabled: true },
     labels: {
-      formatter: (val) => val.toFixed(2),
+      formatter: (val) => `${currencySymbol}${val.toFixed(2)}`,
       style: { colors: '#94a3b8' },
     },
   };
@@ -321,7 +321,7 @@ const ApexChartComponent = ({ prices, chartType, symbol, activeIndicator = 'none
     tooltip: {
       shared: true,
       y: {
-        formatter: (val) => val !== null ? `$${val.toFixed(2)}` : 'N/A',
+        formatter: (val) => val !== null ? `${currencySymbol}${val.toFixed(2)}` : 'N/A',
       },
     },
     plotOptions: {
