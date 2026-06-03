@@ -258,3 +258,23 @@ html.light .form-input::placeholder {
   color: var(--text-muted);
 }
 
+/* Mobile Performance and SEO Accessibility Optimizations */
+@media (max-width: 767px) {
+  /* Hide background video on mobile screens to save network data, memory, and CPU/GPU usage */
+  .bg-video {
+    display: none !important;
+  }
+
+  /* Ensure all interactive buttons and mobile links meet Google's 48px x 48px minimum tap target recommendations */
+  .btn,
+  .ds-nav-link-mob,
+  .theme-toggle-btn-mob,
+  .bottom-nav-item {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+

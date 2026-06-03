@@ -6,9 +6,9 @@ import Footer from '../components/Footer';
 const MainLayout = () => {
   return (
     <div className="app-container">
-      {/* Background Video */}
-      <video className="bg-video" autoPlay muted loop playsInline>
-        <source src="/assets/stock_price_prediction_system_for_a_web (1).mp4" type="video/mp4" />
+      {/* Optimized Background Video */}
+      <video className="bg-video" autoPlay muted loop playsInline preload="none">
+        <source src="/assets/stock_price_prediction_system_for_a_web.mp4" type="video/mp4" />
       </video>
 
       {/* Navigation Header */}

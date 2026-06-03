@@ -1,0 +1,19 @@
+# Robots.txt for Stock Price Prediction System
+User-agent: *
+
+# Allowed indexable landing and public support routes
+Allow: /
+Allow: /contact
+Allow: /login
+Allow: /register
+Allow: /forgot-password
+
+# Disallowed dynamic dashboard and admin panel routes
+Disallow: /dashboard
+Disallow: /trade
+Disallow: /portfolio
+Disallow: /admin
+Disallow: /api/
+
+# Link to XML sitemap
+Sitemap: https://stockpredict.ai/sitemap.xml
