@@ -565,7 +565,7 @@ const Dashboard = () => {
                 return (
                   <div key={idx} className="ticker-marquee-item">
                     <span className="ticker-label">{t.label}</span>
-                    <span className="ticker-price">${parseFloat(t.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="ticker-price">${parseFloat(t.value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     <span className={`ticker-pct-change ${isUp ? 'pct-up' : 'pct-down'}`}>
                       {isUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                       {isUp ? '+' : ''}{t.pct.toFixed(2)}%
@@ -617,7 +617,7 @@ const Dashboard = () => {
               </div>
               <div className="kpi-value-row">
                 <span className="kpi-main-value">
-                  ${(portfolioSummary.total_value || 124500.00).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${Number(portfolioSummary?.total_value ?? 124500.00).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="kpi-change-tag pl-profit">
                   <ArrowUpRight size={14} /> +1.24%
@@ -824,7 +824,7 @@ const Dashboard = () => {
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Volume</span>
-                    <span className="ohlc-val">{activeVolume.toLocaleString()}</span>
+                    <span className="ohlc-val">{(activeVolume ?? 0).toLocaleString()}</span>
                   </div>
                 </div>
               </section>
