@@ -47,7 +47,9 @@ body:has(.dashboard-page-container) .ds-footer-react {
   --db-border-glass: rgba(255, 255, 255, 0.05);
   --db-border-hover: rgba(255, 255, 255, 0.1);
   
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 0 !important;
   width: 100vw;
   height: 100vh;
   background-color: var(--db-bg);
