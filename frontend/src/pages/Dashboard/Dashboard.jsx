@@ -368,15 +368,15 @@ const Dashboard = () => {
   };
 
   // Active Symbol metadata calculations
-  const currentPrice = prices.length > 0 ? prices[prices.length - 1].close : 0;
-  const prevPrice = prices.length > 0 ? prices[0].close : 0;
+  const currentPrice = prices.length > 0 ? (prices[prices.length - 1]?.close ?? 0) : 0;
+  const prevPrice = prices.length > 0 ? (prices[0]?.close ?? 0) : 0;
   const priceDiff = currentPrice - prevPrice;
   const pricePct = prevPrice > 0 ? (priceDiff / prevPrice) * 100 : 0;
-  const highPrice = prices.length > 0 ? Math.max(...prices.map(p => p.high)) : 0;
-  const lowPrice = prices.length > 0 ? Math.min(...prices.map(p => p.low)) : 0;
-  const openPrice = prices.length > 0 ? prices[prices.length - 1].open : 0;
-  const closePrice = prices.length > 0 ? prices[prices.length - 1].close : 0;
-  const activeVolume = prices.length > 0 ? prices[prices.length - 1].volume : 0;
+  const highPrice = prices.length > 0 ? Math.max(...prices.map(p => p?.high ?? 0)) : 0;
+  const lowPrice = prices.length > 0 ? Math.min(...prices.map(p => p?.low ?? 0)) : 0;
+  const openPrice = prices.length > 0 ? (prices[prices.length - 1]?.open ?? 0) : 0;
+  const closePrice = prices.length > 0 ? (prices[prices.length - 1]?.close ?? 0) : 0;
+  const activeVolume = prices.length > 0 ? (prices[prices.length - 1]?.volume ?? 0) : 0;
 
   return (
     <div className="dashboard-page-container">
@@ -565,10 +565,10 @@ const Dashboard = () => {
                 return (
                   <div key={idx} className="ticker-marquee-item">
                     <span className="ticker-label">{t.label}</span>
-                    <span className="ticker-price">${parseFloat(t.value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="ticker-price">${Number(t?.value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     <span className={`ticker-pct-change ${isUp ? 'pct-up' : 'pct-down'}`}>
                       {isUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                      {isUp ? '+' : ''}{t.pct.toFixed(2)}%
+                      {isUp ? '+' : ''}{Number(t?.pct ?? 0).toFixed(2)}%
                     </span>
                     <span className="ticker-item-separator">|</span>
                   </div>
@@ -617,7 +617,7 @@ const Dashboard = () => {
               </div>
               <div className="kpi-value-row">
                 <span className="kpi-main-value">
-                  ${Number(portfolioSummary?.total_value ?? 124500.00).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${Number(portfolioSummary?.total_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="kpi-change-tag pl-profit">
                   <ArrowUpRight size={14} /> +1.24%
@@ -681,9 +681,9 @@ const Dashboard = () => {
                   <div className="active-stock-details">
                     <span className="badge-ticker">{symbol}</span>
                     <div className="price-callout-box">
-                      <span className="large-price">${currentPrice.toFixed(2)}</span>
+                      <span className="large-price">${Number(currentPrice ?? 0).toFixed(2)}</span>
                       <span className={`price-diff-pct ${priceDiff >= 0 ? 'pl-profit' : 'pl-loss'}`}>
-                        {priceDiff >= 0 ? '+' : ''}{priceDiff.toFixed(2)} ({priceDiff >= 0 ? '+' : ''}{pricePct.toFixed(2)}%)
+                        {priceDiff >= 0 ? '+' : ''}{Number(priceDiff ?? 0).toFixed(2)} ({priceDiff >= 0 ? '+' : ''}{Number(pricePct ?? 0).toFixed(2)}%)
                       </span>
                     </div>
                   </div>
@@ -802,29 +802,29 @@ const Dashboard = () => {
                 <div className="chart-ohlc-summary-row">
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Open</span>
-                    <span className="ohlc-val">${openPrice.toFixed(2)}</span>
+                    <span className="ohlc-val">${Number(openPrice ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">High</span>
-                    <span className="ohlc-val text-green">${highPrice.toFixed(2)}</span>
+                    <span className="ohlc-val text-green">${Number(highPrice ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Low</span>
-                    <span className="ohlc-val text-red">${lowPrice.toFixed(2)}</span>
+                    <span className="ohlc-val text-red">${Number(lowPrice ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Close</span>
-                    <span className="ohlc-val">${closePrice.toFixed(2)}</span>
+                    <span className="ohlc-val">${Number(closePrice ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Change</span>
                     <span className={`ohlc-val ${priceDiff >= 0 ? 'text-green' : 'text-red'}`}>
-                      {priceDiff >= 0 ? '+' : ''}{pricePct.toFixed(2)}%
+                      {priceDiff >= 0 ? '+' : ''}{Number(pricePct ?? 0).toFixed(2)}%
                     </span>
                   </div>
                   <div className="ohlc-metric">
                     <span className="ohlc-label">Volume</span>
-                    <span className="ohlc-val">{(activeVolume ?? 0).toLocaleString()}</span>
+                    <span className="ohlc-val">{Number(activeVolume ?? 0).toLocaleString()}</span>
                   </div>
                 </div>
               </section>
@@ -863,7 +863,7 @@ const Dashboard = () => {
                         <div className="predicted-value-card glass-panel" key={idx}>
                           <span className="predict-label-step">T+{idx + 1} Interval</span>
                           <span className="predict-date-stamp">{p.date}</span>
-                          <span className="predict-close-price">${p.predicted_close.toFixed(2)}</span>
+                          <span className="predict-close-price">${Number(p?.predicted_close ?? 0).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
@@ -905,7 +905,10 @@ const Dashboard = () => {
                   ) : (
                     watchlist.map((sym) => {
                       const details = watchlistDetails[sym] || { current: 3000, pct: 1.25, sparkline: [2950, 2980, 3010, 3000] };
-                      const isUp = details.pct >= 0;
+                      const currentVal = details?.current ?? 0;
+                      const pctVal = details?.pct ?? 0;
+                      const sparklineVal = details?.sparkline ?? [0];
+                      const isUp = pctVal >= 0;
                       return (
                         <li 
                           key={sym} 
@@ -914,14 +917,14 @@ const Dashboard = () => {
                         >
                           <div className="watchlist-item-left">
                             <span className="symbol-txt">{sym.replace('.NS', '')}</span>
-                            <span className="company-val">${details.current.toFixed(2)}</span>
+                            <span className="company-val">${Number(currentVal).toFixed(2)}</span>
                           </div>
                           
                           {/* Mini SVG Sparkline */}
                           <div className="watchlist-item-chart">
                             <svg viewBox="0 0 50 20" className={`mini-sparkline ${isUp ? 'up' : 'down'}`}>
                               <path 
-                                d={details.sparkline.reduce((acc, val, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${(i * 15)} ${20 - ((val - Math.min(...details.sparkline)) / (Math.max(...details.sparkline) - Math.min(...details.sparkline) || 1) * 16 + 2)}`, '')}
+                                d={sparklineVal.reduce((acc, val, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${(i * 15)} ${20 - ((Number(val ?? 0) - Math.min(...sparklineVal.map(x => Number(x ?? 0)))) / (Math.max(...sparklineVal.map(x => Number(x ?? 0))) - Math.min(...sparklineVal.map(x => Number(x ?? 0))) || 1) * 16 + 2)}`, '')}
                                 fill="none" 
                                 strokeWidth="1.5" 
                               />
@@ -930,7 +933,7 @@ const Dashboard = () => {
 
                           <div className="watchlist-item-right">
                             <span className={`change-pct ${isUp ? 'text-green' : 'text-red'}`}>
-                              {isUp ? '+' : ''}{details.pct.toFixed(2)}%
+                              {isUp ? '+' : ''}{Number(pctVal).toFixed(2)}%
                             </span>
                             <button 
                               onClick={(e) => handleRemoveFromWatchlist(sym, e)} 
@@ -1011,7 +1014,7 @@ const Dashboard = () => {
                   ].map((s) => (
                     <div key={s.name} className={`sector-block ${s.class}`}>
                       <span className="sector-name">{s.name}</span>
-                      <span className="sector-change">{s.change >= 0 ? '+' : ''}{s.change.toFixed(2)}%</span>
+                      <span className="sector-change">{s.change >= 0 ? '+' : ''}{Number(s?.change ?? 0).toFixed(2)}%</span>
                     </div>
                   ))}
                 </div>
@@ -1079,19 +1082,19 @@ const Dashboard = () => {
                   <div className="compare-cards-row">
                     <div className="compare-entity-box">
                       <span className="entity-title">{symbol}</span>
-                      <span className="entity-price">${currentPrice.toFixed(2)}</span>
+                      <span className="entity-price">${Number(currentPrice ?? 0).toFixed(2)}</span>
                       <span className={`entity-change ${priceDiff >= 0 ? 'text-green' : 'text-red'}`}>
-                        {priceDiff >= 0 ? '▲' : '▼'} {Math.abs(pricePct).toFixed(2)}%
+                        {priceDiff >= 0 ? '▲' : '▼'} {Math.abs(Number(pricePct ?? 0)).toFixed(2)}%
                       </span>
                     </div>
 
                     <div className="compare-vs-divider">VS</div>
 
                     <div className="compare-entity-box">
-                      <span className="entity-title">{compareResult.symbol}</span>
-                      <span className="entity-price">${compareResult.price.toFixed(2)}</span>
-                      <span className={`entity-change ${compareResult.change >= 0 ? 'text-green' : 'text-red'}`}>
-                        {compareResult.change >= 0 ? '▲' : '▼'} {Math.abs(compareResult.change).toFixed(2)}%
+                      <span className="entity-title">{compareResult?.symbol}</span>
+                      <span className="entity-price">${Number(compareResult?.price ?? 0).toFixed(2)}</span>
+                      <span className={`entity-change ${compareResult?.change >= 0 ? 'text-green' : 'text-red'}`}>
+                        {compareResult?.change >= 0 ? '▲' : '▼'} {Math.abs(Number(compareResult?.change ?? 0)).toFixed(2)}%
                       </span>
                     </div>
                   </div>
