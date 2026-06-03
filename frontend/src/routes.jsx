@@ -9,6 +9,9 @@ import Trade from './pages/Trade';
 import Portfolio from './pages/Portfolio';
 import Admin from './pages/Admin';
 import Contact from './pages/Contact';
+import About from './pages/About';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -36,6 +39,18 @@ export const router = createBrowserRouter([
       {
         path: 'contact',
         element: <Contact />,
+      },
+      {
+        path: 'about',
+        element: <About />,
+      },
+      {
+        path: 'privacy-policy',
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: 'terms',
+        element: <Terms />,
       },
       {
         path: 'dashboard',

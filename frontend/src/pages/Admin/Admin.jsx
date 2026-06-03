@@ -184,7 +184,9 @@ const Admin = () => {
           <div className="admin-users-tab">
             <div className="users-tab-header">
               <h3 className="tab-title">User Account Registry</h3>
+              <label htmlFor="search-users-input" className="sr-only">Filter users</label>
               <input
+                id="search-users-input"
                 type="text"
                 className="form-input search-users-input"
                 placeholder="Filter users name, email, or role..."

@@ -6,6 +6,9 @@ import Footer from '../components/Footer';
 const MainLayout = () => {
   return (
     <div className="app-container">
+      {/* Skip to Content accessibility link */}
+      <a href="#main-content" className="skip-link">Skip to Content</a>
+
       {/* Optimized Background Video */}
       <video className="bg-video" autoPlay muted loop playsInline preload="none">
         <source src="/assets/stock_price_prediction_system_for_a_web.mp4" type="video/mp4" />
@@ -18,7 +21,7 @@ const MainLayout = () => {
       <MarketTicker />
 
       {/* Central Routing Panel */}
-      <main className="content-wrapper">
+      <main id="main-content" className="content-wrapper" tabIndex="-1">
         <Outlet />
       </main>
 

@@ -44,7 +44,7 @@ const Login = () => {
       {/* Dynamic SEO Injector */}
       <SEO 
         title="Sign In to Your Account"
-        description="Access the AI Stock Price Prediction System. Secure your session to track stock candlestick charts, deploy recurrent LSTM forecast neural networks, and manage your virtual portfolio."
+        description="Log in to your secure DeepStock account. Access LSTM forecasting networks, analyze candlestick charts, and manage your virtual simulated portfolios."
         keywords="stock prediction login, trading terminal sign in, secure session, portfolio access, market screener dashboard"
         schema={loginSchema}
       />
@@ -116,43 +116,42 @@ const Login = () => {
             </div>
           </div>
         </div>
-
         {/* RIGHT COLUMN: DETAILED SECURITY DOCUMENTATION (Word Count Expansion) */}
         <div className="login-security-panel glass-panel" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', justifyContent: 'center' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
             <ShieldCheck size={28} style={{ color: 'var(--success)' }} />
-            <h3 style={{ fontSize: '1.4rem', margin: 0 }}>Trading Terminal Security Policy</h3>
+            <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Trading Terminal Security Policy</h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
             Protecting your financial data and strategy sequences is our highest priority. The DeepStock platform operates a high-fidelity environment built on institutional-grade security architectures. When logging into your trading dashboard, your connection is fully encrypted using TLS 1.3, which shields your credentials from third-party interception or sniffing. Please read this documentation before entering your password.
           </p>
-
+ 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
             <div style={{ display: 'flex', gap: '12px' }}>
               <KeyRound size={20} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Advanced Cryptographic Salt & Hashing</h4>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Advanced Cryptographic Salt & Hashing</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                   Passwords are never stored in plain text in our database systems. We use industry-standard hashing algorithms (bcrypt) combined with randomized cryptographic salt inputs. This prevents brute-force dictionary calculations and protects your account details.
                 </p>
               </div>
             </div>
-
+ 
             <div style={{ display: 'flex', gap: '12px' }}>
               <Smartphone size={20} style={{ color: 'var(--accent-purple)', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Session Timeout & Token Revocation</h4>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Session Timeout & Token Revocation</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                   To guard against physical access vulnerabilities, your active terminal session automatically expires after a designated inactivity window. Our server issues temporary JWT security tokens which are validated on every request. Clicking "Log Out" completely destroys these tokens.
                 </p>
               </div>
             </div>
-
+ 
             <div style={{ display: 'flex', gap: '12px' }}>
               <ShieldAlert size={20} style={{ color: 'var(--accent-pink)', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Rate Limiting & IP Profiling</h4>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Rate Limiting & IP Profiling</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                   Our firewalls employ strict rate limiting against brute force attempts. If a specific IP address displays repetitive incorrect attempts, the system automatically triggers a temporary block and flags the activity in our administrative control center.
                 </p>
@@ -165,17 +164,14 @@ const Login = () => {
             <span>Never share your authentication credentials or session tokens with third-party software.</span>
           </div>
         </div>
-
-      </div>
-
-      {/* ADDITIONAL SECURE HYGIENE & TROUBLESHOOTING GUIDES FOR 1000 WORD COMPLIANCE */}
+      </div>      {/* ADDITIONAL SECURE HYGIENE & TROUBLESHOOTING GUIDES FOR 1000 WORD COMPLIANCE */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
           
           <div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <FileLock size={20} style={{ color: 'var(--primary)' }} /> Credential Hygiene & Account Protection
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               Maintaining strict credential hygiene is vital to securing your trading simulation dashboard. We recommend choosing a password that is unique to this platform. Do not reuse credentials that are linked to external personal accounts like email, social networks, or banking portals. Regularly audit your computer for malicious software or keyboard loggers that can harvest inputs, and ensure you log out of public or shared computers immediately after finishing your trading simulation sessions to prevent session hijacking.
             </p>
@@ -183,11 +179,11 @@ const Login = () => {
               We also suggest updating your password every 90 days. This cycle limits the utility of any leaked historical credential configurations and ensures your secure trading profile remains protected against long-term vulnerabilities.
             </p>
           </div>
-
+ 
           <div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <WifiOff size={20} style={{ color: 'var(--accent-purple)' }} /> Troubleshooting Connection & Login Faults
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               If you experience issues logging into the dashboard, check your local internet connectivity and firewall properties. Some corporate networks block custom WebSockets or proxy APIs which our charts rely on. Ensure that your browser's local time is synchronized with the internet, as large clock drifts (greater than 5 minutes) can cause the server to reject temporary JWT tokens. Clear your browser cookies or try opening an incognito session to bypass stale local cache files.
             </p>
@@ -195,37 +191,37 @@ const Login = () => {
               If the server reports a "Proxy Endpoint Timeout," the background forecasting database might be processing daily closing batches. Wait 2 minutes and retry your submission. Our systems usually restart within 30 seconds of maintenance intervals.
             </p>
           </div>
-
+ 
         </div>
       </div>
-
+ 
       {/* DETAILED COOKIE AND TOKEN POLICIES FOR EXTRA LENGTH */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 300px' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Layers size={20} style={{ color: 'var(--primary)' }} /> Session Storage vs Local Storage
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               We write temporary session tokens to browser sessionStorage rather than localStorage whenever you select stricter privacy settings. LocalStorage persists credentials across browser restarts, which is convenient but increases exposure if a device is shared. SessionStorage, by contrast, is completely destroyed the moment you close the active tab, offering a safer operational configuration for public computer terminal access.
             </p>
           </div>
           <div style={{ flex: '1 1 300px' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Award size={20} style={{ color: 'var(--accent-pink)' }} /> Two-Factor Authentication Security (2FA)
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               We support Time-based One-Time Password (TOTP) protocols for secondary identity verification. When enabled, your dashboard requires a 6-digit verification code generated by an authenticator application on your smartphone alongside your standard password. This ensures that even if your password is leaked, unauthorized parties cannot access your virtual exchange balance.
             </p>
           </div>
         </div>
       </div>
-
+ 
       {/* LOCAL COOKIE & DIAGNOSTIC CHECKLIST SECTION */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
           <ShieldQuestion size={24} style={{ color: 'var(--primary)' }} />
-          <h3 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)' }}>Local Browser Diagnostics & Cookie Configurations</h3>
+          <h2 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)' }}>Local Browser Diagnostics & Cookie Configurations</h2>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.6' }}>
           Our authorization servers issue session markers with specific security constraints. In case of verification failures or looping logins, check the following checklist items in your browser's developer console under the Application or Storage tabs:
@@ -251,39 +247,39 @@ const Login = () => {
           </li>
         </ul>
       </div>
-
+ 
       {/* TERMINAL NAVIGATION AND USER ONBOARDING CHECKLIST */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-        <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Terminal Navigation and User Onboarding Checklist</h3>
+        <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Terminal Navigation and User Onboarding Checklist</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.6' }}>
           Welcome back to the DeepStock ecosystem. If this is your first time checking your dashboard this week, here is an educational breakdown of the core modules you will unlock once you input your email address and password above:
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--primary)', marginBottom: '6px' }}>1. Check the Live Market Ticker</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--primary)', marginBottom: '6px' }}>1. Check the Live Market Ticker</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               Directly beneath the header, our global ticker streams live price indexes for NIFTY 50, SENSEX, and global indices. This provides quick context on broader market trends before you drill down into individual tickers.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--accent-purple)', marginBottom: '6px' }}>2. Screen Specific Stock Symbols</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--accent-purple)', marginBottom: '6px' }}>2. Screen Specific Stock Symbols</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               Type symbols into the search box (e.g. RELIANCE, TCS, or AAPL) to load the technical interface. You can adjust the timeline views to see historical data points and compare real-time parameters.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--accent-pink)', marginBottom: '6px' }}>3. View AI Forecasting Trajectories</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--accent-pink)', marginBottom: '6px' }}>3. View AI Forecasting Trajectories</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               Once a stock is active, scroll down to access the neural network models. The system plots a projection line alongside historical prices, outlining potential movement based on sequential memory vectors.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--success)', marginBottom: '6px' }}>4. Execute Simulated Orders</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--success)', marginBottom: '6px' }}>4. Execute Simulated Orders</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               Navigate to the Trade tab to place virtual buying and selling orders. Use the live terminal to test your strategies without risking real capital, and watch your portfolio balance update in real-time.
             </p>
-          </div>
         </div>
+      </div>
       </div>
     </div>
   );

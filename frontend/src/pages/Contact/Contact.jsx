@@ -248,50 +248,50 @@ const Contact = () => {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>How do I reset my virtual balance?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>How do I reset my virtual balance?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
               By default, all accounts receive an initial allocation of virtual funds. If you want to reset your simulated portfolio balance or restart your trading progress, open a ticket through this form specifying "Virtual Balance Reset" in the subject line. We will process your reset within 24 hours.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Why are some stock charts blank or lagging?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Why are some stock charts blank or lagging?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
               We stream stock tickers from standard public financial APIs. Occasionally, high traffic or API rate limit caps can cause temporary rendering lags. If a chart is blank, try refreshing the page or searching for another stock symbol like HDFCBANK or RELIANCE to establish a fresh stream connection.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>How are LSTM model accuracy metrics calculated?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>How are LSTM model accuracy metrics calculated?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
               Our models calculate performance using Mean Absolute Error (MAE) and Root Mean Squared Error (RMSE) against historical training test splits. The network aims to minimize validation loss over 50-100 training epochs before publishing prediction trajectories.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Can I export my simulated portfolio data?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Can I export my simulated portfolio data?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
               Yes, in the virtual portfolio panel, authenticated users can view historical transactions. If you need a complete CSV ledger export of your virtual trades for academic analysis, please contact us using this form with your request and we will generate a data dump.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Are there server logs we can access?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Are there server logs we can access?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
               System administrators and developers can view the telemetry tab inside the Admin panel for core API latency logs, error rates, and support databases. General users are restricted from viewing telemetry to protect infrastructure integrity and user privacy.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Do you plan to integrate cryptocurrency data?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Do you plan to integrate cryptocurrency data?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
               Currently, the platform focuses exclusively on Indian equities and global stock indices due to regulatory reporting requirements. We are exploring LSTM model testing on high-volume crypto pairs in a sandbox, but do not have an official integration timeline.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>What is the historical data timeframe depth?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>What is the historical data timeframe depth?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
               We fetch up to 5-10 years of daily historical data points for major equities. This extensive depth ensures the LSTM neural networks have sufficient sequential memory blocks to identify support/resistance layers and build reliable predictive models.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>How can I unsubscribe from system notifications?</h4>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>How can I unsubscribe from system notifications?</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               You can toggle notification alerts directly inside your dashboard settings. If you receive support updates or system maintenance emails and want to opt out completely, submit a ticket here, and our Tier 1 helpdesk will process your request.
             </p>
           </div>

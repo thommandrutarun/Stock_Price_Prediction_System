@@ -1,0 +1,49 @@
+# DeepStock Analytics - Stock Price Prediction System
+
+DeepStock is an AI-powered stock forecasting and high-fidelity paper trading simulation platform built for educational and quantitative finance research.
+
+## Core Technology Stack
+- **Frontend Framework**: Vite + React + React Router v6
+- **Charts & Visualization**: React ApexCharts (Candlesticks, moving averages, forecasting sequences)
+- **Styling**: Modern CSS Glassmorphic design tokens (Vanilla CSS + HSL customized palette)
+- **Icons**: Lucide React
+- **Server Environment**: Nginx (configured with Gzip and standard security headers)
+- **Authentication**: JWT-based stateless session keys stored securely in client storage
+
+## Technical Architecture
+
+### 1. AI Forecast Engine
+- **Model Type**: Long Short-Term Memory (LSTM) Recurrent Neural Networks
+- **Lookback Window**: 60 trading days of historical pricing ticks
+- **Structure**: Stacked recurrent layers (50 units each) with a 0.2 dropout regularization layer
+- **Optimizer & Loss**: Adam optimizer minimizing Mean Squared Error (MSE) loss functions
+- **Update Frequency**: Incremental training epochs executed daily after market close to incorporate new ticks
+
+### 2. High-Fidelity Simulator
+- **Initial State**: Simulated cash balance allocated upon registration
+- **Execution Engine**: Simulates transaction costs (brokerage fees and bid-ask spreads)
+- **Margin Rules**: Leverage up to 1:5; margin call warning at 40% equity; automated liquidation at 30% equity
+- **Holding Tracker**: Calculates weighted average buy costs and real-time Profit & Loss indicators
+
+### 3. Security & Compliance
+- **TLS Standards**: mandated connection over TLS 1.3 (via HSTS headers)
+- **State Management**: sessionStorage JWT structures destroyed on tab close to prevent physical session hijacking
+- **Headers**: CSP blocks cross-site script execution; X-Frame-Options blocks clickjacking; Strict SameSite cookies
+
+## Platform Page Routes
+
+### Public Pages
+- **Home (`/`)**: Hero section, core features breakdown, mathematical guides on LSTMs, and regulatory disclaimers.
+- **Login (`/login`)**: Terminal session sign-in using bcrypt validation pipelines.
+- **Register (`/register`)**: New profile creation allocating virtual balance, capturing birth date and profession.
+- **Forgot Password (`/forgot-password`)**: Multi-parameter verification (email, phone, birth date) to reset credentials.
+- **Contact (`/contact`)**: Support ticket dispatcher with Level-based escalation SLAs and bug reporting templates.
+- **About (`/about`)**: Clear analysis of LSTM mathematical gates, AI pipelines, and organizational missions.
+- **Privacy Policy (`/privacy-policy`)**: Detailed breakdown of HttpOnly parameters, token lifetimes, and Rights to Erasure.
+- **Terms (`/terms`)**: Legal simulator limits, auto-liquidation rules, and disclaimers of certified advice.
+
+### Protected Dashboard Modules (JWT Authenticated)
+- **Dashboard (`/dashboard`)**: Watchlist management, live search, and visual forecasting sequence curves.
+- **Trade (`/trade`)**: Execution terminal to execute buy/sell order blocks on simulated margins.
+- **Portfolio (`/portfolio`)**: Visual allocation wheels, active holdings, transaction histories, and balance resets.
+- **Admin Control (`/admin`)**: User directories search filter, latency telemetry charts, and system error rates.

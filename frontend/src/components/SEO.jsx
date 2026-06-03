@@ -3,14 +3,16 @@ import { useLocation } from 'react-router-dom';
 
 const SEO = ({ title, description, keywords, ogType = 'website', ogImage = 'https://stockpredict.ai/assets/preview-card.png', schema }) => {
   const location = useLocation();
-  // Using default production domain for absolute URLs in metadata mapping
-  const canonicalUrl = `https://stockpredict.ai${location.pathname}`;
+  // Dynamically compute the canonical URL relative to the active deployment origin
+  const canonicalUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}${location.pathname}`
+    : `https://stockpredict.ai${location.pathname}`;
 
   useEffect(() => {
     // 1. Update Document Title
     const originalTitle = document.title;
     if (title) {
-      document.title = `${title} | Stock Price Prediction System`;
+      document.title = title;
     } else {
       document.title = 'Stock Price Prediction System – AI Trading Floor';
     }

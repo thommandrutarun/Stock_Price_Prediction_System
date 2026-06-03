@@ -404,6 +404,7 @@ const Dashboard = () => {
             {watchlistExpanded && (
               <div className="watchlist-collapsible-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%', marginTop: '1rem' }}>
                 <form onSubmit={handleAddToWatchlist} className="watchlist-add-form">
+                  <label htmlFor="watchlist-add-input" className="sr-only">Add stock symbol to watchlist</label>
                   <input
                     id="watchlist-add-input"
                     name="watchlistSymbol"
@@ -413,7 +414,7 @@ const Dashboard = () => {
                     value={watchlistInput}
                     onChange={(e) => setWatchlistInput(e.target.value)}
                   />
-                  <button type="submit" className="btn btn-primary add-watchlist-submit-btn">
+                  <button type="submit" className="btn btn-primary add-watchlist-submit-btn" aria-label="Add symbol to watchlist">
                     <Plus size={16} />
                   </button>
                 </form>

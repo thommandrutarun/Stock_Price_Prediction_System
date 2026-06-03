@@ -57,8 +57,10 @@ const Navbar = () => {
         </Link>
         
         <form onSubmit={handleSearchSubmit} className="ds-search-wrapper">
+          <label htmlFor="ds-search-input" className="sr-only">Search stock symbols</label>
           <Search size={18} className="search-icon-nav" />
           <input
+            id="ds-search-input"
             type="text"
             className="ds-search-input"
             placeholder="Search stocks..."

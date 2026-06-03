@@ -183,6 +183,7 @@ const Portfolio = () => {
               className="btn btn-outline reset-wallet-btn-metric"
               disabled={resetting}
               title="Reset Wallet Balance to $100,000.00"
+              aria-label="Reset virtual wallet balance"
             >
               {resetting ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
             </button>
@@ -311,6 +312,7 @@ const Portfolio = () => {
                           onClick={() => handleDeletePosition(pos.symbol)}
                           className="watchlist-item-delete-btn"
                           title="Delete position"
+                          aria-label={`Delete position for ${pos.symbol}`}
                         >
                           <Trash2 size={14} />
                         </button>

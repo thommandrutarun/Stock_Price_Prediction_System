@@ -42,9 +42,9 @@ const Footer = () => {
           <div className="ds-footer-links-col-react">
             <h4>Company</h4>
             <ul>
-              <li><a href="#">About Us</a></li>
+              <li><Link to="/about">About Us</Link></li>
               <li><a href="#">Careers</a></li>
-              <li><a href="#">Legal</a></li>
+              <li><Link to="/terms">Legal & Terms</Link></li>
               <li><Link to="/contact">Contact</Link></li>
             </ul>
           </div>
@@ -55,9 +55,9 @@ const Footer = () => {
             © 2026 Stock Price Prediction System. All rights reserved.
           </div>
           <div className="ds-footer-legal-react">
-            <a href="#">Privacy Policy</a>
+            <Link to="/privacy-policy">Privacy Policy</Link>
             <span className="footer-pipe-divider">|</span>
-            <a href="#">Terms of Service</a>
+            <Link to="/terms">Terms of Service</Link>
           </div>
         </div>
       </div>

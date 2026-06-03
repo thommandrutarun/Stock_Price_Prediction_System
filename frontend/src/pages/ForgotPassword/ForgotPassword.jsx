@@ -202,33 +202,33 @@ const ForgotPassword = () => {
             <Link to="/login">Sign in here</Link>
           </div>
         </div>
-
+ 
         {/* RIGHT COLUMN: RECOVERY INSTRUCTIONS & FAQS (Word Count Booster) */}
         <div className="forgot-recovery-panel glass-panel" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', justifyContent: 'center' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <ShieldCheck size={28} style={{ color: 'var(--success)' }} />
-            <h3 style={{ fontSize: '1.4rem', margin: 0 }}>Account Recovery Security Policy</h3>
+            <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Account Recovery Security Policy</h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
             DeepStock implements strict identity verification standards to prevent unauthorized account takeovers. To reset your password, you must verify three separate profile parameters: your registered email address, your registered phone number, and your date of birth. Our systems match these values against the encrypted record in our database before allowing a credential override.
           </p>
-
+  
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
             <div style={{ display: 'flex', gap: '12px' }}>
               <CheckCircle2 size={20} style={{ color: 'var(--primary)', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Password Strength Requirements</h4>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Password Strength Requirements</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                   Our security policy requires all passwords to be at least 8 characters long and include an uppercase letter, a lowercase letter, a numerical digit, and at least one special symbol. This protects your account from brute-force dictionary attacks.
                 </p>
               </div>
             </div>
-
+  
             <div style={{ display: 'flex', gap: '12px' }}>
               <RefreshCw size={20} style={{ color: 'var(--accent-purple)', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Zero-Knowledge Validation</h4>
+                <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', margin: 0 }}>Zero-Knowledge Validation</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
                   The verification process occurs directly on our secure servers. No password reset links are sent via unencrypted SMS or email channels, preventing interception from secondary inbox takeovers.
                 </p>
@@ -236,17 +236,16 @@ const ForgotPassword = () => {
             </div>
           </div>
         </div>
-
       </div>
-
+ 
       {/* ADDITIONAL SECTIONS: PREVENTING ACCOUNT HIJACKS & STEP-BY-STEP WORKFLOW FOR 1000 WORD COMPLIANCE */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
           
           <div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertOctagon size={20} style={{ color: 'var(--error)' }} /> Preventing Account Hijacks & Identity Theft
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               Phishing and social engineering attacks are primary vectors for account hijacking. Be cautious of unsolicited emails or text messages requesting you to confirm your credentials. DeepStock staff will never contact you asking for your password, API keys, or verification parameters. Always check the URL address bar to ensure you are connecting to https://stockpredict.ai/ before submitting personal information. If you suspect your profile has been accessed unauthorized, please contact support immediately to lock your simulated balance.
             </p>
@@ -254,11 +253,11 @@ const ForgotPassword = () => {
               If you receive password reset emails that you did not initiate, it indicates someone is attempting to gain access to your credentials. In such cases, we recommend changing your registration email password and checking your active terminal sessions for anomalies.
             </p>
           </div>
-
+ 
           <div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <UserCheck size={20} style={{ color: 'var(--success)' }} /> Step-by-Step Account Recovery Action Plan
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               To recover your profile: first, select the email input and type your exact registered email address. Second, input your active phone number formatted with country code (e.g. +91). Third, select your birth date using the built-in calendar picker. Enter a new password that satisfies our security strength requirements, and click "Reset Password". The server will validate the parameters; if they match, you will be redirected to the sign in interface.
             </p>
@@ -266,37 +265,37 @@ const ForgotPassword = () => {
               If the page is slow to redirect or reports a connection error, verify that you have not disabled cookies or browser storage interfaces. The recovery module requires these elements to transfer safety configurations between pages.
             </p>
           </div>
-
+ 
         </div>
       </div>
-
+ 
       {/* MATHEMATICAL ENTROPY AND DATA VALIDATIONS */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 300px' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Key size={20} style={{ color: 'var(--primary)' }} /> Mathematical Password Entropy & Complexity
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               Password strength is calculated using Shannon Entropy equations. Simple passwords (like "password123") contain low bits of entropy, which makes them vulnerable to GPU-based hashing calculations. By enforcing the use of uppercase letters, lowercase letters, numbers, and special symbols, the total state space of possible passwords increases exponentially. This makes it impossible for attackers to guess your secret combination in a reasonable timeframe.
             </p>
           </div>
           <div style={{ flex: '1 1 300px' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <ShieldAlert size={20} style={{ color: 'var(--accent-purple)' }} /> Multi-Channel Recovery Lockout
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
               If you exhaust all 5 recovery attempts within an hour, our system triggers a multi-channel safety lockout. During a lockout, password overrides are disabled for 24 hours. This measure prevents automated scanners from running permutations against your personal details. In the event of a lockout, you can request an administrative bypass by opening a support ticket and supplying identification.
             </p>
           </div>
         </div>
       </div>
-
+ 
       {/* IDENTITY SECURITY CHECKLIST FOR 1000 WORDS */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
           <ShieldAlert size={24} style={{ color: 'var(--accent-pink)' }} />
-          <h3 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)' }}>Identity Verification Safety Checkpoints</h3>
+          <h2 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)' }}>Identity Verification Safety Checkpoints</h2>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.6' }}>
           Our security gateways analyze recovery payloads before updating password keys. Ensure your recovery efforts check off these safety guidelines to ensure successful verification:
@@ -319,35 +318,35 @@ const ForgotPassword = () => {
           </li>
         </ul>
       </div>
-
+ 
       {/* TROUBLESHOOTING ACCOUNT RECOVERY PROBLEMS */}
       <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
           <HelpCircle size={28} style={{ color: 'var(--accent-pink)' }} />
           <h2 style={{ fontSize: '1.5rem' }}>Troubleshooting Account Recovery Problems</h2>
         </div>
-
+ 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1rem' }}>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>1. What if I forgot my registered phone number?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>1. What if I forgot my registered phone number?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               For compliance and security reasons, our automatic recovery module requires the exact phone number linked to your profile (prefixed with the country code if applicable, such as +91). If you no longer remember your phone number, please contact our helpdesk to verify your identity.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>2. Why does the system say "Verification Failed"?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>2. Why does the system say "Verification Failed"?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               This error occurs if there is a mismatch between the inputs provided (Email, Phone, or Date of Birth) and the database entries. Double check that your phone number does not contain extra spaces and that your date of birth is selected correctly in the calendar picker.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>3. How many password reset attempts do I have?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>3. How many password reset attempts do I have?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               To prevent automated bots from testing combinations, our rate-limiters allow up to 5 attempts per hour for a single email address. If you exceed this threshold, the account recovery form will temporarily lock for that email.
             </p>
           </div>
           <div>
-            <h4 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>4. What should I do after resetting my password?</h4>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>4. What should I do after resetting my password?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
               Once verified, the page automatically redirects you back to the sign in interface. Enter your email and new password to log in. We recommend clearing your browser cache if the login page displays outdated session errors.
             </p>
