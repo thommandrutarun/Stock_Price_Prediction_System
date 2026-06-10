@@ -25,6 +25,32 @@ def predict(symbol):
 
     try:
         predictions = AIService.generate_forecast(symbol, days, interval)
+        
+        # Log prediction activity in user_activities
+        user_id = None
+        try:
+            from flask_jwt_extended import get_jwt_identity
+            user_id_str = get_jwt_identity()
+            if user_id_str:
+                user_id = int(user_id_str)
+        except Exception:
+            pass
+
+        if user_id:
+            try:
+                from backend.app.database.db import db
+                from backend.app.models.activity_model import UserActivity
+                activity = UserActivity(
+                    user_id=user_id,
+                    action="prediction",
+                    details=f"Generated AI forecast for {symbol} ({interval})"
+                )
+                db.session.add(activity)
+                db.session.commit()
+            except Exception as act_err:
+                db.session.rollback()
+                print(f"Error logging prediction activity: {act_err}")
+
         return jsonify({"predictions": predictions}), 200
         
     except FileNotFoundError as e:

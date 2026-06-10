@@ -3,11 +3,11 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 const ApexChartComponent = lazy(() => import('../../components/ApexChartComponent'));
-import { 
-  Search, Loader2, Play, Plus, Trash2, LayoutDashboard, Wallet, 
-  UserCheck, ShieldAlert, Settings, HelpCircle, Sun, Moon, Bell, 
-  Menu, X, ArrowUpRight, ArrowDownRight, Activity, TrendingUp, Cpu, 
-  Volume2, ShieldCheck, Clock, Calendar, CheckCircle, AlertTriangle 
+import {
+  Search, Loader2, Play, Plus, Trash2, LayoutDashboard, Wallet,
+  UserCheck, ShieldAlert, Settings, HelpCircle, Sun, Moon, Bell,
+  Menu, X, ArrowUpRight, ArrowDownRight, Activity, TrendingUp, Cpu,
+  Volume2, ShieldCheck, Clock, Calendar, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import './Dashboard.css';
 
@@ -57,16 +57,16 @@ const Dashboard = () => {
   const searchInputRef = useRef(null);
 
   // States from original Dashboard
-  const [symbol, setSymbol] = useState('TCS.NS');
+  const [symbol, setSymbol] = useState('');
   const [period, setPeriod] = useState('1mo');
   const [chartType, setChartType] = useState('candlestick');
   const [interval, setIntervalVal] = useState('1d');
-  
+
   const [prices, setPrices] = useState([]);
   const [predictions, setPredictions] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
   const [watchlistInput, setWatchlistInput] = useState('');
-  
+
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [loadingPredict, setLoadingPredict] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
@@ -225,7 +225,7 @@ const Dashboard = () => {
   // Real-time market ticker updates simulator
   useEffect(() => {
     const tickerInterval = setInterval(() => {
-      setTickerData((prev) => 
+      setTickerData((prev) =>
         prev.map((item) => {
           const changeFactor = (Math.random() - 0.5) * 0.05; // tiny fluctuation
           const newValue = item.value * (1 + changeFactor);
@@ -355,7 +355,7 @@ const Dashboard = () => {
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const istTime = new Date(utc + (3600000 * 5.5));
-    
+
     const day = istTime.getDay();
     const hours = istTime.getHours();
     const minutes = istTime.getMinutes();
@@ -363,7 +363,7 @@ const Dashboard = () => {
 
     const isWeekday = day >= 1 && day <= 5;
     const isTradingHours = timeVal >= 915 && timeVal <= 1530;
-    
+
     return isWeekday && isTradingHours;
   };
 
@@ -461,7 +461,7 @@ const Dashboard = () => {
             };
 
             return (
-              <a 
+              <a
                 key={item.label}
                 href={item.path}
                 className={`menu-item-link ${isActive ? 'active' : ''}`}
@@ -521,7 +521,7 @@ const Dashboard = () => {
             <button className="header-hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Open navigation menu">
               <Menu size={24} />
             </button>
-            
+
             <div className="header-search-box">
               <Search size={18} className="search-icon-header" />
               <input
@@ -539,7 +539,7 @@ const Dashboard = () => {
               />
               <span className="keyboard-shortcut-hint">Ctrl K</span>
             </div>
-            
+
             <button onClick={() => loadHistoryData(symbol, period)} className="btn btn-primary header-search-btn" disabled={loadingHistory}>
               {loadingHistory ? <Loader2 size={16} className="animate-spin" /> : 'Search'}
             </button>
@@ -552,15 +552,15 @@ const Dashboard = () => {
 
             {/* Notification Dropdown Trigger */}
             <div className="notifications-dropdown-container">
-              <button 
-                onClick={() => setNotificationsDropdownOpen(!notificationsDropdownOpen)} 
-                className="header-action-icon-btn relative-badge-btn" 
+              <button
+                onClick={() => setNotificationsDropdownOpen(!notificationsDropdownOpen)}
+                className="header-action-icon-btn relative-badge-btn"
                 aria-label="View notifications"
               >
                 <Bell size={20} />
                 <span className="notification-badge-red">{notifications.length}</span>
               </button>
-              
+
               {notificationsDropdownOpen && (
                 <div className="notifications-dropdown-menu glass-panel">
                   <div className="dropdown-title-row">
@@ -640,7 +640,7 @@ const Dashboard = () => {
               <h2>Welcome back, {user?.name || 'thommandra'}! 👋</h2>
               <p>Get real-time market insights and AI-powered stock predictions.</p>
             </div>
-            
+
             <div className="welcome-date-time-cards">
               <div className="mockup-datetime-card glass-panel">
                 <Calendar size={20} className="datetime-card-icon" />
@@ -668,15 +668,16 @@ const Dashboard = () => {
               </div>
               <div className="kpi-value-row">
                 <span className="kpi-main-value">
-                  ₹{Number(portfolioSummary?.total_value || 24377.64).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{Number(portfolioSummary?.total_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
-                <span className="kpi-change-tag pl-profit">
-                  <ArrowUpRight size={14} /> +₹419.88 (1.75%)
+                <span className={`kpi-change-tag ${(portfolioSummary?.today_pl ?? 0) >= 0 ? 'pl-profit' : 'pl-loss'}`}>
+                  {(portfolioSummary?.today_pl ?? 0) >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                  {(portfolioSummary?.today_pl ?? 0) >= 0 ? '+' : ''}₹{Math.abs(portfolioSummary?.today_pl ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({(portfolioSummary?.today_pl_pct ?? 0).toFixed(2)}%)
                 </span>
               </div>
               <div className="kpi-mini-chart-wrap">
-                <svg viewBox="0 0 100 30" className="sparkline-svg svg-green">
-                  <path d="M0,25 Q15,22 30,12 T60,18 T90,5 L100,5" fill="none" strokeWidth="2.5" strokeLinecap="round" />
+                <svg viewBox="0 0 100 30" className="sparkline-svg">
+                  <path d="M0,25 Q15,22 30,12 T60,18 T90,5 L100,5" fill="none" strokeWidth="2.5" strokeLinecap="round" style={{ stroke: (portfolioSummary?.today_pl ?? 0) >= 0 ? 'var(--db-primary)' : 'var(--db-secondary)' }} />
                 </svg>
               </div>
             </div>
@@ -690,16 +691,17 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="kpi-value-row">
-                <span className="kpi-main-value text-green">
-                  +₹{Number(portfolioSummary?.today_pl || 419.88).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <span className="kpi-main-value" style={{ color: (portfolioSummary?.today_pl ?? 0) >= 0 ? 'var(--db-primary)' : 'var(--db-secondary)' }}>
+                  {(portfolioSummary?.today_pl ?? 0) >= 0 ? '+' : '-'}₹{Math.abs(portfolioSummary?.today_pl ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
-                <span className="kpi-change-tag pl-profit">
-                  <ArrowUpRight size={14} /> +1.75%
+                <span className={`kpi-change-tag ${(portfolioSummary?.today_pl ?? 0) >= 0 ? 'pl-profit' : 'pl-loss'}`}>
+                  {(portfolioSummary?.today_pl ?? 0) >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                  {(portfolioSummary?.today_pl_pct ?? 0) >= 0 ? '+' : ''}{(portfolioSummary?.today_pl_pct ?? 0).toFixed(2)}%
                 </span>
               </div>
               <div className="kpi-mini-chart-wrap">
-                <svg viewBox="0 0 100 30" className="sparkline-svg svg-purple">
-                  <path d="M0,28 L20,20 L40,24 L60,8 L80,12 L100,2" fill="none" strokeWidth="2.5" strokeLinecap="round" />
+                <svg viewBox="0 0 100 30" className="sparkline-svg">
+                  <path d="M0,28 L20,20 L40,24 L60,8 L80,12 L100,2" fill="none" strokeWidth="2.5" strokeLinecap="round" style={{ stroke: (portfolioSummary?.today_pl ?? 0) >= 0 ? 'var(--db-primary)' : 'var(--db-secondary)' }} />
                 </svg>
               </div>
             </div>
@@ -713,9 +715,9 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="kpi-value-row">
-                <span className="kpi-main-value">247</span>
+                <span className="kpi-main-value">{portfolioSummary?.total_predictions ?? 0}</span>
                 <span className="kpi-change-tag pl-profit accent-blue-badge">
-                  <ShieldCheck size={14} /> 87.4% Accuracy
+                  <ShieldCheck size={14} /> {portfolioSummary?.prediction_accuracy ?? 87.4}% Accuracy
                 </span>
               </div>
               <div className="kpi-mini-chart-wrap">
@@ -724,14 +726,59 @@ const Dashboard = () => {
                 </svg>
               </div>
             </div>
+
+            {/* Card 4: Watchlist Stocks */}
+            <div className="kpi-metric-card glass-panel kpi-watchlist-card">
+              <div className="kpi-card-header">
+                <span className="kpi-label">Watchlist Stocks</span>
+                <button onClick={() => {
+                  const sym = prompt('Enter Stock Symbol to Add (e.g. RELIANCE.NS, INFY.NS):');
+                  if (sym) {
+                    const formatted = sym.toUpperCase().trim();
+                    if (formatted && !watchlist.includes(formatted)) {
+                      const updated = [...watchlist, formatted];
+                      setWatchlist(updated);
+                      localStorage.setItem('watchlist', JSON.stringify(updated));
+                    }
+                  }
+                }} className="kpi-watchlist-add-btn" aria-label="Add symbol to watchlist">+ Add</button>
+              </div>
+              <ul className="kpi-watchlist-list">
+                {watchlist.length === 0 ? (
+                  <li className="kpi-watchlist-empty">Watchlist is currently empty.</li>
+                ) : (
+                  watchlist.slice(0, 4).map((sym) => {
+                    const details = watchlistDetails[sym] || { current: 0, pct: 0 };
+                    const pctVal = details?.pct ?? 0;
+                    const isUp = pctVal >= 0;
+                    return (
+                      <li
+                        key={sym}
+                        className={`kpi-watchlist-item ${symbol === sym ? 'active' : ''}`}
+                        onClick={() => handleWatchlistItemClick(sym)}
+                      >
+                        <span className="kpi-wl-sym">{sym.replace('.NS', '')}</span>
+                        <span className="kpi-wl-price">₹{Number(details?.current ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className={`kpi-wl-pct ${isUp ? 'text-green' : 'text-red'}`}>
+                          {isUp ? '+' : ''}{Number(pctVal).toFixed(2)}%
+                        </span>
+                        <button onClick={(e) => handleRemoveFromWatchlist(sym, e)} className="kpi-wl-remove" aria-label={`Remove ${sym}`}>
+                          <Trash2 size={11} />
+                        </button>
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+            </div>
           </section>
 
           {/* TWO-COLUMN GRID FOR CHARTS AND WIDGETS */}
           <div className="terminal-primary-grid">
-            
+
             {/* LEFT COLUMN: CHARTS, CONTROLS, AND AI PREDICTORS */}
             <div className="terminal-left-column">
-              
+
               {/* 6. STOCK ANALYSIS PANEL */}
               <section className="analysis-controls-widget glass-panel">
                 <div className="analysis-section-header">
@@ -830,11 +877,11 @@ const Dashboard = () => {
               <section className="terminal-chart-widget glass-panel">
                 <div className="chart-widget-header">
                   <div className="chart-title-block">
-                    <h3>{symbol} Price History</h3>
-                    <p className="chart-subtitle">{symbolNames[symbol] || symbolNames[symbol.replace('.NS', '')] || 'Historical stock quote details'}</p>
+                    <h3>{symbol ? `${symbol} Price History` : 'Stock Price History'}</h3>
+                    <p className="chart-subtitle">{symbol ? (symbolNames[symbol] || symbolNames[symbol.replace('.NS', '')] || 'Historical stock quote details') : 'Search for a stock symbol to view historical prices'}</p>
                   </div>
                   <div className="chart-header-tools">
-                    <select className="chart-timeframe-dropdown" value={period} onChange={(e) => handlePeriodChange(e.target.value)}>
+                    <select className="chart-timeframe-dropdown" value={period} onChange={(e) => handlePeriodChange(e.target.value)} title="Select Chart Timeframe" aria-label="Select Chart Timeframe">
                       <option value="1d">1D</option>
                       <option value="1w">1W</option>
                       <option value="1mo">1M</option>
@@ -843,7 +890,7 @@ const Dashboard = () => {
                       <option value="5y">5Y</option>
                       <option value="all">All</option>
                     </select>
-                    
+
                     <div className="chart-zoom-tools">
                       <button className="zoom-btn" title="Zoom In"><Search size={14} /></button>
                       <button className="zoom-btn" title="Zoom Out"><Search size={14} /></button>
@@ -956,7 +1003,7 @@ const Dashboard = () => {
 
                   {!loadingPredict && predictions.length === 0 && (
                     <div className="ai-no-forecast-placeholder">
-                      <p>No active forecast generated. Click "Predict 5D" or "Generate Forecast" above to run LSTM networks.</p>
+                      <p>No active forecast generated. Click "Predict 5D" above to run LSTM networks.</p>
                     </div>
                   )}
 
@@ -967,76 +1014,8 @@ const Dashboard = () => {
 
             {/* RIGHT COLUMN: SIDEBAR WIDGETS */}
             <div className="terminal-right-column">
-              
-              {/* Widget 1: Watchlist Widget */}
-              <section id="watchlist-widget" className="right-sidebar-widget glass-panel">
-                <div className="widget-header">
-                  <h3>Watchlist Stocks</h3>
-                  <button onClick={() => {
-                    const sym = prompt('Enter Stock Symbol to Add (e.g. RELIANCE.NS, INFY.NS):');
-                    if (sym) {
-                      const formatted = sym.toUpperCase().trim();
-                      if (formatted && !watchlist.includes(formatted)) {
-                        const updated = [...watchlist, formatted];
-                        setWatchlist(updated);
-                        localStorage.setItem('watchlist', JSON.stringify(updated));
-                      }
-                    }
-                  }} className="widget-header-add-btn">+ Add</button>
-                </div>
 
-                <ul className="watchlist-list-items">
-                  {watchlist.length === 0 ? (
-                    <li className="empty-watchlist-item">Watchlist is currently empty.</li>
-                  ) : (
-                    watchlist.map((sym) => {
-                      const details = watchlistDetails[sym] || { current: 3000, pct: 1.25, sparkline: [2950, 2980, 3010, 3000] };
-                      const currentVal = details?.current ?? 0;
-                      const pctVal = details?.pct ?? 0;
-                      const sparklineVal = details?.sparkline ?? [0];
-                      const isUp = pctVal >= 0;
-                      return (
-                        <li 
-                          key={sym} 
-                          className={`watchlist-symbol-card ${symbol === sym ? 'active' : ''}`}
-                          onClick={() => handleWatchlistItemClick(sym)}
-                        >
-                          <div className="watchlist-item-left">
-                            <span className="symbol-txt">{sym.replace('.NS', '')}</span>
-                            <span className="company-val">₹{Number(currentVal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                          </div>
-                          
-                          {/* Mini SVG Sparkline */}
-                          <div className="watchlist-item-chart">
-                            <svg viewBox="0 0 50 20" className={`mini-sparkline ${isUp ? 'up' : 'down'}`}>
-                              <path 
-                                d={sparklineVal.reduce((acc, val, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${(i * 15)} ${20 - ((Number(val ?? 0) - Math.min(...sparklineVal.map(x => Number(x ?? 0)))) / (Math.max(...sparklineVal.map(x => Number(x ?? 0))) - Math.min(...sparklineVal.map(x => Number(x ?? 0))) || 1) * 16 + 2)}`, '')}
-                                fill="none" 
-                                strokeWidth="1.5" 
-                              />
-                            </svg>
-                          </div>
-
-                          <div className="watchlist-item-right">
-                            <span className={`change-pct ${isUp ? 'text-green' : 'text-red'}`}>
-                              {isUp ? '+' : ''}{Number(pctVal).toFixed(2)}%
-                            </span>
-                            <button 
-                              onClick={(e) => handleRemoveFromWatchlist(sym, e)} 
-                              className="remove-symbol-btn"
-                              aria-label={`Remove ${sym} from watchlist`}
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </li>
-                      );
-                    })
-                  )}
-                </ul>
-              </section>
-
-              {/* Widget 2: Market Overview (Sentiment) */}
+              {/* Widget 1: Market Overview (Sentiment) */}
               <section id="market-overview" className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
                   <h3>Market Overview</h3>
@@ -1060,7 +1039,7 @@ const Dashboard = () => {
                 </div>
               </section>
 
-              {/* Widget 3: Unusual Volume Alerts */}
+              {/* Widget 2: Unusual Volume Alerts */}
               <section className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
                   <h3>Unusual Volume</h3>
@@ -1075,7 +1054,7 @@ const Dashboard = () => {
                 </div>
               </section>
 
-              {/* Widget 4: Sector Heatmap */}
+              {/* Widget 3: Sector Heatmap */}
               <section className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
                   <h3>Sector Heatmap</h3>
@@ -1094,7 +1073,7 @@ const Dashboard = () => {
                 </div>
               </section>
 
-              {/* Widget 5: Recent News */}
+              {/* Widget 4: Recent News */}
               <section id="recent-news" className="right-sidebar-widget glass-panel">
                 <div className="widget-header">
                   <h3>Recent News</h3>
@@ -1133,7 +1112,7 @@ const Dashboard = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <form onSubmit={handleCompareStocks} className="modal-form-inline">
               <div className="form-group flex-1">
                 <label className="form-label" htmlFor="compare-symbol-input">Compare {symbol} With:</label>
@@ -1191,15 +1170,15 @@ const Dashboard = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <form onSubmit={handleCreateAlert} className="modal-vertical-form">
               <div className="form-group">
                 <label className="form-label" htmlFor="alert-type-select">Condition</label>
-                <select 
+                <select
                   id="alert-type-select"
                   className="form-input"
                   value={alertDialog.type}
-                  onChange={(e) => setAlertDialog({...alertDialog, type: e.target.value})}
+                  onChange={(e) => setAlertDialog({ ...alertDialog, type: e.target.value })}
                 >
                   <option value="above">Price rises above</option>
                   <option value="below">Price falls below</option>
@@ -1215,7 +1194,7 @@ const Dashboard = () => {
                   className="form-input"
                   placeholder="e.g. 3500.00"
                   value={alertDialog.price}
-                  onChange={(e) => setAlertDialog({...alertDialog, price: e.target.value})}
+                  onChange={(e) => setAlertDialog({ ...alertDialog, price: e.target.value })}
                   required
                 />
               </div>

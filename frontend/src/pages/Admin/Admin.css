@@ -60,6 +60,7 @@
   padding: 6px;
   border-radius: 12px;
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   overflow-x: auto;
 }
 

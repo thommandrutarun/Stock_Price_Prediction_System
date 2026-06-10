@@ -258,6 +258,7 @@
     height: 100vh;
     background: var(--panel-bg);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-left: 1px solid var(--border);
     padding: 90px 1.8rem 2rem;
     z-index: 105;

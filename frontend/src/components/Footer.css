@@ -6,6 +6,7 @@
   position: relative;
   z-index: 10;
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .ds-footer-inner-react {

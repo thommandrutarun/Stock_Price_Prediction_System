@@ -13,6 +13,7 @@
   max-width: 480px;
   background: var(--bg-card);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: 16px;
   padding: 2.5rem;
