@@ -49,11 +49,12 @@ const Navbar = () => {
   return (
     <header className="ds-navbar">
       <div className="ds-navbar-left">
-        <Link to="/" className="ds-logo">
-          <span className="ds-logo-icon">
-            <TrendingUp size={24} className="logo-pulse-icon" />
-          </span>
-          <span className="ds-logo-text">Stock Price Prediction System</span>
+        <Link to="/" className="ds-logo" style={{ textDecoration: 'none' }}>
+          <TrendingUp size={24} className="neon-icon-glow" style={{ color: '#3b82f6' }} />
+          <div className="logo-brand-text">
+            <span className="logo-main-text">Stock Price</span>
+            <span className="logo-sub-text">Prediction System</span>
+          </div>
         </Link>
         
         <form onSubmit={handleSearchSubmit} className="ds-search-wrapper">
@@ -63,7 +64,7 @@ const Navbar = () => {
             id="ds-search-input"
             type="text"
             className="ds-search-input"
-            placeholder="Search stocks..."
+            placeholder="Search stock symbols (e.g. TCS, RELIANCE)"
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
           />

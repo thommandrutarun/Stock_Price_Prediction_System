@@ -137,3 +137,177 @@
     gap: 4rem;
   }
 }
+
+/* ==========================================================================
+   SUPER ADMIN & DASHBOARD UI STYLE COMPLIANCE (Single Source of Truth)
+   ========================================================================== */
+
+/* Page Background Alignment */
+body:has(.home-container) {
+  background-color: #080b11 !important; /* Deep mockup canvas */
+  transition: background-color 0.3s ease;
+}
+
+html.light body:has(.home-container) {
+  background-color: #f8fafc !important; /* Light mode canvas */
+}
+
+/* Card Design & Glass Panel Alignment */
+.home-container .glass-panel {
+  background: rgba(14, 17, 26, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.home-container .glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.02) !important;
+}
+
+/* Hero Section Typography */
+.home-container .ds-hero-title-react {
+  font-size: 3.5rem !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  margin-bottom: 6px !important;
+  letter-spacing: -0.03em !important;
+}
+
+.home-container .ds-hero-subtitle-react {
+  font-size: 1.15rem !important;
+  color: #94a3b8 !important;
+  max-width: 650px !important;
+  line-height: 1.6 !important;
+}
+
+/* Feature Icons Box overrides */
+.home-container .ds-feature-icon-react.ic-blue {
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #3b82f6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.15) !important;
+}
+
+.home-container .ds-feature-icon-react.ic-purple {
+  background: rgba(168, 85, 247, 0.1) !important;
+  color: #a855f7 !important;
+  border: 1px solid rgba(168, 85, 247, 0.15) !important;
+}
+
+.home-container .ds-feature-icon-react.ic-pink {
+  background: rgba(244, 114, 182, 0.1) !important;
+  color: #f472b6 !important;
+  border: 1px solid rgba(244, 114, 182, 0.15) !important;
+}
+
+.home-container .ds-feature-icon-react.ic-green {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Feature headings & descriptions */
+.home-container h2,
+.home-container h3 {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.home-container p,
+.home-container li {
+  color: #94a3b8 !important;
+}
+
+.home-container strong {
+  color: #ffffff !important;
+}
+
+/* Button overrides matching Dashboard primary action buttons */
+.home-container .btn-primary {
+  background: linear-gradient(135deg, #10b981 0%, #0d9488 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15) !important;
+  font-weight: 700 !important;
+  transition: all 0.2s ease !important;
+}
+
+.home-container .btn-primary:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.35) !important;
+}
+
+.home-container .btn-outline {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  font-weight: 700 !important;
+  transition: all 0.2s ease !important;
+}
+
+.home-container .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Separator rules */
+.home-container div[style*="borderTop"],
+.home-container .faq-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Light Mode Overrides */
+html.light .home-container .glass-panel {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .home-container .glass-panel:hover {
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.12), 0 0 15px rgba(37, 99, 235, 0.03) !important;
+}
+
+html.light .home-container .ds-hero-title-react,
+html.light .home-container h2,
+html.light .home-container h3,
+html.light .home-container strong {
+  color: #0f172a !important;
+}
+
+html.light .home-container .ds-hero-subtitle-react,
+html.light .home-container p,
+html.light .home-container li {
+  color: #475569 !important;
+}
+
+html.light .home-container .btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.15) !important;
+}
+
+html.light .home-container .btn-primary:hover {
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.35) !important;
+}
+
+html.light .home-container .btn-outline {
+  color: #0f172a !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .home-container .btn-outline:hover {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+html.light .home-container div[style*="borderTop"],
+html.light .home-container .faq-item {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+

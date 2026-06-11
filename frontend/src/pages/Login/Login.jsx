@@ -117,7 +117,7 @@ const Login = () => {
           </div>
         </div>
         {/* RIGHT COLUMN: DETAILED SECURITY DOCUMENTATION (Word Count Expansion) */}
-        <div className="login-security-panel glass-panel" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', justifyContent: 'center' }}>
+        <div className="login-security-panel glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', justifyContent: 'center' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
             <ShieldCheck size={28} style={{ color: 'var(--success)' }} />
@@ -165,7 +165,7 @@ const Login = () => {
           </div>
         </div>
       </div>      {/* ADDITIONAL SECURE HYGIENE & TROUBLESHOOTING GUIDES FOR 1000 WORD COMPLIANCE */}
-      <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
           
           <div>
@@ -196,7 +196,7 @@ const Login = () => {
       </div>
  
       {/* DETAILED COOKIE AND TOKEN POLICIES FOR EXTRA LENGTH */}
-      <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 300px' }}>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -218,7 +218,7 @@ const Login = () => {
       </div>
  
       {/* LOCAL COOKIE & DIAGNOSTIC CHECKLIST SECTION */}
-      <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
           <ShieldQuestion size={24} style={{ color: 'var(--primary)' }} />
           <h2 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--text-primary)' }}>Local Browser Diagnostics & Cookie Configurations</h2>
@@ -249,7 +249,7 @@ const Login = () => {
       </div>
  
       {/* TERMINAL NAVIGATION AND USER ONBOARDING CHECKLIST */}
-      <div className="glass-panel" style={{ padding: '2.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Terminal Navigation and User Onboarding Checklist</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.6' }}>
           Welcome back to the DeepStock ecosystem. If this is your first time checking your dashboard this week, here is an educational breakdown of the core modules you will unlock once you input your email address and password above:

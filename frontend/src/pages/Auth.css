@@ -137,3 +137,211 @@
   margin-bottom: 1.5rem;
   text-align: center;
 }
+
+/* ==========================================================================
+   SUPER ADMIN & DASHBOARD UI STYLE COMPLIANCE (Single Source of Truth)
+   ========================================================================== */
+
+/* Page Background Alignment */
+body:has(.auth-page-container) {
+  background-color: #080b11 !important; /* Deep mockup canvas */
+  transition: background-color 0.3s ease;
+}
+
+html.light body:has(.auth-page-container) {
+  background-color: #f8fafc !important; /* Light mode canvas */
+}
+
+/* Card & Security Panel Redesign */
+.auth-page-container .auth-card,
+.auth-page-container .login-security-panel,
+.auth-page-container .glass-panel {
+  background: rgba(14, 17, 26, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6) !important;
+  padding: 2.25rem !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.auth-page-container .auth-card:hover,
+.auth-page-container .login-security-panel:hover,
+.auth-page-container .glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(16, 185, 129, 0.02) !important;
+}
+
+/* Input Fields Redesign (Matching Dashboard Search Box) */
+.auth-page-container .form-input-with-icon {
+  background: rgba(10, 14, 23, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  padding: 0.65rem 1rem 0.65rem 2.5rem !important;
+  font-size: 0.88rem !important;
+  min-height: 38px !important;
+  outline: none !important;
+  transition: all 0.25s ease !important;
+}
+
+.auth-page-container .form-input-with-icon::placeholder {
+  color: #64748b !important;
+}
+
+.auth-page-container .form-input-with-icon:focus {
+  border-color: #10b981 !important; /* Emerald Green */
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Form Labels & Icons */
+.auth-page-container .form-label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #94a3b8 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.auth-page-container .form-input-icon {
+  color: #64748b !important;
+  left: 12px !important;
+  transition: color 0.2s ease !important;
+}
+
+.auth-page-container .form-input-icon-wrap:focus-within .form-input-icon {
+  color: #10b981 !important;
+}
+
+/* Submit Buttons Redesign (Matching Dashboard Primary Actions) */
+.auth-page-container .auth-submit-btn {
+  background: linear-gradient(135deg, #10b981 0%, #0d9488 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  padding: 0.7rem 1.5rem !important;
+  min-height: 40px !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.auth-page-container .auth-submit-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.35) !important;
+}
+
+/* Footer Links & Muted Texts */
+.auth-page-container .auth-footer-links span,
+.auth-page-container p {
+  color: #94a3b8 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.5 !important;
+}
+
+.auth-page-container .auth-footer-links a {
+  color: #10b981 !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease !important;
+}
+
+.auth-page-container .auth-footer-links a:hover {
+  color: #059669 !important;
+  text-decoration: underline !important;
+}
+
+/* Header Text Reset */
+.auth-page-container .auth-header h1,
+.auth-page-container h2 {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  margin-bottom: 6px !important;
+}
+
+.auth-page-container .auth-header h1 {
+  font-size: 1.8rem !important;
+}
+
+.auth-page-container h2 {
+  font-size: 1.25rem !important;
+}
+
+/* Muted border separators */
+.auth-page-container div[style*="borderTop"] {
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Light Theme Overrides */
+html.light .auth-page-container .auth-card,
+html.light .auth-page-container .login-security-panel,
+html.light .auth-page-container .glass-panel {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .auth-page-container .auth-card:hover,
+html.light .auth-page-container .login-security-panel:hover,
+html.light .auth-page-container .glass-panel:hover {
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.12), 0 0 15px rgba(37, 99, 235, 0.03) !important;
+}
+
+html.light .auth-page-container .form-input-with-icon {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+html.light .auth-page-container .form-input-with-icon:focus {
+  border-color: #2563eb !important; /* Premium Blue */
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.15) !important;
+}
+
+html.light .auth-page-container .form-input-icon-wrap:focus-within .form-input-icon {
+  color: #2563eb !important;
+}
+
+html.light .auth-page-container .auth-submit-btn {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.15) !important;
+}
+
+html.light .auth-page-container .auth-submit-btn:hover {
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.35) !important;
+}
+
+html.light .auth-page-container .auth-footer-links a {
+  color: #2563eb !important;
+}
+
+html.light .auth-page-container .auth-footer-links a:hover {
+  color: #1d4ed8 !important;
+}
+
+html.light .auth-page-container .auth-header h1,
+html.light .auth-page-container h2 {
+  color: #0f172a !important;
+}
+
+html.light .auth-page-container .form-label,
+html.light .auth-page-container .auth-footer-links span,
+html.light .auth-page-container p {
+  color: #475569 !important;
+}
+
+html.light .auth-page-container div[style*="borderTop"] {
+  border-top: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+
