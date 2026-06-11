@@ -101,6 +101,7 @@ def create_app(config_name=None):
     from backend.app.routes.contact_routes import contact_bp
     from backend.app.routes.wallet_routes import wallet_bp
     from backend.app.routes.health_routes import health_bp
+    from backend.app.routes.watchlist_routes import watchlist_bp
 
     # Register blueprints with exact legacy matching prefixes
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -113,6 +114,8 @@ def create_app(config_name=None):
     app.register_blueprint(contact_bp, url_prefix="/api/contact")
     app.register_blueprint(wallet_bp, url_prefix="/api/wallet")
     app.register_blueprint(health_bp, url_prefix="/api")
+    app.register_blueprint(watchlist_bp, url_prefix="/api/watchlist")
+
 
     # Global Error handling registrar
     register_error_handlers(app)

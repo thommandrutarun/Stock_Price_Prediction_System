@@ -22,7 +22,7 @@ const Home = () => {
     },
     "publisher": {
       "@type": "Organization",
-      "name": "DeepStock Analytics",
+      "name": "Stock Analysis & AI Prediction Analytics",
       "logo": "https://stockpredict.ai/favicon.svg"
     }
   };
@@ -31,7 +31,7 @@ const Home = () => {
     <div className="home-container">
       {/* Dynamic SEO Injector */}
       <SEO 
-        title="Stock Analysis & AI Prediction | DeepStock" 
+        title="Stock Analysis & AI Prediction | Stock Analysis & AI Prediction" 
         description="Screen equities, view live technical timelines, and generate predictive price sequences with optimized LSTM neural networks on India's AI trading floor."
         keywords="stock price prediction, AI trading floor, share market LSTM neural networks, virtual stock exchange, Indian equities screener, portfolio tracker"
         schema={homeSchema}
@@ -215,7 +215,7 @@ const Home = () => {
           <h2 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Regulatory Compliance & Risk Disclosure</h2>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
-          Simulated trading, historical screening, and machine learning price predictions are provided strictly for educational and training purposes. All trades executed on the virtual exchange utilize fake digital balances and do not represent actual market positions or cash transactions. Past performance is not a guarantee of future returns. Stock markets are subject to high volatility and risk. DeepStock Analytics does not provide certified financial planning, brokerage services, or investment advice. Users must conduct independent research or consult with a registered investment advisor before committing real capital to the financial markets.
+          Simulated trading, historical screening, and machine learning price predictions are provided strictly for educational and training purposes. All trades executed on the virtual exchange utilize fake digital balances and do not represent actual market positions or cash transactions. Past performance is not a guarantee of future returns. Stock markets are subject to high volatility and risk. Stock Analysis & AI Prediction Analytics does not provide certified financial planning, brokerage services, or investment advice. Users must conduct independent research or consult with a registered investment advisor before committing real capital to the financial markets.
         </p>
       </section>
 

@@ -29,19 +29,22 @@ const Watchlist = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const stored = localStorage.getItem('watchlist');
-    if (stored) {
+    const fetchWatchlist = async () => {
+      setLoading(true);
       try {
-        setWatchlist(JSON.parse(stored));
+        const res = await api.get('/watchlist');
+        setWatchlist(res.data.watchlist || []);
       } catch (e) {
-        setWatchlist([]);
+        console.error('Failed to load watchlist from backend:', e);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+    fetchWatchlist();
   }, []);
 
   useEffect(() => {
     const fetchWatchlistDetails = async () => {
-      setLoading(true);
       const details = {};
       await Promise.all(watchlist.map(async (sym) => {
         try {
@@ -60,7 +63,6 @@ const Watchlist = () => {
         }
       }));
       setWatchlistDetails(details);
-      setLoading(false);
     };
 
     if (watchlist.length > 0) {
@@ -70,7 +72,7 @@ const Watchlist = () => {
     }
   }, [watchlist]);
 
-  const handleAddSymbol = (e) => {
+  const handleAddSymbol = async (e) => {
     e.preventDefault();
     const sym = searchInput.toUpperCase().trim();
     if (!sym) return;
@@ -81,20 +83,28 @@ const Watchlist = () => {
       return;
     }
 
-    const updated = [...watchlist, sym];
-    setWatchlist(updated);
-    localStorage.setItem('watchlist', JSON.stringify(updated));
-    setSearchInput('');
-    setMessage(`Added ${sym} to watchlist.`);
-    setTimeout(() => setMessage(''), 3000);
+    try {
+      const res = await api.post('/watchlist', { symbol: sym });
+      setWatchlist(res.data.watchlist || []);
+      setSearchInput('');
+      setMessage(`Added ${sym} to watchlist.`);
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      setMessage(err.message || `Failed to add ${sym} to watchlist.`);
+      setTimeout(() => setMessage(''), 3000);
+    }
   };
 
-  const handleRemoveSymbol = (sym, e) => {
+  const handleRemoveSymbol = async (sym, e) => {
     e.stopPropagation();
-    const updated = watchlist.filter((w) => w !== sym);
-    setWatchlist(updated);
-    localStorage.setItem('watchlist', JSON.stringify(updated));
+    try {
+      const res = await api.delete('/watchlist', { data: { symbol: sym } });
+      setWatchlist(res.data.watchlist || []);
+    } catch (err) {
+      console.error(`Failed to remove ${sym} from watchlist:`, err);
+    }
   };
+
 
   return (
     <div className="watchlist-page-content" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

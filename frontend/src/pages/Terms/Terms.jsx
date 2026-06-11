@@ -7,15 +7,15 @@ const Terms = () => {
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "Terms of Service - Stock Price Prediction System",
-    "description": "Read DeepStock's terms of service. Guidelines on simulated trading, paper margins, virtual leverage thresholds, and liability disclaimers."
+    "description": "Read Stock Analysis & AI Prediction's terms of service. Guidelines on simulated trading, paper margins, virtual leverage thresholds, and liability disclaimers."
   };
 
   return (
     <div className="home-container" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '2rem' }}>
       <SEO 
         title="Terms of Service & Simulator Rules"
-        description="Review the terms governing DeepStock. Learn about simulated exchange limits, virtual leverage margins, user conduct rules, and financial advice exclusions."
-        keywords="terms of service deepstock, virtual trading terms, paper margin regulations, simulated brokerage code, no investment advice"
+        description="Review the terms governing Stock Analysis & AI Prediction. Learn about simulated exchange limits, virtual leverage margins, user conduct rules, and financial advice exclusions."
+        keywords="terms of service Stock Analysis & AI Prediction, virtual trading terms, paper margin regulations, simulated brokerage code, no investment advice"
         schema={termsSchema}
       />
 
@@ -25,7 +25,7 @@ const Terms = () => {
           Terms of Service & Simulator Regulations
         </h1>
         <p className="ds-hero-subtitle-react" style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--text-secondary)' }}>
-          Please review the operational terms governing DeepStock. By accessing our screens, analyzing historical data, or running simulated trades, you agree to comply with these rules.
+          Please review the operational terms governing Stock Analysis & AI Prediction. By accessing our screens, analyzing historical data, or running simulated trades, you agree to comply with these rules.
         </p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '1rem', fontStyle: 'italic' }}>
           Last Updated: June 3, 2026
@@ -38,7 +38,7 @@ const Terms = () => {
           <Scale className="text-primary" size={28} /> 1. Binding Agreement & License Scope
         </h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          These Terms of Service ("Terms") represent a binding legal agreement between you as the user and DeepStock Analytics. By creating an account, authenticating a session, or utilizing the stock price screener and LSTM forecasting networks, you acknowledge that you have read, understood, and agreed to be bound by these clauses. If you are accessing this application on behalf of an academic institution, research group, or student body, you represent that you have the authority to accept these guidelines for that group.
+          These Terms of Service ("Terms") represent a binding legal agreement between you as the user and Stock Analysis & AI Prediction Analytics. By creating an account, authenticating a session, or utilizing the stock price screener and LSTM forecasting networks, you acknowledge that you have read, understood, and agreed to be bound by these clauses. If you are accessing this application on behalf of an academic institution, research group, or student body, you represent that you have the authority to accept these guidelines for that group.
         </p>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
           If you do not agree to these terms, you must not create an account or use our forecasting dashboards. We grant you a revocable, non-exclusive, non-transferable license to access our platform for educational, training, and academic research purposes. Commercial distribution of our LSTM output, scraping our endpoints for proprietary algorithms, or reverse engineering our prediction server configurations is strictly prohibited.
@@ -54,7 +54,7 @@ const Terms = () => {
           <Info className="text-purple" size={28} style={{ color: 'var(--accent-purple)' }} /> 2. Nature of the Simulated Paper Exchange
         </h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          DeepStock is an educational time-series forecasting sandbox. The virtual exchange, simulated brokerage balances, and trading charts are gamified systems. Every asset, stock position, rupee balance, and order execution displayed in your dashboard is virtual and holds zero monetary value. We connect with standard public financial APIs to stream historic closing ticks; however, we do not promise real-time execution speeds. Pricing feeds may lag live market data due to API limits or server processing times.
+          Stock Analysis & AI Prediction is an educational time-series forecasting sandbox. The virtual exchange, simulated brokerage balances, and trading charts are gamified systems. Every asset, stock position, rupee balance, and order execution displayed in your dashboard is virtual and holds zero monetary value. We connect with standard public financial APIs to stream historic closing ticks; however, we do not promise real-time execution speeds. Pricing feeds may lag live market data due to API limits or server processing times.
         </p>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
           The digital capital allocated to your profile is simulated and cannot be withdrawn, transferred to bank accounts, or redeemed for physical currency. This environment is designed to help users study historical equity curves, practice basic trade execution strategies, and analyze neural network patterns.
@@ -108,7 +108,7 @@ const Terms = () => {
           <Award className="text-green" size={28} style={{ color: 'var(--success)' }} /> 4. User Conduct & Platform Limitations
         </h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          Users must interact with DeepStock in an ethical manner. Actions that degrade platform performance or interfere with other users' experiences are prohibited. These restrictions include:
+          Users must interact with Stock Analysis & AI Prediction in an ethical manner. Actions that degrade platform performance or interfere with other users' experiences are prohibited. These restrictions include:
         </p>
         <ul style={{ color: 'var(--text-secondary)', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '1.5rem' }}>
           <li>
@@ -138,10 +138,10 @@ const Terms = () => {
           <ShieldAlert className="text-danger" size={28} style={{ color: 'var(--error)' }} /> 5. Exclusion of Liability & Disclaimers
         </h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          <strong>DEEPSTOCK ANALYTICS DOES NOT PROVIDE INVESTMENT ADVICE OR CERTIFIED FINANCIAL PLANNING SERVICES.</strong> The forecasting lines, historical indicators, search results, and portfolio telemetry are provided strictly for educational and training purposes.
+          <strong>Stock Analysis & AI Prediction Analytics DOES NOT PROVIDE INVESTMENT ADVICE OR CERTIFIED FINANCIAL PLANNING SERVICES.</strong> The forecasting lines, historical indicators, search results, and portfolio telemetry are provided strictly for educational and training purposes.
         </p>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          Stock markets involve high risk and volatility. Past performance is not a guarantee of future returns. DeepStock Analytics accepts no liability for financial losses, opportunity costs, or damages resulting from the use of our technical indicators. Users must conduct independent research or consult with a registered investment advisor before committing real capital to the financial markets.
+          Stock markets involve high risk and volatility. Past performance is not a guarantee of future returns. Stock Analysis & AI Prediction Analytics accepts no liability for financial losses, opportunity costs, or damages resulting from the use of our technical indicators. Users must conduct independent research or consult with a registered investment advisor before committing real capital to the financial markets.
         </p>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7' }}>
           Our LSTM model predictions are technical metrics based on past pattern sequences. They should not be interpreted as certified broker recommendations. We do not guarantee the completeness, accuracy, or timeliness of our data feeds.

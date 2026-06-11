@@ -1,6 +1,6 @@
-# DeepStock Analytics - Stock Price Prediction System
+# Stock Analysis & AI Prediction Analytics - Stock Price Prediction System
 
-DeepStock is an AI-powered stock forecasting and high-fidelity paper trading simulation platform built for educational and quantitative finance research.
+Stock Analysis & AI Prediction is an AI-powered stock forecasting and high-fidelity paper trading simulation platform built for educational and quantitative finance research.
 
 ## Core Technology Stack
 - **Frontend Framework**: Vite + React + React Router v6

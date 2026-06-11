@@ -211,7 +211,7 @@ const ForgotPassword = () => {
             <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Account Recovery Security Policy</h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-            DeepStock implements strict identity verification standards to prevent unauthorized account takeovers. To reset your password, you must verify three separate profile parameters: your registered email address, your registered phone number, and your date of birth. Our systems match these values against the encrypted record in our database before allowing a credential override.
+            Stock Analysis & AI Prediction implements strict identity verification standards to prevent unauthorized account takeovers. To reset your password, you must verify three separate profile parameters: your registered email address, your registered phone number, and your date of birth. Our systems match these values against the encrypted record in our database before allowing a credential override.
           </p>
   
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -247,7 +247,7 @@ const ForgotPassword = () => {
               <AlertOctagon size={20} style={{ color: 'var(--error)' }} /> Preventing Account Hijacks & Identity Theft
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5' }}>
-              Phishing and social engineering attacks are primary vectors for account hijacking. Be cautious of unsolicited emails or text messages requesting you to confirm your credentials. DeepStock staff will never contact you asking for your password, API keys, or verification parameters. Always check the URL address bar to ensure you are connecting to https://stockpredict.ai/ before submitting personal information. If you suspect your profile has been accessed unauthorized, please contact support immediately to lock your simulated balance.
+              Phishing and social engineering attacks are primary vectors for account hijacking. Be cautious of unsolicited emails or text messages requesting you to confirm your credentials. Stock Analysis & AI Prediction staff will never contact you asking for your password, API keys, or verification parameters. Always check the URL address bar to ensure you are connecting to https://stockpredict.ai/ before submitting personal information. If you suspect your profile has been accessed unauthorized, please contact support immediately to lock your simulated balance.
             </p>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5', marginTop: '0.5rem' }}>
               If you receive password reset emails that you did not initiate, it indicates someone is attempting to gain access to your credentials. In such cases, we recommend changing your registration email password and checking your active terminal sessions for anomalies.

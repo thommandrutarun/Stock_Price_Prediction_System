@@ -44,7 +44,7 @@ const Login = () => {
       {/* Dynamic SEO Injector */}
       <SEO 
         title="Sign In to Your Account"
-        description="Log in to your secure DeepStock account. Access LSTM forecasting networks, analyze candlestick charts, and manage your virtual simulated portfolios."
+        description="Log in to your secure Stock Analysis & AI Prediction account. Access LSTM forecasting networks, analyze candlestick charts, and manage your virtual simulated portfolios."
         keywords="stock prediction login, trading terminal sign in, secure session, portfolio access, market screener dashboard"
         schema={loginSchema}
       />
@@ -124,7 +124,7 @@ const Login = () => {
             <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Trading Terminal Security Policy</h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-            Protecting your financial data and strategy sequences is our highest priority. The DeepStock platform operates a high-fidelity environment built on institutional-grade security architectures. When logging into your trading dashboard, your connection is fully encrypted using TLS 1.3, which shields your credentials from third-party interception or sniffing. Please read this documentation before entering your password.
+            Protecting your financial data and strategy sequences is our highest priority. The Stock Analysis & AI Prediction platform operates a high-fidelity environment built on institutional-grade security architectures. When logging into your trading dashboard, your connection is fully encrypted using TLS 1.3, which shields your credentials from third-party interception or sniffing. Please read this documentation before entering your password.
           </p>
  
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -252,7 +252,7 @@ const Login = () => {
       <div className="glass-panel" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Terminal Navigation and User Onboarding Checklist</h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: '1.6' }}>
-          Welcome back to the DeepStock ecosystem. If this is your first time checking your dashboard this week, here is an educational breakdown of the core modules you will unlock once you input your email address and password above:
+          Welcome back to the Stock Analysis & AI Prediction ecosystem. If this is your first time checking your dashboard this week, here is an educational breakdown of the core modules you will unlock once you input your email address and password above:
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginTop: '1.5rem' }}>
           <div>

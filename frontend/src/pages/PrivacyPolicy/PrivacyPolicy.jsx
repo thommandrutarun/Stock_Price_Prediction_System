@@ -7,15 +7,15 @@ const PrivacyPolicy = () => {
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "Privacy Policy - Stock Price Prediction System",
-    "description": "Read DeepStock's privacy policy. Learn about our TLS encryption, JWT token management, session storage configuration, and data protection compliance."
+    "description": "Read Stock Analysis & AI Prediction's privacy policy. Learn about our TLS encryption, JWT token management, session storage configuration, and data protection compliance."
   };
 
   return (
     <div className="home-container" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '2rem' }}>
       <SEO 
         title="Privacy Policy & Encryption Standards"
-        description="Learn how DeepStock secures your personal credentials and trading simulation histories. Detailed information on TLS, JWT session structures, and GDPR rights."
-        keywords="privacy policy deepstock, secure JWT storage, TLS 1.3 encryption, right to erasure, data protection simulation"
+        description="Learn how Stock Analysis & AI Prediction secures your personal credentials and trading simulation histories. Detailed information on TLS, JWT session structures, and GDPR rights."
+        keywords="privacy policy Stock Analysis & AI Prediction, secure JWT storage, TLS 1.3 encryption, right to erasure, data protection simulation"
         schema={privacySchema}
       />
 
@@ -25,7 +25,7 @@ const PrivacyPolicy = () => {
           Privacy Policy & Security Standards
         </h1>
         <p className="ds-hero-subtitle-react" style={{ maxWidth: '800px', margin: '0 auto', color: 'var(--text-secondary)' }}>
-          At DeepStock Analytics, we treat privacy and system security as foundational values. This document details our cryptographic policies, data collection limits, token lifecycles, and your privacy rights.
+          At Stock Analysis & AI Prediction Analytics, we treat privacy and system security as foundational values. This document details our cryptographic policies, data collection limits, token lifecycles, and your privacy rights.
         </p>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '1rem', fontStyle: 'italic' }}>
           Last Updated: June 3, 2026
@@ -38,7 +38,7 @@ const PrivacyPolicy = () => {
           <ShieldAlert className="text-primary" size={28} /> 1. Data Protection Overview
         </h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          This Privacy Policy governs the collection, processing, transmission, and storage of user information on the DeepStock Analytics Stock Price Prediction platform. As a simulated virtual exchange and machine learning education interface, we do not handle live bank deposits, credit card payments, or authentic securities transactions. However, because we verify user identities and store simulated portfolios, we maintain security standards equivalent to professional commercial interfaces.
+          This Privacy Policy governs the collection, processing, transmission, and storage of user information on the Stock Analysis & AI Prediction Analytics Stock Price Prediction platform. As a simulated virtual exchange and machine learning education interface, we do not handle live bank deposits, credit card payments, or authentic securities transactions. However, because we verify user identities and store simulated portfolios, we maintain security standards equivalent to professional commercial interfaces.
         </p>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7' }}>
           Our primary security philosophy is one of data minimization. We collect only the information necessary to maintain a secure terminal session, prevent registration spam, and segment our system diagnostic logs. We never sell, lease, or distribute your email addresses, phone records, or virtual trading ledger data to third-party marketing firms or advertising networks. All data is processed using encrypted connections, protecting your inputs against interception.
@@ -88,7 +88,7 @@ const PrivacyPolicy = () => {
           <FileCheck className="text-green" size={28} style={{ color: 'var(--success)' }} /> 4. JSON Web Token (JWT) Lifecycle & Storage Choice
         </h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          DeepStock validates sessions using stateless JSON Web Tokens (JWTs). Once you submit valid credentials, the authorization server issues a signed cryptotoken containing a unique user key and expiration timestamp. This token must accompany every subsequent API request, validating your session limits.
+          Stock Analysis & AI Prediction validates sessions using stateless JSON Web Tokens (JWTs). Once you submit valid credentials, the authorization server issues a signed cryptotoken containing a unique user key and expiration timestamp. This token must accompany every subsequent API request, validating your session limits.
         </p>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
           To prevent Cross-Site Scripting (XSS) extractions, session tokens can be stored in browser sessionStorage. Because sessionStorage is bound to the lifespan of the active tab, it is destroyed the moment the window is closed, preventing session hijacking on shared or public computers.
@@ -104,7 +104,7 @@ const PrivacyPolicy = () => {
           <Network className="text-primary" size={28} style={{ color: 'var(--primary)' }} /> 5. Third-Party Integrations & Data Streams
         </h2>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '1rem' }}>
-          DeepStock streams equity metrics and candlestick historical records from external public financial API providers. When requesting price parameters, we transmit only public stock symbols and lookback interval indices. We never transmit user identifiers, email addresses, or virtual portfolio keys to external API servers.
+          Stock Analysis & AI Prediction streams equity metrics and candlestick historical records from external public financial API providers. When requesting price parameters, we transmit only public stock symbols and lookback interval indices. We never transmit user identifiers, email addresses, or virtual portfolio keys to external API servers.
         </p>
         <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7' }}>
           Our application interface integrates Google Web Fonts and Lucide Icons to provide a premium design. These static resources are served securely, and their providers do not collect profile metadata or credential details from your active dashboard sessions.

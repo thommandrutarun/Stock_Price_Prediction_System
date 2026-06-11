@@ -5,7 +5,7 @@ import { Wallet, TrendingUp, TrendingDown, DollarSign, Calendar, Plus, Trash2, L
 import './Portfolio.css';
 
 const Portfolio = () => {
-  const { user, resetWallet } = useAuth();
+  const { user, resetWallet, updateWalletBalance } = useAuth();
   
   const [portfolioData, setPortfolioData] = useState({
     total_value: 0,
@@ -38,6 +38,9 @@ const Portfolio = () => {
     try {
       const res = await api.get('/reports/portfolio');
       setPortfolioData(res.data);
+      if (res.data && res.data.wallet_balance !== undefined) {
+        updateWalletBalance(res.data.wallet_balance);
+      }
     } catch (err) {
       setErrorMsg(err.message || 'Failed to download user portfolio data');
     } finally {

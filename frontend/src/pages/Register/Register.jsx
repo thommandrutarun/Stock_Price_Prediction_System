@@ -55,7 +55,7 @@ const Register = () => {
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "Register Free Account - Stock Price Prediction System",
-    "description": "Create a free simulated trading account on DeepStock. Screen Indian equities and global stock charts with machine learning forecasts."
+    "description": "Create a free simulated trading account on Stock Analysis & AI Prediction. Screen Indian equities and global stock charts with machine learning forecasts."
   };
 
   return (
@@ -203,7 +203,7 @@ const Register = () => {
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <ShieldCheck size={28} style={{ color: 'var(--success)' }} />
-            <h2 style={{ fontSize: '1.4rem', margin: 0 }}>DeepStock Membership Benefits</h2>
+            <h2 style={{ fontSize: '1.4rem', margin: 0 }}>Stock Analysis & AI Prediction Membership Benefits</h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
             Signing up for the Stock Price Prediction System gives you instant access to institutional-grade technical screening tools and machine learning forecasts. Whether you are an academic researcher, a student, or a retail investor testing trading systems, our platform delivers an interface that visualizes volatility dynamics. Make sure to review these guidelines before submitting the form.
@@ -335,7 +335,7 @@ const Register = () => {
           <div>
             <h3 style={{ fontSize: '1rem', color: 'var(--text-primary)', marginBottom: '6px' }}>Is the registration free?</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              Yes, the DeepStock platform is completely free for education, training, and research. There are no credit card checks or hidden fees. We believe in providing access to quantitative financial systems and artificial intelligence tools for all students and technical analysts.
+              Yes, the Stock Analysis & AI Prediction platform is completely free for education, training, and research. There are no credit card checks or hidden fees. We believe in providing access to quantitative financial systems and artificial intelligence tools for all students and technical analysts.
             </p>
           </div>
           <div>

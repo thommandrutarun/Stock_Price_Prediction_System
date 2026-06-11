@@ -51,7 +51,7 @@ const Contact = () => {
     "description": "Get technical assistance for the AI stock price prediction system and virtual trading terminal.",
     "mainEntity": {
       "@type": "Organization",
-      "name": "DeepStock Analytics Helpdesk",
+      "name": "Stock Analysis & AI Prediction Analytics Helpdesk",
       "email": "support@stockpredict.ai",
       "contactPoint": {
         "@type": "ContactPoint",
@@ -67,7 +67,7 @@ const Contact = () => {
       {/* Dynamic SEO Injector */}
       <SEO 
         title="Contact Technical Support"
-        description="Get in touch with the DeepStock Analytics helpdesk. Access technical guides, report anomalies, check SLAs, and resolve account issues."
+        description="Get in touch with the Stock Analysis & AI Prediction Analytics helpdesk. Access technical guides, report anomalies, check SLAs, and resolve account issues."
         keywords="stock prediction support, trading system helpdesk, account troubleshooting, LSTM model feedback, contact analytics team"
         schema={contactSchema}
       />
@@ -188,7 +188,7 @@ const Contact = () => {
               <Clock size={20} style={{ color: 'var(--primary)' }} /> SLA & Response Guidelines
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-              DeepStock Analytics prioritizes system accessibility and transparency. Our technical operations team reviews all support tickets and bug reports from Monday through Friday, 9:00 AM to 6:00 PM IST. Standard response times are as follows:
+              Stock Analysis & AI Prediction Analytics prioritizes system accessibility and transparency. Our technical operations team reviews all support tickets and bug reports from Monday through Friday, 9:00 AM to 6:00 PM IST. Standard response times are as follows:
             </p>
             <ul style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', paddingLeft: '1.2rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <li><strong>Critical Severity (e.g. system outages, data corruption):</strong> Response within 2 hours.</li>
@@ -317,7 +317,7 @@ const Contact = () => {
               <School size={20} style={{ color: 'var(--accent-purple)' }} /> Academic Partnerships & Collaboration
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-              DeepStock Analytics collaborates with universities, finance labs, and machine learning research groups globally. We provide raw pre-processed historical stock closing datasets (NIFTY 50 and SENSEX) and trained model checkpoint files (.h5 formats) for non-commercial educational purposes. If you are an academic advisor or student working on time-series analysis, write to us with your institutional credentials to request database dump access.
+              Stock Analysis & AI Prediction Analytics collaborates with universities, finance labs, and machine learning research groups globally. We provide raw pre-processed historical stock closing datasets (NIFTY 50 and SENSEX) and trained model checkpoint files (.h5 formats) for non-commercial educational purposes. If you are an academic advisor or student working on time-series analysis, write to us with your institutional credentials to request database dump access.
             </p>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5', marginTop: '0.5rem' }}>
               All partnership data is provided free of charge, subject to an attribution agreement. We support research in time-series forecasting, LSTM network optimizations, and virtual brokerage dynamics.

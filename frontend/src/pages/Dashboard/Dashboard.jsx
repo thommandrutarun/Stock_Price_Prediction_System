@@ -43,7 +43,14 @@ const formatVolume = (vol) => {
 };
 
 const Dashboard = () => {
-  const { user, isAuthenticated, logout, isAdmin } = useAuth();
+  const { user, isAuthenticated, logout, isAdmin, refreshUser } = useAuth();
+  
+  // Refresh user profile details on mount to synchronize balance
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshUser().catch(() => {});
+    }
+  }, [isAuthenticated]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -138,19 +145,17 @@ const Dashboard = () => {
     }
   }, [searchParams]);
 
-  // Load Watchlist from Local Storage
+  // Load Watchlist from Backend Database
   useEffect(() => {
-    const stored = localStorage.getItem('watchlist');
-    if (stored) {
+    const fetchWatchlist = async () => {
       try {
-        const parsed = JSON.parse(stored);
-        setWatchlist(parsed);
+        const res = await api.get('/watchlist');
+        setWatchlist(res.data.watchlist || []);
       } catch (e) {
-        setWatchlist([]);
+        console.error('Failed to load watchlist in dashboard:', e);
       }
-    } else {
-      localStorage.setItem('watchlist', JSON.stringify([]));
-    }
+    };
+    fetchWatchlist();
   }, []);
 
   // Fetch Watchlist detailed pricing information
@@ -310,7 +315,7 @@ const Dashboard = () => {
   };
 
   // Add to Watchlist
-  const handleAddToWatchlist = (e) => {
+  const handleAddToWatchlist = async (e) => {
     e.preventDefault();
     const sym = watchlistInput.toUpperCase().trim();
     if (!sym) return;
@@ -320,18 +325,40 @@ const Dashboard = () => {
       return;
     }
 
-    const updated = [...watchlist, sym];
-    setWatchlist(updated);
-    localStorage.setItem('watchlist', JSON.stringify(updated));
-    setWatchlistInput('');
+    try {
+      const res = await api.post('/watchlist', { symbol: sym });
+      setWatchlist(res.data.watchlist || []);
+      setWatchlistInput('');
+    } catch (err) {
+      console.error('Failed to add to watchlist:', err);
+    }
   };
 
   // Remove from Watchlist
-  const handleRemoveFromWatchlist = (sym, e) => {
+  const handleRemoveFromWatchlist = async (sym, e) => {
     e.stopPropagation();
-    const updated = watchlist.filter((w) => w !== sym);
-    setWatchlist(updated);
-    localStorage.setItem('watchlist', JSON.stringify(updated));
+    try {
+      const res = await api.delete('/watchlist', { data: { symbol: sym } });
+      setWatchlist(res.data.watchlist || []);
+    } catch (err) {
+      console.error('Failed to remove from watchlist:', err);
+    }
+  };
+
+  // Quick add watchlist helper
+  const handleQuickAddWatchlist = async () => {
+    const sym = prompt('Enter Stock Symbol to Add (e.g. RELIANCE.NS, INFY.NS):');
+    if (sym) {
+      const formatted = sym.toUpperCase().trim();
+      if (formatted && !watchlist.includes(formatted)) {
+        try {
+          const res = await api.post('/watchlist', { symbol: formatted });
+          setWatchlist(res.data.watchlist || []);
+        } catch (err) {
+          alert(err.message || 'Failed to add to watchlist');
+        }
+      }
+    }
   };
 
   // Click on Watchlist Item
@@ -511,17 +538,7 @@ const Dashboard = () => {
             <div className="kpi-metric-card glass-panel kpi-watchlist-card">
               <div className="kpi-card-header">
                 <span className="kpi-label">Watchlist Stocks</span>
-                <button onClick={() => {
-                  const sym = prompt('Enter Stock Symbol to Add (e.g. RELIANCE.NS, INFY.NS):');
-                  if (sym) {
-                    const formatted = sym.toUpperCase().trim();
-                    if (formatted && !watchlist.includes(formatted)) {
-                      const updated = [...watchlist, formatted];
-                      setWatchlist(updated);
-                      localStorage.setItem('watchlist', JSON.stringify(updated));
-                    }
-                  }
-                }} className="kpi-watchlist-add-btn" aria-label="Add symbol to watchlist">+ Add</button>
+                <button onClick={handleQuickAddWatchlist} className="kpi-watchlist-add-btn" aria-label="Add symbol to watchlist">+ Add</button>
               </div>
               <ul className="kpi-watchlist-list">
                 {watchlist.length === 0 ? (

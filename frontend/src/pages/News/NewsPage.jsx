@@ -36,7 +36,7 @@ const initialNews = [
     summary: 'Option contract sweeps suggest major institutions are positioning for high volatility ahead of the upcoming developer conference.'
   },
   {
-    title: 'DeepStock AI Releases Optimized LSTM Forecast Layers',
+    title: 'Stock Analysis & AI Prediction AI Releases Optimized LSTM Forecast Layers',
     source: 'AI Analytics',
     time: '12h ago',
     color: '#8b5cf6',

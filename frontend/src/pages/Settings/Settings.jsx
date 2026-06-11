@@ -1,24 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import { User, Wallet, Settings as SettingsIcon, ShieldCheck, Loader2, RefreshCw, Check } from 'lucide-react';
 import './Settings.css';
 
 const SettingsPage = () => {
-  const { user, resetWallet } = useAuth();
+  const { user, resetWallet, refreshUser, updateSettings } = useAuth();
   const [resetting, setResetting] = useState(false);
   const [message, setMessage] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   
   const [profileForm, setProfileForm] = useState({
-    name: user?.name || 'Tarun',
-    email: user?.email || 'tarun@example.com'
+    name: user?.name || '',
+    email: user?.email || ''
   });
 
   const [chartSettings, setChartSettings] = useState({
-    defaultTimeframe: '1mo',
-    defaultChartType: 'candlestick',
-    slippage: '0.05'
+    defaultTimeframe: user?.settings?.defaultTimeframe || '1mo',
+    defaultChartType: user?.settings?.defaultChartType || 'candlestick',
+    slippage: user?.settings?.slippage || '0.05'
   });
+
+  // Sync state if context changes (e.g. background sync completes)
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        email: user.email || ''
+      });
+      setChartSettings({
+        defaultTimeframe: user.settings?.defaultTimeframe || '1mo',
+        defaultChartType: user.settings?.defaultChartType || 'candlestick',
+        slippage: user.settings?.slippage || '0.05'
+      });
+    }
+  }, [user]);
+
+  const handleSettingChange = async (key, value) => {
+    const updated = { ...chartSettings, [key]: value };
+    setChartSettings(updated);
+    try {
+      await updateSettings(updated);
+      setMessage('Display preferences updated successfully.');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+    }
+  };
 
   const handleWalletReset = async () => {
     setResetting(true);
@@ -34,14 +62,25 @@ const SettingsPage = () => {
     }
   };
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setSavingProfile(true);
-    setTimeout(() => {
-      setSavingProfile(false);
+    setMessage('');
+    try {
+      await api.put('/auth/me', {
+        name: profileForm.name,
+        email: profileForm.email
+      });
+      await refreshUser();
       setMessage('Profile settings updated successfully.');
       setTimeout(() => setMessage(''), 4000);
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+      setMessage(err.message || 'Failed to update profile details');
+      setTimeout(() => setMessage(''), 4000);
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   return (
@@ -140,7 +179,7 @@ const SettingsPage = () => {
               id="settings-slippage-select"
               className="form-input"
               value={chartSettings.slippage}
-              onChange={(e) => setChartSettings({ ...chartSettings, slippage: e.target.value })}
+              onChange={(e) => handleSettingChange('slippage', e.target.value)}
               title="Select order slippage"
             >
               <option value="0.00">0.00% (Instant Fill)</option>
@@ -163,7 +202,7 @@ const SettingsPage = () => {
               id="settings-timeframe-select"
               className="form-input"
               value={chartSettings.defaultTimeframe}
-              onChange={(e) => setChartSettings({ ...chartSettings, defaultTimeframe: e.target.value })}
+              onChange={(e) => handleSettingChange('defaultTimeframe', e.target.value)}
               title="Select default chart timeframe"
             >
               <option value="1d">1 Day</option>
@@ -179,7 +218,7 @@ const SettingsPage = () => {
               id="settings-charttype-select"
               className="form-input"
               value={chartSettings.defaultChartType}
-              onChange={(e) => setChartSettings({ ...chartSettings, defaultChartType: e.target.value })}
+              onChange={(e) => handleSettingChange('defaultChartType', e.target.value)}
               title="Select default chart view type"
             >
               <option value="candlestick">Candlestick Bars</option>

@@ -91,6 +91,49 @@ def refresh():
     set_access_cookies(resp, access_token)
     return resp, 200
 
+@auth_bp.route("/me", methods=["GET"])
+@jwt_required()
+def get_me():
+    from backend.app.models.user_model import UserModel
+    try:
+        user_id = int(get_jwt_identity())
+        user = UserModel.get_by_id(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+        return jsonify({"user": user}), 200
+    except Exception as e:
+        return jsonify({"message": f"Server error: {str(e)}"}), 500
+
+@auth_bp.route("/me", methods=["PUT"])
+@jwt_required()
+def update_me():
+    from backend.app.models.user_model import UserModel
+    try:
+        user_id = int(get_jwt_identity())
+        data = request.get_json() or {}
+        name = data.get("name")
+        email = data.get("email")
+        settings = data.get("settings")
+
+        if email:
+            from backend.app.utils.validators import validate_email
+            if not validate_email(email):
+                return jsonify({"message": "Invalid email format"}), 400
+            
+            existing = UserModel.get_by_email(email)
+            if existing and existing["id"] != user_id:
+                return jsonify({"message": "Email already in use"}), 400
+
+        success = UserModel.update_profile(user_id, name=name, email=email, settings=settings)
+        if not success:
+            return jsonify({"message": "Failed to update profile"}), 500
+
+        updated_user = UserModel.get_by_id(user_id)
+        return jsonify({"user": updated_user, "message": "Profile updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"message": f"Server error: {str(e)}"}), 500
+
+
 @auth_bp.route("/forgot-password", methods=["POST"])
 @limiter.limit("5 per minute")
 def forgot_password():
