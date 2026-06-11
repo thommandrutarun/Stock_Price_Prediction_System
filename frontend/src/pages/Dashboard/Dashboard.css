@@ -2444,3 +2444,78 @@ body:has(.dashboard-page-container) .ds-footer-react {
   margin: 0 4px;
 }
 
+/* Profile Dropdown on Hover */
+.header-user-profile-badge {
+  position: relative;
+  cursor: pointer;
+}
+
+.profile-hover-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: var(--db-surface-container);
+  border: 1px solid var(--db-border-glass);
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.header-user-profile-badge:hover .profile-hover-dropdown {
+  display: block;
+}
+
+.profile-dropdown-header {
+  border-bottom: 1px solid var(--db-border-glass);
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.profile-dropdown-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.profile-dropdown-email {
+  font-size: 0.72rem;
+  color: var(--db-text-variant);
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-dropdown-item {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--db-text-variant);
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profile-dropdown-item:hover {
+  background: var(--db-surface-high);
+  color: #fff;
+}
+
+.profile-dropdown-item.logout-btn {
+  color: var(--db-secondary);
+}
+
+.profile-dropdown-item.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+

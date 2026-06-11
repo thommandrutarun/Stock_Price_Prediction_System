@@ -15,6 +15,15 @@ import Terms from './pages/Terms';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
+// Dashboard layout-scoped components
+import DashboardLayout from './layouts/DashboardLayout';
+import Watchlist from './pages/Watchlist/Watchlist';
+import AIPredictions from './pages/AIPredictions/AIPredictions';
+import MarketInsights from './pages/MarketInsights/MarketInsights';
+import NewsPage from './pages/News/NewsPage';
+import SettingsPage from './pages/Settings/Settings';
+import Help from './pages/Help/Help';
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -53,36 +62,58 @@ export const router = createBrowserRouter([
         element: <Terms />,
       },
       {
-        path: 'dashboard',
+        path: '',
         element: (
           <ProtectedRoute>
-            <Dashboard />
+            <DashboardLayout />
           </ProtectedRoute>
         ),
-      },
-      {
-        path: 'trade',
-        element: (
-          <ProtectedRoute>
-            <Trade />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'portfolio',
-        element: (
-          <ProtectedRoute>
-            <Portfolio />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin',
-        element: (
-          <AdminRoute>
-            <Admin />
-          </AdminRoute>
-        ),
+        children: [
+          {
+            path: 'dashboard',
+            element: <Dashboard />,
+          },
+          {
+            path: 'trade',
+            element: <Trade />,
+          },
+          {
+            path: 'portfolio',
+            element: <Portfolio />,
+          },
+          {
+            path: 'watchlist',
+            element: <Watchlist />,
+          },
+          {
+            path: 'predictions',
+            element: <AIPredictions />,
+          },
+          {
+            path: 'insights',
+            element: <MarketInsights />,
+          },
+          {
+            path: 'news',
+            element: <NewsPage />,
+          },
+          {
+            path: 'settings',
+            element: <SettingsPage />,
+          },
+          {
+            path: 'help',
+            element: <Help />,
+          },
+          {
+            path: 'admin',
+            element: (
+              <AdminRoute>
+                <Admin />
+              </AdminRoute>
+            ),
+          },
+        ]
       },
     ],
   },

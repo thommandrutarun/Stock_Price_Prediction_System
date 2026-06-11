@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Shield, Users, Terminal, Mail, BarChart3, Trash2, ArrowUpCircle, ArrowDownCircle, Loader2, Activity, TrendingUp } from 'lucide-react';
+import { Shield, Users, Terminal, Mail, BarChart3, Trash2, ArrowUpCircle, ArrowDownCircle, Loader2, Activity, TrendingUp, Cpu } from 'lucide-react';
 import './Admin.css';
 
 const Admin = () => {
@@ -118,13 +118,12 @@ const Admin = () => {
 
   return (
     <div className="admin-page-container">
-      <header className="admin-top-header">
-        <div className="admin-title-row">
-          <Shield size={28} className="shield-nav-icon" />
-          <h1>Administrative Control Console</h1>
+      <div className="terminal-welcome-row">
+        <div className="welcome-message-panel">
+          <h2>Administrative Control Console</h2>
+          <p>Manage registered accounts, view system audits, telemetry statistics, and support desk messages.</p>
         </div>
-        <p>Manage registered accounts, view system audits statistics, and check support desk messages.</p>
-      </header>
+      </div>
 
       {message && <div className="admin-success-banner">{message}</div>}
       {errorMsg && <div className="admin-error-banner">{errorMsg}</div>}
@@ -161,22 +160,46 @@ const Admin = () => {
         ) : activeTab === 'stats' && stats ? (
           <div className="admin-stats-tab">
             <h3 className="tab-title">System Metrics</h3>
-            <div className="admin-stats-grid">
-              <div className="stat-card glass-panel stat-users">
-                <span className="stat-label">Total Registered Accounts</span>
-                <span className="stat-num">{stats.total_users} Users</span>
+            <div className="terminal-kpi-grid">
+              <div className="kpi-metric-card">
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Total Registered Accounts</span>
+                  <Users size={16} className="kpi-icon-blue" />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{stats.total_users}</span>
+                  <span className="kpi-change-tag pl-profit">Users</span>
+                </div>
               </div>
-              <div className="stat-card glass-panel stat-dau">
-                <span className="stat-label">Watchlisted Tickers</span>
-                <span className="stat-num">{stats.total_stocks_tracked} Positions</span>
+              <div className="kpi-metric-card">
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Watchlisted Tickers</span>
+                  <TrendingUp size={16} className="kpi-icon-green" />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{stats.total_stocks_tracked}</span>
+                  <span className="kpi-change-tag pl-profit">Positions</span>
+                </div>
               </div>
-              <div className="stat-card glass-panel stat-ai">
-                <span className="stat-label">Most Popular Ticker</span>
-                <span className="stat-num">{stats.most_popular_stock || 'N/A'}</span>
+              <div className="kpi-metric-card">
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Most Popular Ticker</span>
+                  <Activity size={16} className="kpi-icon-purple" />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{stats.most_popular_stock || 'N/A'}</span>
+                  <span className="kpi-change-tag accent-purple-badge">Symbol</span>
+                </div>
               </div>
-              <div className="stat-card glass-panel stat-db">
-                <span className="stat-label">Inbound Contact Tickets</span>
-                <span className="stat-num">{stats.total_messages} Messages</span>
+              <div className="kpi-metric-card">
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Inbound Contact Tickets</span>
+                  <Mail size={16} className="kpi-icon-blue" />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{stats.total_messages}</span>
+                  <span className="kpi-change-tag pl-profit">Messages</span>
+                </div>
               </div>
             </div>
           </div>
@@ -331,22 +354,46 @@ const Admin = () => {
           <div className="admin-monitoring-tab">
             <h3 className="tab-title">System Telemetry & Performance Logs</h3>
             
-            <div className="admin-stats-grid">
-              <div className="stat-card glass-panel stat-error">
-                <span className="stat-label">API Error Failures</span>
-                <span className="stat-num">{telemetry.counts.api_error} Faults</span>
+            <div className="terminal-kpi-grid">
+              <div className="kpi-metric-card" style={{ borderLeft: '4px solid var(--error)' }}>
+                <div className="kpi-card-header">
+                  <span className="kpi-label">API Error Failures</span>
+                  <Activity size={16} style={{ color: 'var(--error)' }} />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{telemetry.counts.api_error}</span>
+                  <span className="kpi-change-tag pl-loss">Faults</span>
+                </div>
               </div>
-              <div className="stat-card glass-panel stat-warning">
-                <span className="stat-label">Login Failures</span>
-                <span className="stat-num">{telemetry.counts.login_failure} Blockages</span>
+              <div className="kpi-metric-card" style={{ borderLeft: '4px solid #f59e0b' }}>
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Login Failures</span>
+                  <Users size={16} style={{ color: '#f59e0b' }} />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{telemetry.counts.login_failure}</span>
+                  <span className="kpi-change-tag" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>Blockages</span>
+                </div>
               </div>
-              <div className="stat-card glass-panel stat-db">
-                <span className="stat-label">Database Exceptions</span>
-                <span className="stat-num">{telemetry.counts.database_error} Faults</span>
+              <div className="kpi-metric-card" style={{ borderLeft: '4px solid var(--accent-purple)' }}>
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Database Exceptions</span>
+                  <Terminal size={16} style={{ color: 'var(--accent-purple)' }} />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{telemetry.counts.database_error}</span>
+                  <span className="kpi-change-tag accent-purple-badge">Faults</span>
+                </div>
               </div>
-              <div className="stat-card glass-panel stat-ai">
-                <span className="stat-label">AI Engine Warnings</span>
-                <span className="stat-num">{telemetry.counts.ai_error} Flags</span>
+              <div className="kpi-metric-card" style={{ borderLeft: '4px solid var(--accent-pink)' }}>
+                <div className="kpi-card-header">
+                  <span className="kpi-label">AI Engine Warnings</span>
+                  <Cpu size={16} style={{ color: 'var(--accent-pink)' }} />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{telemetry.counts.ai_error}</span>
+                  <span className="kpi-change-tag" style={{ background: 'rgba(244, 114, 182, 0.1)', color: 'var(--accent-pink)' }}>Flags</span>
+                </div>
               </div>
             </div>
 
@@ -414,14 +461,26 @@ const Admin = () => {
           <div className="admin-analytics-tab">
             <h3 className="tab-title">User Engagement & Platform Analytics</h3>
             
-            <div className="admin-stats-grid">
-              <div className="stat-card glass-panel stat-users">
-                <span className="stat-label">Total User Accounts</span>
-                <span className="stat-num">{analytics.total_users} Users</span>
+            <div className="terminal-kpi-grid">
+              <div className="kpi-metric-card" style={{ borderLeft: '4px solid var(--primary)' }}>
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Total User Accounts</span>
+                  <Users size={16} style={{ color: 'var(--primary)' }} />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{analytics.total_users}</span>
+                  <span className="kpi-change-tag pl-profit">Users</span>
+                </div>
               </div>
-              <div className="stat-card glass-panel stat-dau">
-                <span className="stat-label">Daily Active Users (DAU)</span>
-                <span className="stat-num">{analytics.dau_today} Active</span>
+              <div className="kpi-metric-card" style={{ borderLeft: '4px solid var(--accent-pink)' }}>
+                <div className="kpi-card-header">
+                  <span className="kpi-label">Daily Active Users (DAU)</span>
+                  <Activity size={16} style={{ color: 'var(--accent-pink)' }} />
+                </div>
+                <div className="kpi-value-row">
+                  <span className="kpi-main-value">{analytics.dau_today}</span>
+                  <span className="kpi-change-tag" style={{ background: 'rgba(244, 114, 182, 0.1)', color: 'var(--accent-pink)' }}>Active</span>
+                </div>
               </div>
             </div>
 

@@ -134,58 +134,85 @@ const Portfolio = () => {
   const isOverallProfit = overallPL >= 0;
 
   return (
-    <div className="portfolio-page-container">
-      <header className="portfolio-top-header">
-        <h1>My Virtual Portfolio</h1>
-        <p>Track simulated capital growth, manage current positions, and monitor virtual trades returns.</p>
+    <div className="portfolio-page-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <header className="page-section-header">
+        <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#fff', margin: 0 }}>My Virtual Portfolio</h1>
+        <p style={{ color: 'var(--db-text-variant)', fontSize: '0.88rem', margin: '4px 0 0' }}>
+          Track simulated capital growth, manage current positions, and monitor virtual trades returns.
+        </p>
       </header>
 
-      {message && <div className="portfolio-success-banner">{message}</div>}
-      {errorMsg && <div className="portfolio-error-banner">{errorMsg}</div>}
+      {message && <div className="kpi-change-tag pl-profit accent-blue-badge" style={{ padding: '8px 12px', borderRadius: '8px' }}>{message}</div>}
+      {errorMsg && <div className="kpi-change-tag pl-loss accent-red-badge" style={{ padding: '8px 12px', borderRadius: '8px' }}>{errorMsg}</div>}
 
       {/* METRICS GRID */}
-      <section className="portfolio-metrics-grid">
-        <div className="metric-card glass-panel">
-          <div className="metric-header">
-            <span className="metric-label">Current Value</span>
-            <DollarSign size={20} className="metric-icon val-icon" />
+      <section className="terminal-kpi-grid">
+        {/* Card 1: Current Value */}
+        <div className="kpi-metric-card glass-panel">
+          <div className="kpi-card-header">
+            <span className="kpi-label">Current Value</span>
+            <div className="kpi-icon-wrap kpi-bg-cyan">
+              <DollarSign size={18} />
+            </div>
           </div>
-          <span className="metric-value">${portfolioData.total_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <div className="kpi-value-row">
+            <span className="kpi-main-value">
+              ${portfolioData.total_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
 
-        <div className="metric-card glass-panel">
-          <div className="metric-header">
-            <span className="metric-label">Invested Capital</span>
-            <DollarSign size={20} className="metric-icon inv-icon" />
+        {/* Card 2: Invested Capital */}
+        <div className="kpi-metric-card glass-panel">
+          <div className="kpi-card-header">
+            <span className="kpi-label">Invested Capital</span>
+            <div className="kpi-icon-wrap kpi-bg-purple">
+              <DollarSign size={18} />
+            </div>
           </div>
-          <span className="metric-value">${portfolioData.total_invested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <div className="kpi-value-row">
+            <span className="kpi-main-value">
+              ${portfolioData.total_invested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
 
-        <div className="metric-card glass-panel">
-          <div className="metric-header">
-            <span className="metric-label">Overall Profit / Loss</span>
-            {isOverallProfit ? <TrendingUp size={20} className="metric-icon pl-profit" /> : <TrendingDown size={20} className="metric-icon pl-loss" />}
+        {/* Card 3: Overall Profit / Loss */}
+        <div className="kpi-metric-card glass-panel">
+          <div className="kpi-card-header">
+            <span className="kpi-label">Overall Profit / Loss</span>
+            <div className={`kpi-icon-wrap ${isOverallProfit ? 'kpi-bg-green' : 'kpi-bg-red'}`} style={{ backgroundColor: isOverallProfit ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)' }}>
+              {isOverallProfit ? <TrendingUp size={18} style={{ color: 'var(--db-primary)' }} /> : <TrendingDown size={18} style={{ color: 'var(--db-secondary)' }} />}
+            </div>
           </div>
-          <span className={`metric-value ${isOverallProfit ? 'pl-profit' : 'pl-loss'}`}>
-            {isOverallProfit ? '+' : ''}${overallPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
+          <div className="kpi-value-row">
+            <span className="kpi-main-value" style={{ color: isOverallProfit ? 'var(--db-primary)' : 'var(--db-secondary)' }}>
+              {isOverallProfit ? '+' : ''}${overallPL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
 
-        <div className="metric-card glass-panel wallet-card-metric">
-          <div className="metric-header">
-            <span className="metric-label">Virtual Wallet (USD)</span>
-            <Wallet size={20} className="metric-icon wal-icon-metric" />
+        {/* Card 4: Virtual Wallet */}
+        <div className="kpi-metric-card glass-panel">
+          <div className="kpi-card-header">
+            <span className="kpi-label">Virtual Wallet (USD)</span>
+            <div className="kpi-icon-wrap kpi-bg-blue">
+              <Wallet size={18} />
+            </div>
           </div>
-          <div className="wallet-funds-row">
-            <span className="metric-value">${portfolioData.wallet_balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <div className="kpi-value-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span className="kpi-main-value">
+              ${portfolioData.wallet_balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
             <button 
               onClick={handleWalletReset} 
-              className="btn btn-outline reset-wallet-btn-metric"
+              className="kpi-watchlist-add-btn"
               disabled={resetting}
               title="Reset Wallet Balance to $100,000.00"
               aria-label="Reset virtual wallet balance"
+              style={{ padding: '4px 10px', fontSize: '0.75rem', fontWeight: '700', borderRadius: '6px' }}
             >
-              {resetting ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+              {resetting ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />} Reset
             </button>
           </div>
         </div>

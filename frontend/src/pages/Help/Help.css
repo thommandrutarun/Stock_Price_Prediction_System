@@ -1,0 +1,11 @@
+/* Help Page CSS styles */
+.help-page-content {
+  padding: 0 0.5rem;
+}
+.help-grid-layout {
+  margin-top: 0.5rem;
+}
+.help-page-content .form-group input,
+.help-page-content .form-group textarea {
+  max-width: 100%;
+}

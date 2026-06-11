@@ -1,0 +1,11 @@
+/* Settings Page CSS styles */
+.settings-page-content {
+  padding: 0 0.5rem;
+}
+.settings-grid-layout {
+  margin-top: 0.5rem;
+}
+.settings-grid-layout .form-group input,
+.settings-grid-layout .form-group select {
+  max-width: 100%;
+}

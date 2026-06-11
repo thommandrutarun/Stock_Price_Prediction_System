@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Loader2, ArrowRightLeft, FileText, ArrowUpRight, ArrowDownRight } from 'lucide-react';
@@ -6,6 +7,7 @@ import './Trade.css';
 
 const Trade = () => {
   const { user, updateWalletBalance } = useAuth();
+  const [searchParams] = useSearchParams();
   
   const [symbol, setSymbol] = useState('TCS.NS');
   const [quote, setQuote] = useState(null);
@@ -23,11 +25,17 @@ const Trade = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [txLogExpanded, setTxLogExpanded] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
 
-  // Initial load
+  // Sync Search Query from global search
   useEffect(() => {
-    fetchQuote(symbol);
+    const symQuery = searchParams.get('search');
+    if (symQuery) {
+      setSymbol(symQuery.toUpperCase());
+      fetchQuote(symQuery.toUpperCase());
+    } else {
+      fetchQuote(symbol);
+    }
     loadTransactions();
-  }, []);
+  }, [searchParams]);
 
   const fetchQuote = async (sym = symbol) => {
     if (!sym) return;
@@ -123,14 +131,16 @@ const Trade = () => {
   const isSufficientShares = tradeMode === 'BUY' || holdings >= qtyNum;
 
   return (
-    <div className="trade-page-container">
-      <header className="trade-top-header">
-        <h1>Simulated Trading Floor</h1>
-        <p>Execute instant virtual transactions with real-time currency conversions and market quotes.</p>
+    <div className="trade-page-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <header className="page-section-header">
+        <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#fff', margin: 0 }}>Simulated Trading Floor</h1>
+        <p style={{ color: 'var(--db-text-variant)', fontSize: '0.88rem', margin: '4px 0 0' }}>
+          Execute instant virtual transactions with real-time currency conversions and market quotes.
+        </p>
       </header>
 
-      {message && <div className="trade-success-banner">{message}</div>}
-      {errorMsg && <div className="trade-error-banner">{errorMsg}</div>}
+      {message && <div className="kpi-change-tag pl-profit accent-blue-badge" style={{ padding: '8px 12px', borderRadius: '8px' }}>{message}</div>}
+      {errorMsg && <div className="kpi-change-tag pl-loss accent-red-badge" style={{ padding: '8px 12px', borderRadius: '8px' }}>{errorMsg}</div>}
 
       <div className="trade-grid-layout">
         
